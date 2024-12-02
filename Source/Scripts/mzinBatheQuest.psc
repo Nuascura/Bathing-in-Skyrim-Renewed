@@ -1,10 +1,15 @@
 ScriptName mzinBatheQuest Extends Quest
 { this script handles some functions needed by other scripts }
 
-import mzinWaterUtil
+mzinInit Property Init Auto
+mzinBatheMCMMenu Property Menu Auto
+mzinInterfaceSexlab Property SexlabInt Auto
+mzinOverlayUtility Property Util Auto
 
 GlobalVariable Property BathingInSkyrimEnabled Auto
 GlobalVariable Property WaterRestrictionEnabled Auto
+GlobalVariable Property GetSoapyStyle Auto
+GlobalVariable Property GetSoapyStyleFollowers Auto
 
 GlobalVariable Property BatheKeyCode Auto
 GlobalVariable Property ShowerKeyCode Auto
@@ -14,27 +19,27 @@ GlobalVariable Property DirtinessPercentage Auto
 
 FormList Property WashPropList Auto
 FormList Property SoapBonusSpellList Auto
-FormList Property BatheAttemptSpellList Auto
 
 FormList Property DirtinessSpellList Auto
 FormList Property DirtinessThresholdList Auto
 
-FormList Property WaterList Auto
+FormList Property WaterList Auto ; unused since we are depending on po3 water detection. Check if this list can be removed
 FormList Property WaterfallList Auto
 
 FormList Property SoapBonusMessageList Auto
 
 Keyword Property SoapKeyword Auto
 
-Spell Property DefaultBatheAttemptSpell Auto
-
 Spell Property PlayBatheAnimationWithSoap Auto
 Spell Property PlayBatheAnimationWithoutSoap Auto
 Spell Property PlayShowerAnimationWithSoap Auto
 Spell Property PlayShowerAnimationWithoutSoap Auto
+Spell Property SoapyAppearanceSpell Auto
+Spell Property SoapyAppearanceAnimatedSpell Auto
 
 FormList Property GetDirtyOverTimeSpellList Auto
 
+Message Property BathingNeedsWaterMessage Auto
 Message Property BathingWithSoapMessage Auto
 Message Property BathingWithoutSoapMessage Auto
 Message Property ShoweringWithSoapMessage Auto
@@ -43,128 +48,238 @@ Message Property ShoweringWithoutSoapMessage Auto
 Message Property ShoweringNeedsWaterMessage Auto
 Message Property DirtinessStatusMessage Auto
 
-Bool DawnguardSupportAdded
-Bool DragonbornSupportAdded
-Bool FalskaarSupportAdded
-Bool RealisticWaterTwoSupportAdded
+Actor Property PlayerRef Auto
 
-Event OnInit()
-	RegisterHotKeys()
+Quest Property mzinGawkers Auto
+
+Function RegForEvents()
+	RegisterForModEvent("BiS_WashActor", "OnBiS_WashActor")
+EndFunction
+
+Event OnBiS_WashActor(Form akActor, Bool Animate = false, Bool FullClean = false, Bool DoSoap = false)
+	;Debug.Messagebox("Receive event")
+	If akActor as Actor
+		BatheActor(akActor as Actor, None, Animate, FullClean, DoSoap)
+	Else
+		Debug.Trace("Mzin: OnBiS_WashActor(): Received invalid actor: " + akActor)
+	EndIf
 EndEvent
-Event OnReset()
-	UpdateDangerousWater()
-EndEvent
+
 Event OnKeyDown(Int KeyCode)
-	If Utility.IsInMenuMode() || BathingInSkyrimEnabled.GetValue() As Bool == False
+	If Utility.IsInMenuMode() || !(BathingInSkyrimEnabled.GetValue() As Bool)
 		Return
 	EndIf
 	
 	If KeyCode == CheckStatusKeyCode.GetValueInt()
 		DirtinessStatusMessage.Show(DirtinessPercentage.GetValue() * 100)
 	ElseIf KeyCode == BatheKeyCode.GetValueInt()
-		TryBatheActor(Game.GetPlayer(), None)
+		TryBatheActor(PlayerRef, None)
 	ElseIf KeyCode == ShowerKeyCode.GetValueInt()
-		If TryShowerActor(Game.GetPlayer(), None) == False
-			ShoweringNeedsWaterMessage.Show()
-		EndIf
+		TryShowerActor(PlayerRef, None)
 	Endif
 EndEvent
 
 Function RegisterHotKeys()
-	RegisterForKey(BatheKeyCode.GetValueInt())
-	RegisterForKey(ShowerKeyCode.GetValueInt())
-	RegisterForKey(CheckStatusKeyCode.GetValueInt())
+	If BatheKeyCode.GetValueInt() != 0
+		RegisterForKey(BatheKeyCode.GetValueInt())
+	EndIf
+	If ShowerKeyCode.GetValueInt() != 0
+		RegisterForKey(ShowerKeyCode.GetValueInt())
+	EndIf
+	If CheckStatusKeyCode.GetValueInt() != 0
+		RegisterForKey(CheckStatusKeyCode.GetValueInt())
+	EndIf
 EndFunction
+
 Function UnRegisterHotKeys()
 	UnregisterForKey(BatheKeyCode.GetValueInt())
 	UnregisterForKey(ShowerKeyCode.GetValueInt())
 	UnregisterForKey(CheckStatusKeyCode.GetValueInt())
 EndFunction
 
+Bool Function IsInCommmonRestriction(Actor DirtyActor)
+	if IsDeviceBlocked(DirtyActor) || !IsPermitted(DirtyActor) || IsTooShy(DirtyActor) || DirtyActor.IsSwimming() ;|| IsAnimating(DirtyActor)
+		; if IsDeviceBlocked(DirtyActor)
+		; 	Debug.Notification("IsDeviceBlocked")
+		; endIf
+		; if !IsPermitted(DirtyActor)
+		; 	Debug.Notification("!IsPermitted")
+		; endIf
+		; if IsTooShy(DirtyActor)
+		; 	Debug.Notification("IsTooShy")
+		; endIf
+		; if DirtyActor.IsSwimming()
+		; 	Debug.Notification("IsSwimming")
+		; endIf
+		; Debug.Notification("IsInCommmonRestriction")
+		return true
+	endIf
+	return false
+EndFunction
+
 Function TryBatheActor(Actor DirtyActor, MiscObject WashProp)
-	Spell BatheAttemptSpell = DefaultBatheAttemptSpell
+	;Debug.Messagebox("TryBatheActor: DirtyActor" + DirtyActor + "\nWashProp: " +WashProp )
+	UnRegisterHotKeys()
 	If WashProp == None
 		WashProp = TryFindWashProp(DirtyActor)
 	EndIf
-	If WashProp
-		BatheAttemptSpell = BatheAttemptSpellList.GetAt(GetWashPropIndex(WashProp)) As Spell
-	EndIf
-	DirtyActor.AddSpell(BatheAttemptSpell, False)
-	Utility.Wait(1)
-	DirtyActor.RemoveSpell(BatheAttemptSpell)
-EndFunction
-Bool Function TryShowerActor(Actor DirtyActor, MiscObject WashProp)
-	Bool Result = False
-
-	If WashProp == None
-		WashProp = TryFindWashProp(DirtyActor)
-	EndIf
-
-	If WaterRestrictionEnabled.GetValue() As Bool == False || IsUnderWaterfall(DirtyActor)
-		ShowerActor(DirtyActor, WashProp)
-		Result = True
-	EndIf
-
-	Return Result
-EndFunction
-Function BatheActor(Actor DirtyActor, MiscObject WashProp)
-	Bool DirtyActorIsPlayer = (DirtyActor == Game.GetPlayer())
-
-	DirtyActor.ClearExtraArrows()
-	
-	RemoveSpells(DirtyActor, SoapBonusSpellList)
-	RemoveSpells(DirtyActor, DirtinessSpellList)
-	RemoveSpells(DirtyActor, BatheAttemptSpellList)
-	RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-
-	Utility.Wait(1)
-
-	If WashProp && WashProp.HasKeyWord(SoapKeyword)
-		ApplySoapBonus(DirtyActor, WashProp)
-		DirtyActor.RemoveItem(WashProp, 1, True, None)
-		DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
-		DirtyActor.AddSpell(PlayBatheAnimationWithSoap, False)
-		If DirtyActorIsPlayer
-			BathingWithSoapMessage.Show()
-		EndIf
+	If (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor))
+		if !IsInCommmonRestriction(DirtyActor)
+			BatheActor(DirtyActor, WashProp)
+		endIf
 	Else
-		DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
-		DirtyActor.AddSpell(PlayBatheAnimationWithoutSoap, False)	
-		If DirtyActorIsPlayer
-			BathingWithoutSoapMessage.Show()
-		EndIf
+		BathingNeedsWaterMessage.Show()
 	EndIf
+	RegisterHotKeys()
 EndFunction
-Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
-	Bool DirtyActorIsPlayer = (DirtyActor == Game.GetPlayer())
 
+Function TryShowerActor(Actor DirtyActor, MiscObject WashProp)
+	UnRegisterHotKeys()
+	If WashProp == None
+		WashProp = TryFindWashProp(DirtyActor)
+	EndIf
+	If (!(WaterRestrictionEnabled.GetValue() As Bool) || IsUnderWaterfall(DirtyActor))
+		if !IsInCommmonRestriction(DirtyActor)
+			ShowerActor(DirtyActor, WashProp)
+		endIf
+	Else
+		ShoweringNeedsWaterMessage.Show()
+	EndIf
+	RegisterHotKeys()
+EndFunction
+
+Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, Bool FullClean = false, Bool DoSoap = false)
+	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
+	Bool UsedSoap = false
 	DirtyActor.ClearExtraArrows()
+	If DirtyActorIsPlayer
+		mzinInterfaceFrostfall.MakeWet(1000.0)
+		mzinInterfacePaf.ClearPafDirt(DirtyActor)
+	EndIf
 
-	RemoveSpells(DirtyActor, SoapBonusSpellList)
-	RemoveSpells(DirtyActor, DirtinessSpellList)
-	RemoveSpells(DirtyActor, BatheAttemptSpellList)
-	RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
+	if Animate
+		If WashProp && WashProp.HasKeyWord(SoapKeyword)
+			UsedSoap = true
+			;ApplySoapBonus(DirtyActor, WashProp)
+			DirtyActor.RemoveItem(WashProp, 1, True, None)
+			DirtyActor.AddSpell(PlayBatheAnimationWithSoap, False)
+			If DirtyActorIsPlayer
+				BathingWithSoapMessage.Show()
+			EndIf
+		
+		Else
+			DirtyActor.AddSpell(PlayBatheAnimationWithoutSoap, False)	
+			If DirtyActorIsPlayer
+				BathingWithoutSoapMessage.Show()
+			EndIf
+		EndIf
+	else
+		If DoSoap
+			GetSoapy(DirtyActor)
+		EndIf
+		If FullClean
+			UsedSoap = true
+		EndIf
+	endIf
+	If Init.IsSexlabInstalled
+		;Debug.Notification("Clear Cum")
+		SexlabInt.SlClearCum(DirtyActor)
+	EndIf
+	
+	SendCleanDirtEvent(DirtyActor, UsedSoap)
+	
+	Utility.Wait(Menu.TimeToClean + 3.0 + 0.5) ; 3.0 = Wait time before dirt begins fading. See OnBiS_CleanActorDirt in mzinGetDirtyOverTime. + 0.5 = margin
 
-	Utility.Wait(0.1)
+	if !Animate
+		If DoSoap
+			GetUnsoapy(DirtyActor)
+		EndIf
+	endIf
+
+	if UsedSoap || !DirtyActor.HasSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell)
+		RemoveSpells(DirtyActor, SoapBonusSpellList)
+		RemoveSpells(DirtyActor, DirtinessSpellList)
+		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
+		;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", Utility.GetCurrentGameTime())
+		Utility.Wait(1.0)
+		
+		If UsedSoap
+			ApplySoapBonus(DirtyActor, WashProp)
+			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
+			If DirtyActor != PlayerRef
+				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", 0.0)
+			EndIf
+		Else
+			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
+			If DirtyActor != PlayerRef
+				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
+			EndIf
+		EndIf
+	endIf
+
+	;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+	Util.SendBatheModEvent(DirtyActor as Form)
+EndFunction
+
+Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
+	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
+	Bool UsedSoap = false
+	DirtyActor.ClearExtraArrows()
+	If DirtyActorIsPlayer
+		mzinInterfaceFrostfall.MakeWet(1000.0)
+		mzinInterfacePaf.ClearPafDirt(DirtyActor)
+	EndIf
 
 	If WashProp && WashProp.HasKeyWord(SoapKeyword)
-		ApplySoapBonus(DirtyActor, WashProp)
+		UsedSoap = true
+		;ApplySoapBonus(DirtyActor, WashProp)
 		DirtyActor.RemoveItem(WashProp, 1, True, None)
-		DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
+		;DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
 		DirtyActor.AddSpell(PlayShowerAnimationWithSoap, False)
 		If DirtyActorIsPlayer
 			ShoweringWithSoapMessage.Show()
 		EndIf
 	Else
-		DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
+		;DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
 		DirtyActor.AddSpell(PlayShowerAnimationWithoutSoap, False)
 		If DirtyActorIsPlayer
 			ShoweringWithoutSoapMessage.Show()
 		EndIf
 	EndIf
-EndFunction
+	If Init.IsSexlabInstalled
+		SexlabInt.SlClearCum(DirtyActor)
+	EndIf
+	
+	SendCleanDirtEvent(DirtyActor, UsedSoap)
 
-Function SetDirtPercentage(Actor BathingActor, Float NewDirtPercentage)
+	Utility.Wait(Menu.TimeToClean + 3.0 + 0.5)
+
+	if UsedSoap || !DirtyActor.HasSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell)
+		RemoveSpells(DirtyActor, SoapBonusSpellList)
+		RemoveSpells(DirtyActor, DirtinessSpellList)
+		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
+		;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", Utility.GetCurrentGameTime())
+		Utility.Wait(1.0)
+		
+		If UsedSoap
+			ApplySoapBonus(DirtyActor, WashProp)
+			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
+			If DirtyActor != PlayerRef
+				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", 0.0)
+			EndIf
+		Else
+			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
+			If DirtyActor != PlayerRef
+				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
+			EndIf
+		EndIf
+	endIf
+
+	;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+	Util.SendBatheModEvent(DirtyActor as Form)
+	mzinInterfaceFadeTats.FadeTats(DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 EndFunction
 
 Function ApplySoapBonus(Actor DirtyActor, MiscObject WashProp)
@@ -172,7 +287,7 @@ Function ApplySoapBonus(Actor DirtyActor, MiscObject WashProp)
 		Int Index = GetWashPropIndex(WashProp)
 		Spell SoapBonusSpell = SoapBonusSpellList.GetAt(Index) As Spell
 		DirtyActor.AddSpell(SoapBonusSpell, False)
-		If DirtyActor == Game.GetPlayer()
+		If DirtyActor == PlayerRef
 			(SoapBonusMessageList.GetAt(Index) As Message).Show()
 		EndIf
 	EndIf
@@ -213,85 +328,198 @@ Int Function GetWashPropIndex(MiscObject Soap)
 EndFunction
 
 Bool Function IsUnderWaterfall(Actor DirtyActor)
-	If Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 128.0)
+	; If Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 128.0)				; Hazarduss
+		; Return True																					; Hazarduss
+	; EndIf																								; Hazarduss
+	
+	; ===================================== HAZARDUSS - Start edit ==============================================
+; HAZARDUSS - 2021/09: Extending the range of waterfall detection.  
+; This is necessary because the shower code does not always trigger when standing at the bottom of a waterfall.
+; This is likely because certain water static objects in 'WaterfallList' do not extend across the full height of the actual waterfall.
+; So we need to make sure that if the character is standing at any height (Z position) at or below the water static object, they should be able to shower.
+
+	; ObjectReference closestWaterfall = Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 12800.0)	
+	ObjectReference closestWaterfall = Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 3000.0)	
+	
+	; If Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 1280.0)	
+	If closestWaterfall
+
+		debug.trace("player_Z() = " + DirtyActor.GetPositionZ() + "     Waterfall_Z = " + closestWaterfall.GetPositionZ() + "  diff_Z = " + (DirtyActor.GetPositionZ() - closestWaterfall.GetPositionZ()) as float)
+		; debug.notification("player_Z() = " + DirtyActor.GetPositionZ() + "     Waterfall_Z = " + closestWaterfall.GetPositionZ() + "  diff_Z = " + (DirtyActor.GetPositionZ() - closestWaterfall.GetPositionZ()) as float)
+		debug.trace("player_X() = " + DirtyActor.GetPositionX() + "     Waterfall_X() = " + closestWaterfall.GetPositionX() + "  diff_X = " + (DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) as float)
+		; debug.notification("player_X() = " + DirtyActor.GetPositionX() + "     Waterfall_X() = " + closestWaterfall.GetPositionX() + "  diff_X = " + (DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) as float)
+		debug.trace("player_Y() = " + DirtyActor.GetPositionY() + "     Waterfall_Y() = " + closestWaterfall.GetPositionY() + "  diff_Y = " + (DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) as float)
+		; debug.notification("player_Y() = " + DirtyActor.GetPositionY() + "     Waterfall_Y() = " + closestWaterfall.GetPositionY() + "  diff_Y = " + (DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) as float)
+
+
+		; PC can shower when standing within 2 character lengths of the waterfall (256 units), and at any height below it.
+		if (DirtyActor.GetPositionZ() <= closestWaterfall.GetPositionZ() + 1280.0) \
+		&& (math.abs(DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) <= 500.0) \
+		&& (math.abs(DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) <= 500.0)
+			debug.trace("IsUnderWaterfall = true")
+			; debug.notification("IsUnderWaterfall = true")
 		Return True
+		else
+			debug.notification("A waterfall detected nearby")
+			debug.trace("A waterfall detected nearby")
+			
+		EndIf
+	Else
+		debug.notification("There is no waterfall to shower under")
+		debug.trace("There is no waterfall to shower under")
 	EndIf
+	; 
+	; ===================================== HAZARDUSS - End edit ==============================================
+
+	; debug.notification("IsUnderWaterfall = False")
+	; debug.trace("IsUnderWaterfall = False")
+	; debug.messagebox("IsUnderWaterfall = False")
 
 	Return False
 EndFunction
 
-Function UpdateDangerousWater()
-	; try to support water from mods
-	TryAddDawnguardSupport()
-	TryAddDragonbornSupport()
-	TryAddFalskaarSupport()
-	TryAddRealisticWaterTwoSupport()
-
-	; process the water list
-	Int Index = WaterList.GetSize()
-	Bool Dangerous = WaterRestrictionEnabled.GetValue() As Bool
-	While Index
-		Index -= 1
-		Form WaterForm = WaterList.GetAt(Index)
-		If WaterForm != None
-			mzinWaterUtil.SetDangerousWater(WaterForm, Dangerous)
+Bool Function IsDeviceBlocked(Actor akTarget)
+	If Init.IsDdsInstalled
+		If akTarget.WornHasKeyword(Init.zad_DeviousHeavyBondage)
+			Debug.Notification("You can't wash yourself with your hands tied")
+			Return True
+		ElseIf akTarget.WornHasKeyword(Init.zad_DeviousSuit)
+			Debug.Notification("You can't wash yourself while wearing this suit")
+			Return True
+		Else
+			Return False
 		EndIf
-	EndWhile
-EndFunction
-Function AddWaterToList(Form WaterForm)
-	If WaterForm != None && WaterList.HasForm(WaterForm) == False
-		WaterList.AddForm(WaterForm)
+	Else
+		Return False
 	EndIf
 EndFunction
 
-; mod support
-Function TryAddDawnguardSupport()
-	If DawnguardSupportAdded == False && Game.GetModByName("Dawnguard.esm") != 255
-		AddWaterToList(Game.GetFormFromFile(0x001C18, "Dawnguard.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x002932, "Dawnguard.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x006AEB, "Dawnguard.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x006AFD, "Dawnguard.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x00C7C2, "Dawnguard.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x00CE71, "Dawnguard.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x00CE72, "Dawnguard.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x019C98, "Dawnguard.esm"))
-		Debug.Notification("Bathing in Skyrim - Dawnguard Support Added")
-		DawnguardSupportAdded = True
+;/
+Bool Function IsAnimating(Actor akTarget)
+	return SexlabInt.SlIsActorActive(akTarget)
+EndFunction
+/;
+
+Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
+	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt")
+    If (BiS_CleanActorDirtEvent)
+		ModEvent.PushForm(BiS_CleanActorDirtEvent, akTarget)
+		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToClean)
+		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToCleanInterval)
+		ModEvent.PushBool(BiS_CleanActorDirtEvent, UsedSoap)
+        ModEvent.Send(BiS_CleanActorDirtEvent)
+    EndIf
+EndFunction
+
+Bool Function IsPermitted(Actor akTarget)
+	Int Index = StorageUtil.FormListFind(none, "BiS_ForbiddenActors", akTarget)
+	If Index != -1
+		Int ForbiddenCount = StorageUtil.StringListCount(akTarget, "BiS_ForbiddenString") - 1
+		String ForbiddenString = StorageUtil.StringListGet(akTarget, "BiS_ForbiddenString", ForbiddenCount)
+		If ForbiddenString != ""
+			Debug.Notification(ForbiddenString)
+		Else
+			Debug.Trace("Mzin: IsPermitted: Blank string retrieved for index " + ForbiddenCount + " on actor " + akTarget)
+		EndIf
+		
+		; Send forbidden bathe attempt modevent
+		Int ForbiddenBatheAttempt = ModEvent.Create("BiS_ForbiddenBatheAttempt")
+		If (ForbiddenBatheAttempt)
+			ModEvent.PushForm(ForbiddenBatheAttempt, akTarget)
+			ModEvent.Send(ForbiddenBatheAttempt)
+		EndIf
+		;StartAnimationSequence("mzinBatheA1_S1_Cloth", "mzinBatheA1_S2_Cloth_DONE")
+		Debug.SendAnimationEvent(akTarget, "IdleWarmHandsCrouched")
+		Utility.Wait(2.0)
+		Debug.SendAnimationEvent(akTarget, "IdleStop")
+		Return False
+	Else
+		Return True
 	EndIf
 EndFunction
-Function TryAddDragonbornSupport()
-	If DragonbornSupportAdded == False && Game.GetModByName("Dragonborn.esm") != 255
-		AddWaterToList(Game.GetFormFromFile(0x0173B6, "Dragonborn.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x01DFF1, "Dragonborn.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x028644, "Dragonborn.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x02ADEC, "Dragonborn.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x03731A, "Dragonborn.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x03805D, "Dragonborn.esm"))
-		Debug.Notification("Bathing in Skyrim - Dragonborn Support Added")
-		DragonbornSupportAdded = True
+
+Bool Function IsTooShy(Actor akTarget)
+	If Menu.Shyness
+		If Game.GetModByName("SexLabAroused.esm") != 255
+			Faction ExhibitionistFact = Game.GetFormFromFile(0x0713DA, "SexLabAroused.esm") as Faction
+			If ExhibitionistFact != None
+				If akTarget.GetFactionRank(ExhibitionistFact) >= 0
+					Return False
+				EndIf
+			EndIf
+		EndIf
+		
+		mzinGawkers.Stop()
+		mzinGawkers.Start()
+		Utility.Wait(0.1)
+
+		Actor Gawker
+		Int i = 0 
+		While i < mzinGawkers.GetNumAliases()
+			Gawker = (mzinGawkers.GetNthAlias(i) as ReferenceAlias).GetReference() as Actor
+			If Gawker != None && Gawker != akTarget
+				If !IsGawkerSlave(Gawker)
+					If Gawker.HasLOS(PlayerRef)
+						DoShyMessage(akTarget, Gawker)
+						Return True
+					EndIf
+					If !akTarget.IsInInterior()
+						If akTarget.GetDistance(Gawker) < Menu.ShyDistance
+							DoShyMessage(akTarget, Gawker)
+							Return True
+						EndIf
+					EndIf
+				EndIf
+			EndIf
+			i += 1
+		EndWhile
+		Return False
+	
+	Else
+		Return False
 	EndIf
 EndFunction
-Function TryAddFalskaarSupport()
-	If FalskaarSupportAdded == False && Game.GetModByName("Falskaar.esm") != 255
-		AddWaterToList(Game.GetFormFromFile(0x052A0F, "Falskaar.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x0B5AB4, "Falskaar.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x0B5AB5, "Falskaar.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x0B5AB6, "Falskaar.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x0B5AB7, "Falskaar.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x0B7DA2, "Falskaar.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x11960F, "Falskaar.esm"))
-		AddWaterToList(Game.GetFormFromFile(0x17B736, "Falskaar.esm"))
-		Debug.Notification("Bathing in Skyrim - Falskaar Support Added")
-		FalskaarSupportAdded = True
+
+Function DoShyMessage(Actor akTarget, Actor Gawker)
+	If akTarget == PlayerRef
+		Debug.Notification("No way am I bathing in front of " + Gawker.GetBaseObject().GetName())
+	Else
+		Debug.Notification(akTarget.GetBaseObject().GetName() + ": You're joking right? I'm not bathing in front of " + Gawker.GetBaseObject().GetName())
 	EndIf
 EndFunction
-Function TryAddRealisticWaterTwoSupport()
-	If RealisticWaterTwoSupportAdded == False && Game.GetModByName("RealisticWaterTwo.esp") != 255
-		AddWaterToList(Game.GetFormFromFile(0x002DAE, "RealisticWaterTwo.esp"))
-		AddWaterToList(Game.GetFormFromFile(0x0048D3, "RealisticWaterTwo.esp"))
-		AddWaterToList(Game.GetFormFromFile(0x015BE8, "RealisticWaterTwo.esp"))
-		AddWaterToList(Game.GetFormFromFile(0x02088C, "RealisticWaterTwo.esp"))
-		Debug.Notification("Bathing in Skyrim - Realistic Water Two Support Added")
-		RealisticWaterTwoSupportAdded = True
+
+Bool Function IsGawkerSlave(Actor Gawker)
+	If Init.IsZazInstalled
+		If Gawker.IsInFaction(Init.ZazSlaveFaction)
+			Return True
+		Else
+			Return False
+		EndIf
+	Else
+		Return False
+	EndIf
+EndFunction
+
+Function GetSoapy(Actor akActor)
+	If akActor == PlayerRef
+		If GetSoapyStyle.GetValue() == 1
+			akActor.AddSpell(SoapyAppearanceSpell, False)
+		ElseIf GetSoapyStyle.GetValue() == 2
+			akActor.AddSpell(SoapyAppearanceAnimatedSpell, False)
+		EndIf
+	Else
+		If GetSoapyStyleFollowers.GetValue() == 1
+			akActor.AddSpell(SoapyAppearanceSpell, False)
+		ElseIf GetSoapyStyleFollowers.GetValue() == 2
+			akActor.AddSpell(SoapyAppearanceAnimatedSpell, False)
+		EndIf
+	EndIf
+EndFunction
+
+Function GetUnsoapy(Actor akActor)
+	If akActor.HasSpell(SoapyAppearanceSpell)
+		akActor.RemoveSpell(SoapyAppearanceSpell)
+	ElseIf akActor.HasSpell(SoapyAppearanceAnimatedSpell)
+		akActor.RemoveSpell(SoapyAppearanceAnimatedSpell)
 	EndIf
 EndFunction

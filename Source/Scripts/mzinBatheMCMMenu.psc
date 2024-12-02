@@ -1,13 +1,56 @@
 ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 { this script displays the MCM menu for mod configuration }
 
+; Modified
+mzinTextureUtility Property TexUtil Auto
+mzinOverlayUtility Property Util Auto
+mzinInit Property Init Auto
+
+Formlist Property mzinDirtyActorsList Auto
+
+Int OverlayApplyAtOID_S
+Int StartingAlphaOID_S
+Int TexSetCountOID_T
+Int RedetectDirtSetsOID_T
+Int OverlayProgressOID_T
+Int DirtinessPerSexOID_S
+Int VictimMultOID_S
+Int RemoveAllOverlaysOID_T
+Int PapSetSaveOID_T
+Int PapSetLoadOID_T
+Int FadeTatsFadeTimeOID_S
+Int FadeTatsSoapMultOID_S
+Int SexIntervalDirtOID_S
+Int SexIntervalOID_S
+Int FadeDirtSexToggleID
+Int TimeToCleanOID_S
+Int TimeToCleanIntervalOID_S
+Int ShynessToggleID
+Int ShyDistanceOID_S
+Int UnForbidOID_T
+
+Bool IsConfigOpen = false
+Float Property FadeTatsFadeTime = 8.0 Auto Hidden
+Float Property FadeTatsSoapMult = 2.0 Auto Hidden
+Float Property DirtinessPerSexActor = 0.04 Auto Hidden
+Float Property VictimMult = 2.5 Auto Hidden
+Float Property OverlayApplyAt = 0.40 Auto Hidden
+Float Property StartingAlpha = 0.15 Auto Hidden
+Bool Property FadeDirtSex = true Auto Hidden
+Float Property SexIntervalDirt = 35.0 Auto Hidden
+Float Property SexInterval = 1.0 Auto Hidden
+Float Property TimeToClean = 10.0 Auto Hidden
+Float Property TimeToCleanInterval = 0.25 Auto Hidden
+Bool Property Shyness = True Auto Hidden
+Int Property ShyDistance = 2800 Auto Hidden
+
+;  Modified
+
+
 Int Property BathingInSkyrimVersion = 11 AutoReadOnly
 
-; libraries
-import FISSFactory
-
 ; references
-Actor Property Player Auto
+Actor Property PlayerRef Auto
 
 Spell Property GetDirtyOverTimeReactivatorCloakSpell Auto
 FormList Property GetDirtyOverTimeSpellList Auto
@@ -60,10 +103,6 @@ FormList Property SoapBonusSpellList Auto
 LeveledItem Property LeveledItemListGeneral Auto
 LeveledItem Property LeveledItemListInnkeeper Auto
 
-; deprecated
-FormList Property LegacySpellList Auto
-GlobalVariable Property BathingAnimationEnabled Auto
-
 ; local variables
 String[] BathingAnimationStyleArray
 String[] ShoweringAnimationStyleArray
@@ -81,6 +120,10 @@ Int Function GetVersion()
 	Return BathingInSkyrimVersion
 EndFunction
 
+Event OnConfigOpen()
+	IsConfigOpen = true
+EndEvent
+
 ; initialize events
 Event OnConfigInit()
 	; pages
@@ -91,18 +134,16 @@ Event OnConfigInit()
 	Pages[3] = "$BIS_PAGE_TRACKED_ACTORS"
 	
 	; bathing animation styles
-	BathingAnimationStyleArray = new String[5]
+	BathingAnimationStyleArray = new String[3]
 	BathingAnimationStyleArray[0] = "$BIS_L_BATHING_ANIM_STYLE_NONE"
 	BathingAnimationStyleArray[1] = "$BIS_L_BATHING_ANIM_STYLE_DEFAULT"
-	BathingAnimationStyleArray[2] = "$BIS_L_BATHING_ANIM_STYLE_CUSTOM1"
-	BathingAnimationStyleArray[3] = "$BIS_L_BATHING_ANIM_STYLE_CUSTOM2"
-	BathingAnimationStyleArray[4] = "$BIS_L_BATHING_ANIM_STYLE_CUSTOM3"
+	BathingAnimationStyleArray[2] = "$BIS_L_BATHING_ANIM_STYLE_CUSTOM"
 
 	; showering animation styles
 	ShoweringAnimationStyleArray = new String[3]
 	ShoweringAnimationStyleArray[0] = "$BIS_L_SHOWERING_ANIM_STYLE_NONE"
 	ShoweringAnimationStyleArray[1] = "$BIS_L_SHOWERING_ANIM_STYLE_DEFAULT"
-	ShoweringAnimationStyleArray[2] = "$BIS_L_SHOWERING_ANIM_STYLE_CUSTOM1"
+	ShoweringAnimationStyleArray[2] = "$BIS_L_SHOWERING_ANIM_STYLE_CUSTOM"
 
 	; soap effect styles
 	GetSoapyStyleArray = new String[3]
@@ -121,81 +162,6 @@ Event OnConfigInit()
 EndEvent
 Event OnVersionUpdate(Int Version)
 	OnConfigInit()
-
-	; 1.02
-	If Version >= 2 && CurrentVersion < 2
-		Debug.Trace(Self + ": Updating Bathing in Skyrim to version 1.02")
-		; n/a
-		Debug.Trace(Self + ": Update complete")
-	EndIf
-	
-	; 1.03
-	If Version >= 3 && CurrentVersion < 3
-		Debug.Trace(Self + ": Updating Bathing in Skyrim to version 1.03")
-		
-		RemoveSpells(Game.GetPlayer(), LegacySpellList)
-		
-		DisableBathingInSkyrim()
-		EnableBathingInSkyrim()
-		
-		AddSoapToVendors()
-		
-		Debug.Trace(Self + ": Update complete")
-	EndIf
-	
-	; 1.04
-	If Version >= 4 && CurrentVersion < 4
-		Debug.Trace(Self + ": Updating Bathing in Skyrim to version 1.04")
-		; n/a
-		Debug.Trace(Self + ": Update complete")
-	EndIf
-
-	; 1.05
-	If Version >= 5 && CurrentVersion < 5
-		Debug.Trace(Self + ": Updating Bathing in Skyrim to version 1.05")
-		
-		Bool WasEnabled = BathingInSkyrimEnabled.GetValue() As Bool		
-
-		CheckStatusQuest.UnregisterHotKeys()
-		CheckStatusQuest.Stop()
-		
-		DisableBathingInSkyrim()
-		If WasEnabled
-			Utility.WaitMenuMode(0.1)
-			EnableBathingInSkyrim()
-		EndIf
-
-		Debug.Trace(Self + ": Update complete")
-	EndIf
-
-	; 1.10
-	If Version >= 10 && CurrentVersion < 10
-		Debug.Trace(Self + ": Updating Bathing in Skyrim to version 1.10")
-
-		Int Index = 0
-		While Index != DirtyActors.GetSize()
-			Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
-			RemoveSpells(DirtyActor, LegacySpellList)
-		EndWhile
-
-		Bool WasEnabled = BathingInSkyrimEnabled.GetValue() As Bool
-		DisableBathingInSkyrim()
-		If WasEnabled
-			Utility.WaitMenuMode(0.1)
-			EnableBathingInSkyrim()
-		EndIf
-
-		BatheQuest.UpdateDangerousWater()
-
-		Debug.Trace(Self + ": Update complete")
-	EndIf
-
-	; 1.11
-	If Version >= 11 && CurrentVersion < 11
-		Debug.Trace(Self + ": Updating Bathing in Skyrim to version 1.11")
-		BatheQuest.UpdateDangerousWater()
-		Debug.Trace(Self + ": Update complete")
-	EndIf
 EndEvent
 Event OnPageReset(String Page)
 	If Page == ""
@@ -211,137 +177,8 @@ Event OnPageReset(String Page)
 	EndIf		
 EndEvent
 Event OnConfigClose()
+	IsConfigOpen = false
 EndEvent
-
-; fiss functions
-Function SaveSettings()
-	FISSInterface FISS = FISSFactory.GetFISS()
-	If FISS == None
-		ShowMessage("$BIS_ERROR_NO_FISS")
-		Return
-	EndIf
-
-	If ShowMessage("$BIS_MSG_ASK_SAVE", True) == False
-		Return
-	EndIf
-
-	FISS.BeginSave("Bathing in Skyrim.xml", "Bathing in Skyrim")
-
-	FISS.SaveInt("BathingInSkyrimEnabled", BathingInSkyrimEnabled.GetValue() As Int)
-	FISS.SaveInt("DialogTopicEnabled", DialogTopicEnabled.GetValue() As Int)
-	FISS.SaveInt("WaterRestrictionEnabled", WaterRestrictionEnabled.GetValue() As Int)
-
-	FISS.SaveInt("GetSoapyStyle", GetSoapyStyle.GetValue() As Int)
-	FISS.SaveInt("GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValue() As Int)
-
-	FISS.SaveInt("CheckStatusKeyCode", CheckStatusKeyCode.GetValue() As Int)
-	FISS.SaveInt("BatheKeyCode", BatheKeyCode.GetValue() As Int)
-	FISS.SaveInt("ShowerKeyCode", ShowerKeyCode.GetValue() As Int)
-
-	FISS.SaveInt("BathingAnimationStyle", BathingAnimationStyle.GetValue() As Int)
-	FISS.SaveInt("BathingAnimationStyleFollowers", BathingAnimationStyleFollowers.GetValue() As Int)
-	FISS.SaveInt("ShoweringAnimationStyle", ShoweringAnimationStyle.GetValue() As Int)
-	FISS.SaveInt("ShoweringAnimationStyleFollowers", ShoweringAnimationStyleFollowers.GetValue() As Int)
-
-	FISS.SaveInt("GetDressedAfterBathingEnabled", GetDressedAfterBathingEnabled.GetValue() As Int)
-	FISS.SaveInt("GetDressedAfterBathingEnabledFollowers", GetDressedAfterBathingEnabledFollowers.GetValue() As Int)
-	FISS.SaveInt("BathingIgnoredArmorSlotsMask", BathingIgnoredArmorSlotsMask.GetValue() As Int)
-	FISS.SaveInt("BathingIgnoredArmorSlotsMaskFollowers", BathingIgnoredArmorSlotsMaskFollowers.GetValue() As Int)
-
-	FISS.SaveFloat("DirtinessUpdateInterval", DirtinessUpdateInterval.GetValue() As Float)
-	FISS.SaveFloat("DirtinessPercentage", DirtinessPercentage.GetValue() As Float)
-	FISS.SaveFloat("DirtinessPerHourSettlement", DirtinessPerHourSettlement.GetValue() As Float)
-	FISS.SaveFloat("DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue() As Float)
-	FISS.SaveFloat("DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue() As Float)
-
-	FISS.SaveFloat("DirtinessThreshold0", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue() As Float)
-	FISS.SaveFloat("DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() As Float)
-	FISS.SaveFloat("DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() As Float)
-
-	FISS.SaveInt("BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue() As Int)
-	FISS.SaveInt("BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue() As Int)
-	FISS.SaveInt("BathingAnimationLoopCount2", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValue() As Int)
-	FISS.SaveInt("BathingAnimationLoopCount3", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue() As Int)
-
-	FISS.SaveInt("BathingAnimationLoopCountFollowers0", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValue() As Int)
-	FISS.SaveInt("BathingAnimationLoopCountFollowers1", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValue() As Int)
-	FISS.SaveInt("BathingAnimationLoopCountFollowers2", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValue() As Int)
-	FISS.SaveInt("BathingAnimationLoopCountFollowers3", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue() As Int)
-
-	String Result = FISS.EndSave()
-
-	If Result != ""
-		Debug.Trace(Result)
-	EndIf
-
-	ShowMessage("$BIS_MSG_COMPLETED_SAVE", False)
-	ForcePageReset()
-EndFunction
-Function LoadSettings()
-	FISSInterface FISS = FISSFactory.GetFISS()
-	If FISS == None
-		ShowMessage("$BIS_ERROR_NO_FISS")
-		Return
-	EndIf
-
-	If ShowMessage("$BIS_MSG_ASK_LOAD", True) == False
-		Return
-	EndIf
-
-	FISS.BeginLoad("Bathing in Skyrim.xml")
-
-	BathingInSkyrimEnabled.SetValue(FISS.LoadInt("BathingInSkyrimEnabled"))
-	DialogTopicEnabled.SetValue(FISS.LoadInt("DialogTopicEnabled"))
-	WaterRestrictionEnabled.SetValue(FISS.LoadInt("WaterRestrictionEnabled"))
-
-	GetSoapyStyle.SetValue(FISS.LoadInt("GetSoapyStyle"))
-	GetSoapyStyleFollowers.SetValue(FISS.LoadInt("GetSoapyStyleFollowers"))
-
-	CheckStatusKeyCode.SetValue(FISS.LoadInt("CheckStatusKeyCode"))
-	BatheKeyCode.SetValue(FISS.LoadInt("BatheKeyCode"))
-	ShowerKeyCode.SetValue(FISS.LoadInt("ShowerKeyCode"))
-
-	BathingAnimationStyle.SetValue(FISS.LoadInt("BathingAnimationStyle"))
-	BathingAnimationStyleFollowers.SetValue(FISS.LoadInt("BathingAnimationStyleFollowers"))
-	ShoweringAnimationStyle.SetValue(FISS.LoadInt("ShoweringAnimationStyle"))
-	ShoweringAnimationStyleFollowers.SetValue(FISS.LoadInt("ShoweringAnimationStyleFollowers"))
-
-	GetDressedAfterBathingEnabled.SetValue(FISS.LoadInt("GetDressedAfterBathingEnabled"))
-	GetDressedAfterBathingEnabledFollowers.SetValue(FISS.LoadInt("GetDressedAfterBathingEnabledFollowers"))
-	BathingIgnoredArmorSlotsMask.SetValue(FISS.LoadInt("BathingIgnoredArmorSlotsMask"))
-	BathingIgnoredArmorSlotsMaskFollowers.SetValue(FISS.LoadInt("BathingIgnoredArmorSlotsMaskFollowers"))
-
-	DirtinessUpdateInterval.SetValue(FISS.LoadFloat("DirtinessUpdateInterval"))
-	DirtinessPercentage.SetValue(FISS.LoadFloat("DirtinessPercentage"))
-	DirtinessPerHourSettlement.SetValue(FISS.LoadFloat("DirtinessPerHourSettlement"))
-	DirtinessPerHourDungeon.SetValue(FISS.LoadFloat("DirtinessPerHourDungeon"))
-	DirtinessPerHourWilderness.SetValue(FISS.LoadFloat("DirtinessPerHourWilderness"))
-
-	(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(FISS.LoadFloat("DirtinessThreshold0"))
-	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(FISS.LoadFloat("DirtinessThreshold1"))
-	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(FISS.LoadFloat("DirtinessThreshold2"))
-
-	(BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).SetValue(FISS.LoadInt("BathingAnimationLoopCount0"))
-	(BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).SetValue(FISS.LoadInt("BathingAnimationLoopCount1"))
-	(BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).SetValue(FISS.LoadInt("BathingAnimationLoopCount2"))
-	(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValue(FISS.LoadInt("BathingAnimationLoopCount3"))
-
-	(BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).SetValue(FISS.LoadInt("BathingAnimationLoopCountFollowers0"))
-	(BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).SetValue(FISS.LoadInt("BathingAnimationLoopCountFollowers1"))
-	(BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).SetValue(FISS.LoadInt("BathingAnimationLoopCountFollowers2"))
-	(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValue(FISS.LoadInt("BathingAnimationLoopCountFollowers3"))
-
-	String Result = FISS.EndLoad()
-
-	If Result != ""
-		Debug.Trace(Result)
-	EndIf
-
-	BatheQuest.UpdateDangerousWater()
-
-	ShowMessage("$BIS_MSG_COMPLETED_LOAD", False)
-	ForcePageReset()
-EndFunction
 
 ; display pages
 Function DisplaySplashPage()
@@ -461,10 +298,6 @@ Function DisplayAnimationsPageFollowers()
 	UndressArmorSlotToggleIDsFollowers[31] = AddToggleOption("$BIS_L_SLOT_61", UndressArmorSlotArrayFollowers[31])
 EndFunction
 Function DisplaySettingsPage()
-	Int SaveLoadOptionFlag = OPTION_FLAG_NONE
-	If FISSFactory.GetFISS() == None
-		SaveLoadOptionFlag = OPTION_FLAG_DISABLED
-	EndIf
 
 	UnloadCustomContent()
 	
@@ -480,13 +313,24 @@ Function DisplaySettingsPage()
 	BatheKeyMapID = AddKeyMapOption("$BIS_L_BATHE_HOTKEY", BatheKeyCode.GetValue() As Int)
 	ShowerKeyMapID = AddKeyMapOption("$BIS_L_SHOWER_HOTKEY", ShowerKeyCode.GetValue() As Int)
 	AddHeaderOption("$BIS_HEADER_SAVELOAD")
-	If FISSFactory.GetFISS()
-		SaveSettingsID = AddTextOption("$BIS_L_SAVE_SETTINGS", "$BIS_L_SAVE", SaveLoadOptionFlag)
-		LoadSettingsID = AddTextOption("$BIS_L_LOAD_SETTINGS", "$BIS_L_LOAD", SaveLoadOptionFlag)
-	Else
-		AddTextOption("$BIS_ERROR_NO_FISS", "", OPTION_FLAG_DISABLED)
-	EndIf
+	PapSetSaveOID_T = AddTextOption("$BIS_L_SAVE_SETTINGS", "$BIS_L_SAVE")
+	PapSetLoadOID_T = AddTextOption("$BIS_L_LOAD_SETTINGS", "$BIS_L_LOAD")
 
+	If Game.GetModByName("FadeTattoos.esp") != 255
+		AddHeaderOption("Fade Tattoos")
+		FadeTatsFadeTimeOID_S = AddSliderOption("Advance Tattoo Age By: ", FadeTatsFadeTime, DisplayFormatDecimal)
+		FadeTatsSoapMultOID_S = AddSliderOption("Soap Mult: ", FadeTatsSoapMult, DisplayFormatDecimal)
+	EndIf
+	
+	If FadeDirtSex
+		SetCursorPosition(36)
+		AddHeaderOption("Dirt Gained Per Tick With")
+		AddTextOption("One Npc, Not Victim: " + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "% ", "")
+		AddTextOption("One Npc, Is Victim: " + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "% ", "")
+		AddTextOption("One Creature, Not Victim: " + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "% ", "")
+		AddTextOption("One Creature, Is Victim: " + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "% ", "")
+	EndIf
+	
 	SetCursorPosition(1)
 
 	AddHeaderOption("$BIS_HEADER_DIRT_RATE")
@@ -497,6 +341,40 @@ Function DisplaySettingsPage()
 	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	
+	SetCursorPosition(19)
+	AddHeaderOption("Overlays ")
+	OverlayProgressOID_T = AddTextOption("", "")
+	OverlayApplyAtOID_S = AddSliderOption("Begin Applying Dirt At: ", OverlayApplyAt * 100.0, DisplayFormatPercentage + " Dirtiness")
+	StartingAlphaOID_S = AddSliderOption("Starting Opacity: ", StartingAlpha * 100.0, DisplayFormatPercentage)
+	TimeToCleanOID_S = AddSliderOption("Time To Clean: ", TimeToClean, DisplayFormatDecimal)
+	TimeToCleanIntervalOID_S = AddSliderOption("Time To Clean Interval: ", TimeToCleanInterval, DisplayFormatDecimal)
+	TexSetCountOID_T = AddTextOption("Dirt Texture Sets Detected: " + TexUtil.DirtSetCount, "")
+	RedetectDirtSetsOID_T = AddTextOption("Redetect Sets ", "")
+	RemoveAllOverlaysOID_T = AddTextOption("Remove All Dirt Overlays", "")
+	
+	If Init.IsSexlabInstalled
+		AddHeaderOption("Sex ")
+		DirtinessPerSexOID_S = AddSliderOption("Dirt Per Actor On Sex: ", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
+		VictimMultOID_S = AddSliderOption("Victim Dirt Mult: ", VictimMult, DisplayFormatDecimal)
+		FadeDirtSexToggleID = AddToggleOption("Fade Dirt During Sex", FadeDirtSex)
+		
+		If FadeDirtSex
+			SexIntervalDirtOID_S = AddSliderOption("Dirt Gain Per Interval Modifier: ", SexIntervalDirt, DisplayFormatDecimal)
+			SexIntervalOID_S = AddSliderOption("Interval: ", SexInterval, DisplayFormatDecimal)
+		Else
+			SexIntervalDirtOID_S = AddSliderOption("Dirt Gain Per Interval Modifier: ", SexIntervalDirt, DisplayFormatDecimal, OPTION_FLAG_DISABLED)
+			SexIntervalOID_S = AddSliderOption("Interval: ", SexInterval, DisplayFormatDecimal, OPTION_FLAG_DISABLED)
+		EndIf
+	EndIf
+
+	AddHeaderOption("Misc ")
+	ShynessToggleID = AddToggleOption("Enable/Disable Shyness", Shyness)
+	ShyDistanceOID_S = AddSliderOption("Shyness Distance: ", ShyDistance, DisplayFormatDecimal)
+	
+	AddHeaderOption("Debug ")
+	UnForbidOID_T = AddTextOption("Unforbid All", "")
+	
 EndFunction
 Function DisplayTrackedActorsPage()
 	Int TrackedActorsCount = DirtyActors.GetSize()
@@ -631,17 +509,21 @@ EndFunction
 Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	; toggles
 	If OptionID == BathingInSkyrimEnableToggleID
-		BathingInSkyrimEnabled.SetValue(1)
+		BathingInSkyrimEnabled.SetValue(0)
 		SetToggleOptionValue(OptionID, BathingInSkyrimEnabled.GetValue() As Bool)
-		EnableBathingInSkyrim()
+		DisableBathingInSkyrim()
 	ElseIf OptionID == DialogTopicEnableToggleID
 		DialogTopicEnabled.SetValue(1)
 		SetToggleOptionValue(OptionID, DialogTopicEnabled.GetValue() As Bool)
 	ElseIf OptionID == WaterRestrictionEnableToggleID
 		WaterRestrictionEnabled.SetValue(1)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
-		BatheQuest.UpdateDangerousWater()
-	
+	ElseIf OptionID == FadeDirtSexToggleID
+		FadeDirtSex = true
+		SetToggleOptionValue(OptionID, FadeDirtSex)
+	ElseIf OptionID == ShynessToggleID
+		Shyness = true
+		SetToggleOptionValue(OptionID, Shyness)
 	; sliders
 	ElseIf OptionID == UpdateIntervalSliderID
 		DirtinessUpdateInterval.SetValue(1.0)
@@ -663,7 +545,14 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(0.98)
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)			
+		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)	
+
+	ElseIf OptionID == SexIntervalDirtOID_S
+		SexIntervalDirt = 35.0
+		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)
+	ElseIf OptionID == SexIntervalOID_S
+		SexIntervalDirt = 1.0
+		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)	
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultTrackedActorsPage(Int OptionID)
@@ -738,9 +627,9 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_BATHE_HOTKEY")
 	ElseIf OptionID == ShowerKeyMapID
 		SetInfoText("$BIS_DESC_SHOWER_HOTKEY")
-	ElseIf OptionID == SaveSettingsID
+	ElseIf OptionID == PapSetSaveOID_T
 		SetInfoText("$BIS_DESC_SAVE_SETTINGS")
-	ElseIf OptionID == LoadSettingsID
+	ElseIf OptionID == PapSetLoadOID_T
 		SetInfoText("$BIS_DESC_LOAD_SETTINGS")
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
 		SetInfoText("$BIS_DESC_RATE_IN_SETTLEMENT")
@@ -754,6 +643,47 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_THRESHOLD_2")
 	ElseIf OptionId == DirtinessThresholdTier3SliderID
 		SetInfoText("$BIS_DESC_THRESHOLD_3")
+		
+	ElseIf OptionId == OverlayProgressOID_T
+		SetInfoText("Operation progress will be displayed here")
+	ElseIf OptionId == OverlayApplyAtOID_S
+		SetInfoText("Begin applying the dirt overlay at this dirtiness\nThis allows you to more gradually fade in dirt before the mod will actually consider you dirty\nObviously this slider should be set lower or equal to 'Dirty At' slider\nIf set equal to the 'Dirty At' slider there won't be any fade in prior to the mod considering you as dirty\nAlso, if you set this to less than 'Not Dirty At' your character will still have trace dirt on them after bathing if soap wasn't used")
+	ElseIf OptionId == StartingAlphaOID_S
+		SetInfoText("An offset for the starting value of the alpha (transparency) of the dirt texture\nThe actual alpha applied = (Starting Alpha + ((Current Dirtiness)pow^3)\nIf the dirt looks to harsh/light starting out try adjusting this\nDefault: 5%")
+	ElseIf OptionId == DirtinessPerSexOID_S
+		SetInfoText("How much dirtiness is gained from sex\nThe dirtiness gained is increased for each actor in the scene - So 3p/4p scene will make you 2/3 times more dirty\nScenes with actors in 'CreatureFaction' will double this amount.")
+	ElseIf OptionId == VictimMultOID_S
+		SetInfoText("If the character is a victim in an animation then the dirtiness added is multiplied by this value")
+	ElseIf OptionId == TexSetCountOID_T
+		SetInfoText("How many texture sets were detected")
+	ElseIf OptionId == RedetectDirtSetsOID_T
+		SetInfoText("Run this to update texture sets\nUse this if you add/remove a texture set\nIf you are removing a set you should Remove All Overlays first!")
+	ElseIf OptionId == RemoveAllOverlaysOID_T
+		SetInfoText("Remove all dirt overlays from all affected characters including the player character")
+	ElseIf OptionId == PapSetSaveOID_T
+		SetInfoText("Save your settings to file /SKSE/Plugins/StorageUtilData/BathingInSkyrim/Settings.json")
+	ElseIf OptionId == PapSetLoadOID_T
+		SetInfoText("Load your settings from file /SKSE/Plugins/StorageUtilData/BathingInSkyrim/Settings.json")
+	ElseIf OptionId == FadeTatsFadeTimeOID_S
+		SetInfoText("The number of hours to reduce the duration of a Fade Tattoo when bathing")
+	ElseIf OptionId == FadeTatsSoapMultOID_S
+		SetInfoText("Bathing with soap will multiply the number of hours a tattoo is reduced by this")
+	ElseIf OptionId == FadeDirtSexToggleID
+		SetInfoText("Fade in dirt during sex rather than dumping it on the actor at the end\nLooks better but comes at the cost of extra processing\nIf disabled dirt will be 'dumped' on the actor at sex end")
+	ElseIf OptionId == SexIntervalDirtOID_S
+		SetInfoText("Determines how much of the dirt calculated from 'Dirt Per Actor' & being a victim is applied to the actor per tick\nThis is an inverted slider so INCREASING the slider DECREASES the amount of dirt gained per tick and vice versa")
+	ElseIf OptionId == SexIntervalOID_S
+		SetInfoText("How often to calculate the dirt added to an actor during sex\nLower values look better but are more intensive")
+	ElseIf OptionId == TimeToCleanOID_S
+		SetInfoText("How how it takes to clean an actor\nSet this based on how long it takes your animation of choice to complete")
+	ElseIf OptionId == TimeToCleanIntervalOID_S
+		SetInfoText("How often the dirt opacity is updated when bathing\nLower values = smoother removal but higher processing cost")
+	ElseIf OptionId == ShynessToggleID
+		SetInfoText("Actors won't be inclined to strip off and begin bathing with other Npcs looking at them\nIn interior cells only LOS matters. Outside both LOS and distance to nearby Npcs is a factor")
+	ElseIf OptionId == ShyDistanceOID_S
+		SetInfoText("Distance in Skyrim 'Units' an actor needs to be from the nearest Npc before they will consider bathing")
+	ElseIf OptionId == UnForbidOID_T
+		SetInfoText("Unforbid all actors from bathing\nUse this if you're blocked from bathing but think you shouldn't be")
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
@@ -835,25 +765,45 @@ Function HandleOnOptionSelectAnimationsPageFollowers(Int OptionID)
 EndFunction
 Function HandleOnOptionSelectSettingsPage(Int OptionID)
 	If OptionID == BathingInSkyrimEnableToggleID
-		If BathingInSkyrimEnabled.GetValue() As Bool == True && ShowMessage("$BIS_MSG_ASK_DISABLE", True) == True
-			BathingInSkyrimEnabled.SetValue(False As Int)
+		If BathingInSkyrimEnabled.GetValue() As Bool && ShowMessage("$BIS_MSG_ASK_DISABLE", True) == True
 			DisableBathingInSkyrim()
+			SetToggleOptionValue(OptionID, false)
 		Else
-			BathingInSkyrimEnabled.SetValue(True As Int)
+			ShowMessage("$BIS_MSG_ASK_ENABLE", false)
+			SetToggleOptionValue(OptionID, true)
 			EnableBathingInSkyrim()
 		EndIf
-		SetToggleOptionValue(OptionID, BathingInSkyrimEnabled.GetValue() As Bool)
 	ElseIf OptionID == DialogTopicEnableToggleID
 		DialogTopicEnabled.SetValue((!DialogTopicEnabled.GetValue() As Bool) As Int)
 		SetToggleOptionValue(OptionID, DialogTopicEnabled.GetValue() As Bool)
 	ElseIf OptionID == WaterRestrictionEnableToggleID
 		WaterRestrictionEnabled.SetValue((!WaterRestrictionEnabled.GetValue() As Bool) As Int)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
-		BatheQuest.UpdateDangerousWater()
-	ElseIf OptionID == SaveSettingsID
-		SaveSettings()
-	ElseIf OptionID == LoadSettingsID
-		LoadSettings()
+	ElseIf OptionID == RedetectDirtSetsOID_T
+		TexUtil.DirtSetCount = TexUtil.InitTexSets()
+		SetTextOptionValue(OverlayProgressOID_T, "Done! ", false)
+		ForcePageReset()
+	ElseIf OptionID == RemoveAllOverlaysOID_T
+		RemoveAllOverlays()
+	ElseIf OptionID == PapSetSaveOID_T
+		SetTextOptionValue(PapSetSaveOID_T, "Saving... ", false)
+		SavePapyrusSettings()
+		SetTextOptionValue(PapSetSaveOID_T, "Done! ", false)
+	ElseIf OptionID == PapSetLoadOID_T
+		SetTextOptionValue(PapSetLoadOID_T, "Loading... ", false)
+		LoadPapyrusSettings()
+		SetTextOptionValue(PapSetLoadOID_T, "Done! ", false)
+	ElseIf OptionID == FadeDirtSexToggleID
+		FadeDirtSex = !FadeDirtSex
+		SetToggleOptionValue(OptionID, FadeDirtSex)
+		ForcePageReset() 
+	ElseIf OptionID == ShynessToggleID
+		Shyness = !Shyness
+		SetToggleOptionValue(OptionID, Shyness)
+	ElseIf OptionID == UnForbidOID_T
+		SetTextOptionValue(UnForbidOID_T, "Working... ", false)
+		UnForbidAllActor()
+		SetTextOptionValue(UnForbidOID_T, "Done! ", false)
 	EndIf	
 EndFunction
 Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
@@ -864,7 +814,6 @@ Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
 			RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
 			RemoveSpells(DirtyActor, DirtinessSpellList)
 			RemoveSpells(DirtyActor, SoapBonusSpellList)
-			RemoveSpells(DirtyActor, LegacySpellList)
 			DirtyActors.RemoveAddedForm(DirtyActor)
 			ForcePageReset()
 		EndIf
@@ -1052,7 +1001,56 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		EndIf
 	
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(SliderValue)
-		
+	
+	ElseIf OptionID == OverlayApplyAtOID_S
+		DisplayFormat = DisplayFormatPercentage
+		SliderValue = OptionValue
+		OverlayApplyAt = SliderValue / 100.0
+		UpdateAllActors()
+	ElseIf OptionID == StartingAlphaOID_S
+		DisplayFormat = DisplayFormatPercentage
+		SliderValue = OptionValue
+		StartingAlpha = SliderValue / 100.0
+		UpdateAllActors()
+	ElseIf OptionID == DirtinessPerSexOID_S
+		DisplayFormat = DisplayFormatPercentage
+		SliderValue = OptionValue
+		DirtinessPerSexActor = SliderValue / 100.0
+		ForcePageReset()
+	ElseIf OptionID == VictimMultOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		VictimMult = SliderValue
+		ForcePageReset()
+	ElseIf OptionID == SexIntervalDirtOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		SexIntervalDirt = SliderValue
+		ForcePageReset()
+	ElseIf OptionID == SexIntervalOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		SexInterval = SliderValue
+	ElseIf OptionID == TimeToCleanOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		TimeToClean = SliderValue
+	ElseIf OptionID == TimeToCleanIntervalOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		TimeToCleanInterval = SliderValue
+	ElseIf OptionID == ShyDistanceOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		ShyDistance = SliderValue as Int
+	ElseIf OptionID == FadeTatsFadeTimeOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		FadeTatsFadeTime = SliderValue
+	ElseIf OptionID == FadeTatsSoapMultOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		FadeTatsSoapMult = SliderValue
 	EndIf
 	
 	SetSliderOptionValue(OptionID, OptionValue, DisplayFormat)
@@ -1165,6 +1163,73 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(98.0)
 		SliderValue = ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0)
+	
+	ElseIf OptionID == OverlayApplyAtOID_S
+		DisplayFormat = DisplayFormatPercentage
+		SetSliderDialogDefaultValue(40.0)
+		SetSliderDialogRange(0.0, ((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100.0))
+		SetSliderDialogInterval(1.0)
+		SliderValue = OverlayApplyAt * 100.0	
+	ElseIf OptionID == StartingAlphaOID_S
+		DisplayFormat = DisplayFormatPercentage
+		SetSliderDialogDefaultValue(15.0)
+		SetSliderDialogRange(0.0, 100.0)
+		SetSliderDialogInterval(0.5)
+		SliderValue = StartingAlpha * 100.0
+	ElseIf OptionID == DirtinessPerSexOID_S
+		DisplayFormat = DisplayFormatPercentage
+		SetSliderDialogDefaultValue(4.0)
+		SetSliderDialogRange(0.0, 100.0)
+		SetSliderDialogInterval(0.5)
+		SliderValue = DirtinessPerSexActor * 100.0
+	ElseIf OptionID == VictimMultOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(2.5)
+		SetSliderDialogRange(0.0, 10.0)
+		SetSliderDialogInterval(0.1)
+		SliderValue = VictimMult
+	ElseIf OptionID == SexIntervalDirtOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(35.0)
+		SetSliderDialogRange(0.0, 200.0)
+		SetSliderDialogInterval(0.5)
+		SliderValue = SexIntervalDirt
+	ElseIf OptionID == SexIntervalOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(1.0)
+		SetSliderDialogRange(0.5, 10.0)
+		SetSliderDialogInterval(0.5)
+		SliderValue = SexInterval
+	ElseIf OptionID == TimeToCleanOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(10.0)
+		SetSliderDialogRange(0.0, 30.0)
+		SetSliderDialogInterval(0.5)
+		SliderValue = TimeToClean
+	ElseIf OptionID == TimeToCleanIntervalOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(0.25)
+		SetSliderDialogRange(0.01, 5.0)
+		SetSliderDialogInterval(0.01)
+		SliderValue = TimeToCleanInterval
+	ElseIf OptionID == ShyDistanceOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(2000.0)
+		SetSliderDialogRange(0.0, 6000.0)
+		SetSliderDialogInterval(200.0)
+		SliderValue = ShyDistance
+	ElseIf OptionID == FadeTatsFadeTimeOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(8.0)
+		SetSliderDialogRange(0.0, 1000.0)
+		SetSliderDialogInterval(1.0)
+		SliderValue = FadeTatsFadeTime
+	ElseIf OptionID == FadeTatsSoapMultOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(2.0)
+		SetSliderDialogRange(0.0, 10.0)
+		SetSliderDialogInterval(0.1)
+		SliderValue = FadeTatsSoapMult
 	EndIf
 	
 	; set slider value
@@ -1174,21 +1239,26 @@ EndFunction
 
 ; helper functions
 Function EnableBathingInSkyrim()
-	Player.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
-	Player.AddSpell(GetDirtyOverTimeReactivatorCloakSpell, False)
+	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
+	PlayerRef.AddSpell(GetDirtyOverTimeReactivatorCloakSpell, False)
 
 	BatheQuest.Start()
 	BatheQuest.RegisterHotKeys()
+	BatheQuest.RegForEvents()
 
 	BathingInSkyrimEnabled.SetValue(1)
 EndFunction
 Function DisableBathingInSkyrim()
-	Player.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
-
-	RemoveSpells(Player, GetDirtyOverTimeSpellList)
-	RemoveSpells(Player, DirtinessSpellList)
-	RemoveSpells(Player, SoapBonusSpellList)
-	RemoveSpells(Player, LegacySpellList)
+	PlayerRef.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
+	
+	RemoveAllOverlays()
+	
+	RemoveSpells(PlayerRef, GetDirtyOverTimeSpellList)
+	RemoveSpells(PlayerRef, DirtinessSpellList)
+	RemoveSpells(PlayerRef, SoapBonusSpellList)
+	StorageUtil.UnSetFloatValue(PlayerRef, "BiS_Dirtiness")
+	StorageUtil.UnSetFloatValue(PlayerRef, "BiS_LastUpdate")
+	StorageUtil.UnSetStringValue(PlayerRef, "mzin_DirtTexturePrefix")
 
 	Int DirtyActorIndex = DirtyActors.Getsize()
 	If DirtyActorIndex > 0
@@ -1198,7 +1268,10 @@ Function DisableBathingInSkyrim()
 			RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
 			RemoveSpells(DirtyActor, DirtinessSpellList)
 			RemoveSpells(DirtyActor, SoapBonusSpellList)
-			RemoveSpells(DirtyActor, LegacySpellList)
+			
+			StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
+			StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
+			StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 		EndWhile
 		DirtyActors.Revert()
 	EndIf
@@ -1255,6 +1328,178 @@ Function IgnoreArmorSlot(GlobalVariable IgnoredArmorSlotsMask, Int ArmorSlot, Bo
 	IgnoredArmorSlotsMask.SetValue(NewBathingIgnoredArmorSlotsMask)
 EndFunction
 
+Function UpdateProgressRedetectDirtSets(String CurrentTex)
+	If IsConfigOpen
+		SetTextOptionValue(OverlayProgressOID_T, "Checking: " + CurrentTex , false)
+	EndIF
+EndFunction
+
+Function RemoveAllOverlays()
+	; Do player
+	DoRemoveAllOverlays(PlayerRef)
+	
+	; Do other Npcs
+	Int i = mzinDirtyActorsList.GetSize()
+	Actor CurrentActor
+	While i > 0
+		i -= 1
+		CurrentActor = mzinDirtyActorsList.GetAt(i) as Actor
+		DoRemoveAllOverlays(CurrentActor)
+	EndWhile
+	If IsConfigOpen
+		SetTextOptionValue(OverlayProgressOID_T, "Done! ", false)
+	EndIf
+EndFunction
+
+Function DoRemoveAllOverlays(Actor akTarget)
+	If IsConfigOpen
+		SetTextOptionValue(OverlayProgressOID_T, "Procing: " + akTarget.GetBaseObject().GetName() , false)
+	EndIf
+	Util.ClearDirtGameLoad(akTarget)
+EndFunction
+
+Function SavePapyrusSettings()
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "DialogTopicEnabled", DialogTopicEnabled.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyle", GetSoapyStyle.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "CheckStatusKeyCode", CheckStatusKeyCode.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BatheKeyCode", BatheKeyCode.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShowerKeyCode", ShowerKeyCode.GetValueInt())
+	
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationStyle", BathingAnimationStyle.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationStyleFollowers", BathingAnimationStyleFollowers.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShoweringAnimationStyle", ShoweringAnimationStyle.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShoweringAnimationStyleFollowers", ShoweringAnimationStyleFollowers.GetValueInt())
+	
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabled", GetDressedAfterBathingEnabled.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabledFollowers", GetDressedAfterBathingEnabledFollowers.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingIgnoredArmorSlotsMask", BathingIgnoredArmorSlotsMask.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingIgnoredArmorSlotsMaskFollowers", BathingIgnoredArmorSlotsMaskFollowers.GetValueInt())
+	
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessUpdateInterval", DirtinessUpdateInterval.GetValue())
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPercentage", DirtinessPercentage.GetValue())
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourSettlement", DirtinessPerHourSettlement.GetValue())
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue())
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue())
+	
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold0", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue())
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue())
+	
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount2", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount3", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValueInt())
+	
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers0", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers1", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers2", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers3", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValueInt())
+	
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerSexActor", DirtinessPerSexActor)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "VictimMult", VictimMult)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "OverlayApplyAt", OverlayApplyAt)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "StartingAlpha", StartingAlpha)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "SexIntervalDirt", SexIntervalDirt)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "SexInterval", SexInterval)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "TimeToClean", TimeToClean)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "TimeToCleanInterval", TimeToCleanInterval)
+
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShyDistance", ShyDistance)
+	
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex", FadeDirtSex as Int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "Shyness", Shyness as Int)
+
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime", FadeTatsFadeTime)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult", FadeTatsSoapMult)
+	
+	JsonUtil.Save("BathingInSkyrim/Settings.json")
+
+	ShowMessage("$BIS_MSG_COMPLETED_SAVE", False)
+EndFunction
+
+Function LoadPapyrusSettings()
+	DialogTopicEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "DialogTopicEnabled"))
+	WaterRestrictionEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "WaterRestrictionEnabled"))
+	GetSoapyStyle.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyle"))
+	GetSoapyStyleFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyleFollowers"))
+	CheckStatusKeyCode.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "CheckStatusKeyCode"))
+	BatheKeyCode.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BatheKeyCode"))
+	ShowerKeyCode.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "ShowerKeyCode"))
+	
+	BathingAnimationStyle.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationStyle"))
+	BathingAnimationStyleFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationStyleFollowers"))
+	ShoweringAnimationStyle.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "ShoweringAnimationStyle"))
+	ShoweringAnimationStyleFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "ShoweringAnimationStyleFollowers"))
+	
+	GetDressedAfterBathingEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabled"))
+	GetDressedAfterBathingEnabledFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabledFollowers"))
+	BathingIgnoredArmorSlotsMask.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingIgnoredArmorSlotsMask"))
+	BathingIgnoredArmorSlotsMaskFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingIgnoredArmorSlotsMaskFollowers"))
+	
+	DirtinessUpdateInterval.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessUpdateInterval"))
+	DirtinessPercentage.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPercentage"))
+	DirtinessPerHourSettlement.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourSettlement"))
+	DirtinessPerHourDungeon.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourDungeon"))
+	DirtinessPerHourWilderness.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourWilderness"))
+	
+	(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold0"))
+	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold1"))
+	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold2"))
+	
+	(BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount0"))
+	(BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount1"))
+	(BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount2"))
+	(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount3"))
+	
+	(BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers0"))
+	(BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers1"))
+	(BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers2"))
+	(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers3"))
+	
+	DirtinessPerSexActor = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerSexActor")
+	StartingAlpha = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "StartingAlpha")
+	VictimMult = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "VictimMult")
+	OverlayApplyAt = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "OverlayApplyAt")
+	SexIntervalDirt = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "SexIntervalDirt")
+	SexInterval = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "SexInterval")
+	TimeToClean = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "TimeToClean")
+	TimeToCleanInterval = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "TimeToCleanInterval")
+	
+	ShyDistance = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "ShyDistance")
+	
+	FadeDirtSex = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex")
+	Shyness = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "Shyness")
+
+	FadeTatsFadeTime = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime")
+	FadeTatsSoapMult = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult")
+	
+	BatheQuest.RegisterHotKeys()
+	
+	ShowMessage("$BIS_MSG_COMPLETED_LOAD", False)
+	ForcePageReset()
+EndFunction
+
+Function UpdateAllActors()
+	int Bis_UpdateAllActorsEvent = ModEvent.Create("BiS_UpdateActorsAll")
+    If (Bis_UpdateAllActorsEvent)
+        ModEvent.Send(Bis_UpdateAllActorsEvent)
+    EndIf
+EndFunction
+
+Function UnForbidAllActor()
+	Int i = StorageUtil.FormListCount(none, "BiS_ForbiddenActors")
+	Actor CurrentActor
+	While i > 0
+		i -= 1
+		CurrentActor = StorageUtil.FormlistGet(none, "BiS_ForbiddenActors", i) as Actor
+		StorageUtil.StringListClear(CurrentActor, "BiS_ForbiddenString")
+		StorageUtil.FormListClear(CurrentActor, "BiS_ForbiddenSenders")
+	EndWhile
+	StorageUtil.FormListClear(none, "BiS_ForbiddenActors")
+EndFunction
+
 ; ---------- MCM Internal Variables ----------
 
 ; menu - Settings
@@ -1271,8 +1516,6 @@ Int DirtinessThresholdTier3SliderID
 Int CheckStatusKeyMapID
 Int BatheKeyMapID
 Int ShowerKeyMapID
-Int SaveSettingsID
-Int LoadSettingsID
 
 ; menu - Animations - Left
 Int BathingAnimationStyleMenuID

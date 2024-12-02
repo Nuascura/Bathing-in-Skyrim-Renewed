@@ -1,0 +1,31 @@
+2.0 ; 1.50, 1.501, 1.502, 1.503, 1.504
+Primary
+- Fix: Dirt spell not attaching to player on game start.
+- Fix: BiS considering animations while player is underwater or swimming, which would pause animation start until the player next gets out of the water.
+- Fix: Temporary player controls freeze after custom shower animation; issue introduced with Improved Animations tweak.
+- Fix: Desync between ForbidSex and wash animation timing, potentially allowing SL animations during bath/shower; issue introduced with Mono’s BiS tweak.
+- Fix: Papyrus log error when disabling BiS.
+- Added a drying animation via vanilla WarmArms idle for custom Shower animation set.
+- Added text hint when enabling BiS via MCM.
+
+Secondary
+- ESL-flagged esp.
+- Forwarded po3 water detection.
+- Forwarded Haz waterfall detection.
+- Adjusted animation array texts to improve clarity for the user. 
+- Implement re-register for hotkey and mod events via OnPlayerLoadGame event.
+- Refactored interfaces for Frostfall, Pee & Fart, and FadeTattoos.
+- Removed deprecated spells, formlist, and global.
+- Removed shared TIFs in favor of BIS unique ones.
+- Removed unnecessary versioning code from Monoman's tweak overlay script.
+- Removed unnecessary script functions.
+- Removed unnecessary custom animation MCM options.
+- Removed German localization file.
+- Removed unused BiS scripts.
+- Removed Realistic Needs & Diseases, iNeeds, and FISS interfaces.
+- Disabled spell and dirt level renewals under wash rag dirt level 0 condition.
+- Disabled BiS on new game.
+- Renamed TIF scripts.
+- Optimized player Actor Ref retrieval in some scripts.
+- Updated English localization file.
+- Regenerated SEQ.

@@ -3,20 +3,23 @@ ScriptName mzinBathePlayerAlias Extends ReferenceAlias
 mzinBatheQuest Property BatheQuest Auto
 Spell Property GetDirtyOverTimeReactivatorCloakSpell Auto
 
-Actor Player
-Bool Reapplying
+Actor Property PlayerRef Auto
 
-Event OnPlayerLoadGame()
-	BatheQuest.UpdateDangerousWater()
-	Player = Game.GetPlayer()
-EndEvent
+Bool Reapplying
 
 Event OnLocationChange(Location akOldLoc, Location akNewLoc)
 	If Reapplying == False
 		Reapplying = True
-		Player.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
+		PlayerRef.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
 		Utility.Wait(1)
-		Player.AddSpell(GetDirtyOverTimeReactivatorCloakSpell, False)
+		PlayerRef.AddSpell(GetDirtyOverTimeReactivatorCloakSpell, False)
 		Reapplying = False
 	EndIf
+EndEvent
+
+Event OnPlayerLoadGame()
+	if BatheQuest.BathingInSkyrimEnabled.GetValue() As Bool
+		BatheQuest.RegisterHotKeys()
+		BatheQuest.RegForEvents()
+	endIf
 EndEvent

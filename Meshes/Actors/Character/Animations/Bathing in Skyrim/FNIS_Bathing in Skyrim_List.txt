@@ -1,30 +1,72 @@
-' mzinBatheAnimation1.hkx = bend over
-' KNNWashBodyStanding.hkx = wash upper body
-' KNNWashBodyStandingTypeBStart.hkx = wash lower body
+' Female animations by BakaFactory
+' https://www.patreon.com/posts/bathing-le-se-57079899
+
+' soap
+so -a,o   mzinBatheA1_S1_Soap BakaBathing03.hkx mzinAnimObjectSoap
++  -o     mzinBatheA1_S2_Soap BakaBathing01.hkx mzinAnimObjectSoap
++  -a,k   mzinBatheA1_end_Soap mt_idle.hkx
+
+so -a,o   mzinBatheA2_S1_Soap  BakaBathing03.hkx mzinAnimObjectSoap
++  -a,o   mzinBatheA2_S2_Soap  BakaBathing02.hkx mzinAnimObjectSoap
++  -o     mzinBatheA2_S3_Soap  BakaBathing01.hkx mzinAnimObjectSoap
++  -a,k   mzinBatheA2_end_Soap mt_idle.hkx
+
+so -a,o   mzinBatheA3_S1_Soap  BakaBathing01.hkx mzinAnimObjectSoap
++  -o     mzinBatheA3_S2_Soap  BakaBathing03.hkx mzinAnimObjectSoap
++  -a,k   mzinBatheA3_end_Soap mt_idle.hkx
+
+' rag
+so -a,o   mzinBatheA1_S1_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
++  -o     mzinBatheA1_S2_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
++  -a,k   mzinBatheA1_end_Cloth mt_idle.hkx
+
+so -a,o   mzinBatheA2_S1_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
++  -o     mzinBatheA2_S2_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
++  -a,k   mzinBatheA2_end_Cloth mt_idle.hkx
+
+so -a,o   mzinBatheA3_S1_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
++  -o     mzinBatheA3_S2_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
++  -a,k   mzinBatheA3_end_Cloth mt_idle.hkx
+
+' ---------------------------------
+' Male animations by Tweens
+' https://www.loverslab.com/files/file/4221-bathing-in-skyrim-male-animations/
+
+' BIS_MaleShower_1.HKX = wash upper body
+' BIS_MaleShower_2.HKX = wash lower body 
+' BIS_MaleShower_3.HKX = wash mid body
+
+' soap 
+so -a,h,o mzinBatheMA1_S1_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
++  -h,o   mzinBatheMA1_S2_Soap BIS_MaleShower_2.hkx mzinAnimObjectSoap
++  -a,k   mzinBatheMA1_end_Soap mt_idle.hkx
+
+so -a,h,o mzinBatheMA2_S1_Soap BIS_MaleShower_1.hkx mzinAnimObjectSoap
++  -h,o   mzinBatheMA2_S2_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
++  -a,k   mzinBatheMA2_end_Soap mt_idle.hkx
+
+so -a,h,o mzinBatheMA3_S1_Soap BIS_MaleShower_1.hkx mzinAnimObjectSoap
++  -a,h,o mzinBatheMA3_S2_Soap BIS_MaleShower_2.hkx mzinAnimObjectSoap
++  -h,o   mzinBatheMA3_S3_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
++  -a,k   mzinBatheMA3_end_Soap mt_idle.hkx
+
+' rag
+so -a,h,o mzinBatheMA1_S1_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
++  -h,o   mzinBatheMA1_S2_Cloth BIS_MaleShower_2.hkx mzinAnimObjectWashRag
++  -a,k   mzinBatheMA1_end_Cloth mt_idle.hkx
+
+so -a,h,o mzinBatheMA2_S1_Cloth BIS_MaleShower_1.hkx mzinAnimObjectWashRag
++  -h,o   mzinBatheMA2_S2_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
++  -a,k   mzinBatheMA2_end_Cloth mt_idle.hkx
+
+so -a,h,o mzinBatheMA3_S1_Cloth BIS_MaleShower_1.hkx mzinAnimObjectWashRag
++  -a,h,o mzinBatheMA3_S2_Cloth BIS_MaleShower_2.hkx mzinAnimObjectWashRag
++  -h,o   mzinBatheMA3_S3_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
++  -a,k   mzinBatheMA3_end_Cloth mt_idle.hkx
 
 
-' custom type 1 with soap
-so -a,h,o mzinBatheA1_S1_Soap mzinBatheAnimation1.hkx  mzinAnimObjectSoap
-+  -a,k   mzinBatheA1_S2_Soap IdleStop.hkx
 
-' custom type 1 without soap
-so -a,h,o mzinBatheA1_S1_Cloth mzinBatheAnimation1.hkx  AnimObjectBarRag
-+  -a,k   mzinBatheA1_S2_Cloth IdleStop.hkx
 
-' custom type 2 with soap
-so -a,o mzinBatheA2_S1_Soap ..\KuNeruNomu\KNNWashBodyStanding.hkx mzinAnimObjectSoap
-+  -a,o mzinBatheA2_S2_Soap ..\KuNeruNomu\KNNWashBodyStandingTypeBStart.hkx mzinAnimObjectSoap
 
-' custom type 2 without soap
-so -a,o mzinBatheA2_S1_Cloth ..\KuNeruNomu\KNNWashBodyStanding.hkx AnimObjectBarRag
-+  -a,o mzinBatheA2_S2_Cloth ..\KuNeruNomu\KNNWashBodyStandingTypeBStart.hkx AnimObjectBarRag
 
-' custom type 3 with soap
-so -a,o   mzinBatheA3_S1_Soap ..\KuNeruNomu\KNNWashBodyStanding.hkx mzinAnimObjectSoap
-+  -a,o   mzinBatheA3_S2_Soap ..\KuNeruNomu\KNNWashBodyStandingTypeBStart.hkx mzinAnimObjectSoap
-+  -a,h,o mzinBatheA3_S3_Soap mzinBatheAnimation1.hkx  mzinAnimObjectSoap
 
-' custom type 3 without soap
-so -a,o   mzinBatheA3_S1_Cloth ..\KuNeruNomu\KNNWashBodyStanding.hkx AnimObjectBarRag
-+  -a,o   mzinBatheA3_S2_Cloth ..\KuNeruNomu\KNNWashBodyStandingTypeBStart.hkx AnimObjectBarRag
-+  -a,h,o mzinBatheA3_S3_Cloth mzinBatheAnimation1.hkx  AnimObjectBarRag

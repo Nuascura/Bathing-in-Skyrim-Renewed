@@ -1,21 +1,21 @@
 ScriptName mzinBathe Extends ActiveMagicEffect
 { this script bathes a dirty actor }
 
-FormList Property DirtinessTierList AutoReadOnly
-FormList Property BathingAnimationCyclesList AutoReadOnly
+FormList Property DirtinessTierList Auto
+FormList Property BathingAnimationCyclesList Auto
 
 GlobalVariable Property DirtyLevel Auto
 GlobalVariable Property LastDirtyUpdateTime Auto
-GlobalVariable Property BathingAnimationStyle AutoReadOnly
+GlobalVariable Property BathingAnimationStyle Auto
 
-Idle Property BathingAnimationStop AutoReadOnly
-Idle Property BathingAnimationDefaultPart1 AutoReadOnly
-Idle Property BathingAnimationDefaultPart2 AutoReadOnly
-Idle Property BathingAnimationDefaultPart3 AutoReadOnly
-Idle Property BathingAnimationDefaultPart4 AutoReadOnly
-Idle Property BathingAnimationCustom1 AutoReadOnly
+Idle Property BathingAnimationStop Auto
+Idle Property BathingAnimationDefaultPart1 Auto
+Idle Property BathingAnimationDefaultPart2 Auto
+Idle Property BathingAnimationDefaultPart3 Auto
+Idle Property BathingAnimationDefaultPart4 Auto
+Idle Property BathingAnimationCustom1 Auto
 
-Message Property BathingSuccessMessage AutoReadOnly
+Message Property BathingSuccessMessage Auto
 
 Event OnEffectStart(Actor BathingActor, Actor akCaster)
 

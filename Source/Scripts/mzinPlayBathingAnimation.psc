@@ -1,6 +1,8 @@
 ScriptName mzinPlayBathingAnimation Extends ActiveMagicEffect
 { this script plays bathing and showering animations based on properties }
 
+mzinInit Property Init Auto
+
 Bool Property UsingSoap Auto
 Bool Property Showering Auto
 
@@ -28,10 +30,42 @@ GlobalVariable Property GetDressedAfterBathingEnabledFollowers Auto
 GlobalVariable Property BathingIgnoredArmorSlotsMask Auto
 GlobalVariable Property BathingIgnoredArmorSlotsMaskFollowers Auto
 
+GlobalVariable Property ForceCustomAnimationDuration Auto
+
 Spell Property SoapyAppearanceSpell Auto
 Spell Property SoapyAppearanceAnimatedSpell Auto
 
 Idle Property BathingAnimationStop Auto
+
+Idle Property mzinBatheA1_S1_Soap Auto
+Idle Property mzinBatheA1_end_Soap Auto
+Idle Property mzinBatheA1_S1_Cloth Auto
+Idle Property mzinBatheA1_end_Cloth Auto
+
+Idle Property mzinBatheA2_S1_Soap Auto
+Idle Property mzinBatheA2_end_Soap Auto
+Idle Property mzinBatheA2_S1_Cloth Auto
+Idle Property mzinBatheA2_end_Cloth Auto
+
+Idle Property mzinBatheA3_S1_Soap Auto
+Idle Property mzinBatheA3_end_Soap Auto
+Idle Property mzinBatheA3_S1_Cloth Auto
+Idle Property mzinBatheA3_end_Cloth Auto
+
+Idle Property mzinBatheMA1_S1_Soap Auto
+Idle Property mzinBatheMA1_end_Soap Auto
+Idle Property mzinBatheMA1_S1_Cloth Auto
+Idle Property mzinBatheMA1_end_Cloth Auto
+
+Idle Property mzinBatheMA2_S1_Soap Auto
+Idle Property mzinBatheMA2_end_Soap Auto
+Idle Property mzinBatheMA2_S1_Cloth Auto
+Idle Property mzinBatheMA2_end_Cloth Auto
+
+Idle Property mzinBatheMA3_S1_Soap Auto
+Idle Property mzinBatheMA3_end_Soap Auto
+Idle Property mzinBatheMA3_S1_Cloth Auto
+Idle Property mzinBatheMA3_end_Cloth Auto
 
 Message Property BathingCompleteMessage Auto
 
@@ -40,6 +74,7 @@ Package Property StopMovementPackage Auto
 Form[] Clothing
 Actor  BathingActor
 Bool   BathingActorIsPlayer
+Bool   BathingActorIsFemale
 
 String AnimationEventNameToSend
 String AnimationEventNameToReceive
@@ -51,9 +86,14 @@ Int BailOutSecondsRemaining
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	BathingActor = Target
+	ForbidSex(BathingActor, Forbid = true)
 	BathingActorIsPlayer = (Target == Game.GetPlayer())
 
 	StartAnimation()
+EndEvent
+
+Event OnEffectFinish(Actor Target, Actor Caster)
+	ForbidSex(BathingActor, Forbid = false)
 EndEvent
 
 ; bathing
@@ -77,61 +117,30 @@ Function PlayBathingAnimationDefault()
 	RinseOff()
 	StopAnimation()
 EndFunction
-Function PlayBathingAnimationCustom1()
+Function PlayBathingAnimationCustom(Idle animStart, Idle animEnd, Float animDuration)
+	if !Showering
+		Debug.SendAnimationEvent(BathingActor, "IdleSearchingChest")
+		Utility.Wait(3)
+		Debug.SendAnimationEvent(BathingActor, "IdleStop")
+		Utility.Wait(0.5)
+	else 
+		;Debug.Notification("Showering...")
+	endIf
+
+   if ForceCustomAnimationDuration.GetValue() As Float != 0
+		;Debug.Notification("Ducation: " + ForceCustomAnimationDuration.GetValue() as Float + " sec.")
+		animDuration = ForceCustomAnimationDuration.GetValue() As Float
+   endIf
+
+	BathingActor.PlayIdle(animStart)
+    Utility.Wait(1)
 	GetSoapy()
-
-	If UsingSoap
-		StartAnimationSequence("mzinBatheA1_S1_Soap", "mzinBatheA1_S2_Soap_DONE")
-	Else
-		StartAnimationSequence("mzinBatheA1_S1_Cloth", "mzinBatheA1_S2_Cloth_DONE")
-	EndIf
-
-	BailOutSecondsRemaining = BailOutSecondsPerLoop
-	While AnimationSequenceComplete == False && BailOutSecondsRemaining > 0
-		Utility.Wait(1)
-		BailOutSecondsRemaining -= 1
-	EndWhile
-
-	GetUnsoapy()	
-	StopAnimation()
-EndFunction
-Function PlayBathingAnimationCustom2()
-	GetSoapy()
-
-	If UsingSoap
-		StartAnimationSequence("mzinBatheA2_S1_Soap", "mzinBatheA2_S2_Soap_DONE")
-	Else
-		StartAnimationSequence("mzinBatheA2_S1_Cloth", "mzinBatheA2_S2_Cloth_DONE")
-	EndIf
-
-	BailOutSecondsRemaining = BailOutSecondsPerLoop
-	While AnimationSequenceComplete == False && BailOutSecondsRemaining > 0
-		Utility.Wait(1)
-		BailOutSecondsRemaining -= 1
-	EndWhile
-
-	RinseOff()
-	StopAnimation()
-EndFunction
-Function PlayBathingAnimationCustom3()
-	Debug.SendAnimationEvent(BathingActor, "IdleWarmHandsCrouched")
-	Utility.Wait(3)
-
-	GetSoapy()
-
-	If UsingSoap
-		StartAnimationSequence("mzinBatheA3_S1_Soap", "mzinBatheA3_S3_Soap_DONE")
-	Else
-		StartAnimationSequence("mzinBatheA3_S1_Cloth", "mzinBatheA3_S3_Cloth_DONE")
-	EndIf
-
-	BailOutSecondsRemaining = BailOutSecondsPerLoop
-	While AnimationSequenceComplete == False && BailOutSecondsRemaining > 0
-		Utility.Wait(1)
-		BailOutSecondsRemaining -= 1
-	EndWhile
-
-	RinseOff()
+	Utility.Wait(animDuration)
+	BathingActor.PlayIdle(animEnd)
+	Utility.Wait(3.5)
+	Debug.SendAnimationEvent(BathingActor, "ResetRoot") ; if this isn't here, animEnd seems to lock Actor controls for a certain amount of time
+	Utility.Wait(0.5)
+	RinseOff(Showering)
 	StopAnimation()
 EndFunction
 
@@ -150,30 +159,6 @@ Function PlayShoweringAnimationDefault()
 	GetUnsoapy()	
 	StopAnimation()
 EndFunction
-Function PlayShoweringAnimationCustom1()
-	GetSoapy()
-
-	If UsingSoap
-		StartAnimationSequence("mzinBatheA2_S1_Soap", "mzinBatheA2_S2_Soap_DONE")
-	Else
-		StartAnimationSequence("mzinBatheA2_S1_Cloth", "mzinBatheA2_S2_Cloth_DONE")
-	EndIf
-
-	BailOutSecondsRemaining = BailOutSecondsPerLoop
-	While AnimationSequenceComplete == False && BailOutSecondsRemaining > 0
-		Utility.Wait(1)
-		BailOutSecondsRemaining -= 1
-	EndWhile
-
-	Debug.SendAnimationEvent(BathingActor, "IdleStop")
-	Utility.Wait(1)
-
-	Debug.SendAnimationEvent(BathingActor, "IdleWipeBrow")
-	Utility.Wait(3)
-
-	GetUnsoapy()
-	StopAnimation()
-EndFunction
 
 ; helpers
 Function StartAnimation()
@@ -182,6 +167,15 @@ Function StartAnimation()
 		BathingActor.EvaluatePackage()
 	EndIf
 
+	ActorBase BathingActorBase = BathingActor.GetActorBase()
+	if (BathingActorBase.GetSex() == 1)
+	   BathingActorIsFemale = true
+	   ;Debug.Notification("Actor is female")
+	else
+		BathingActorIsFemale = false
+	   ;Debug.Notification("Actor is male")
+	endIf
+	
 	GetNaked()
 
 	Int DirtinessTier = 0
@@ -200,6 +194,10 @@ Function StartAnimation()
 			AnimationStyle = ShoweringAnimationStyle.GetValue() As Int
 		Else
 			AnimationStyle = BathingAnimationStyle.GetValue() As Int
+			If AnimationStyle == 1
+				AnimationStyle = Utility.RandomInt(2, 4)
+				;Debug.Notification("Random animation: " + AnimationStyle)
+			endIf
 		EndIf
 		AnimationCyclesRemaining = (BathingAnimationLoopCountList.GetAt(DirtinessTier) As GlobalVariable).GetValue() As Int
 	Else
@@ -211,7 +209,7 @@ Function StartAnimation()
 		AnimationCyclesRemaining = (BathingAnimationLoopCountListFollowers.GetAt(DirtinessTier) As GlobalVariable).GetValue() As Int
 	EndIf
 
-	If AnimationStyle > 0 && BathingActor.IsSwimming() == False
+	If AnimationStyle > 0 && !BathingActor.IsSwimming()
 	
 		If BathingActorIsPlayer
 			Game.ForceThirdPerson()
@@ -220,23 +218,55 @@ Function StartAnimation()
 
 		BathingActor.PlayIdle(BathingAnimationStop)
 
-		If Showering
-			If AnimationStyle == 1
+		if AnimationStyle == 1
+			If Showering
 				PlayShoweringAnimationDefault()
-			ElseIf AnimationStyle == 2
-				PlayShoweringAnimationCustom1()
-			EndIf
-		Else
-			If AnimationStyle == 1
+			else
 				PlayBathingAnimationDefault()
-			ElseIf AnimationStyle == 2
-				PlayBathingAnimationCustom1()
-			ElseIf AnimationStyle == 3
-				PlayBathingAnimationCustom2()
-			ElseIf AnimationStyle == 4
-				PlayBathingAnimationCustom3()
-			EndIf
-		EndIf
+			endIf
+		elseIf AnimationStyle == 2
+			if BathingActorIsFemale
+				if (UsingSoap)
+					PlayBathingAnimationCustom(mzinBatheA1_S1_Soap, mzinBatheA1_end_Soap, 31.1)
+				else
+					PlayBathingAnimationCustom(mzinBatheA1_S1_Cloth, mzinBatheA1_end_Cloth, 31.1)
+				endIf
+			else
+				if (UsingSoap)
+					PlayBathingAnimationCustom(mzinBatheMA1_S1_Soap, mzinBatheMA1_end_Soap, 31)
+				else
+					PlayBathingAnimationCustom(mzinBatheMA1_S1_Cloth, mzinBatheMA1_end_Cloth, 31)
+				endIf
+			endIf
+		elseIf AnimationStyle == 3
+			if BathingActorIsFemale
+				if (UsingSoap)
+					PlayBathingAnimationCustom(mzinBatheA2_S1_Soap, mzinBatheA2_end_Soap, 38.5)
+				else
+					PlayBathingAnimationCustom(mzinBatheA2_S1_Cloth, mzinBatheA2_end_Cloth, 38.5)
+				endIf
+			else
+				if (UsingSoap)
+					PlayBathingAnimationCustom(mzinBatheMA2_S1_Soap, mzinBatheMA2_end_Soap, 30.5)
+				else
+					PlayBathingAnimationCustom(mzinBatheMA2_S1_Cloth, mzinBatheMA2_end_Cloth, 30.5)
+				endIf
+			endIf
+		elseIf AnimationStyle == 4
+			if BathingActorIsFemale
+				if UsingSoap
+					PlayBathingAnimationCustom(mzinBatheA3_S1_Soap, mzinBatheA3_end_Soap, 31)
+				else
+					PlayBathingAnimationCustom(mzinBatheA3_S1_Cloth, mzinBatheA3_end_Cloth, 31)
+				endIf
+			else 
+				if UsingSoap
+					PlayBathingAnimationCustom(mzinBatheMA3_S1_Soap, mzinBatheMA3_end_Soap, 47)
+				else
+					PlayBathingAnimationCustom(mzinBatheMA3_S1_Cloth, mzinBatheMA3_end_Cloth, 47)
+				endIf
+			endIf
+		endIf
 
 	EndIf
 EndFunction
@@ -251,20 +281,18 @@ Function StopAnimation()
 		BathingActor.RemoveSpell(SoapyAppearanceAnimatedSpell)
 	EndIf
 
-	If BathingActorIsPlayer
-		Game.EnablePlayerControls()
-	EndIf	
-
 	GetDressed()
 
-	If BathingActorIsPlayer == False
+	If !BathingActorIsPlayer
 		ActorUtil.RemovePackageOverride(BathingActor, StopMovementPackage)
 		BathingActor.EvaluatePackage()
-	EndIf
-
-	If BathingActorIsPlayer
+	else
+		Game.EnablePlayerControls()
 		BathingCompleteMessage.Show()
 	EndIf
+
+	Utility.Wait(0.5)
+	Debug.SendAnimationEvent(BathingActor, "IdleStop") ; test this for stuck actor after showering
 
 	BathingActor.RemoveSpell(PlayBatheAnimationWithSoap)
 	BathingActor.RemoveSpell(PlayBatheAnimationWithoutSoap)
@@ -306,16 +334,31 @@ Function GetNaked()
 	EndIf
 	
 	Int Index = Clothing.Length
-	While Index
-		Index -= 1
-		Int ArmorSlotMask = Armor.GetMaskForSlot(Index + 30)
-		If Math.LogicalAnd(ArmorSlotMask, CurrentIgnoreArmorSlotMask) != ArmorSlotMask
-			Clothing[Index] = BathingActor.GetWornForm(ArmorSlotMask)
-			If Clothing[Index]
-				BathingActor.UnequipItem(Clothing[Index], False, True)
-			EndIf
-		EndIf		
-	EndWhile
+	If Init.IsSexlabInstalled
+		While Index
+			Index -= 1
+			Int ArmorSlotMask = Armor.GetMaskForSlot(Index + 30)
+			If Math.LogicalAnd(ArmorSlotMask, CurrentIgnoreArmorSlotMask) != ArmorSlotMask
+				Clothing[Index] = BathingActor.GetWornForm(ArmorSlotMask)
+				If Clothing[Index]
+					If !Clothing[Index].HasKeyword(Init.SexLabNoStrip)
+						BathingActor.UnequipItem(Clothing[Index], False, True)
+					EndIf
+				EndIf
+			EndIf		
+		EndWhile
+	Else
+		While Index
+			Index -= 1
+			Int ArmorSlotMask = Armor.GetMaskForSlot(Index + 30)
+			If Math.LogicalAnd(ArmorSlotMask, CurrentIgnoreArmorSlotMask) != ArmorSlotMask
+				Clothing[Index] = BathingActor.GetWornForm(ArmorSlotMask)
+				If Clothing[Index]
+					BathingActor.UnequipItem(Clothing[Index], False, True)
+				EndIf
+			EndIf		
+		EndWhile
+	EndIf
 	
 	; weapons
 	BathingActor.UnequipItemEX(BathingActor.GetEquippedWeapon(True),  2, False) ; left hand
@@ -326,25 +369,38 @@ Function GetDressed()
 	|| (BathingActorIsPlayer == False && GetDressedAfterBathingEnabledFollowers.GetValue() As Bool)
 		
 		Int ClothingIndex = Clothing.Length
-		While ClothingIndex
-			ClothingIndex -= 1
-			If Clothing[ClothingIndex]
-				BathingActor.EquipItem(Clothing[ClothingIndex], False, True)
-			EndIf
-		EndWhile
+		
+		If Init.IsSexlabInstalled
+			While ClothingIndex
+				ClothingIndex -= 1
+				If Clothing[ClothingIndex] && !Clothing[ClothingIndex].HasKeyword(Init.SexLabNoStrip)
+					BathingActor.EquipItem(Clothing[ClothingIndex], False, True)
+				EndIf
+			EndWhile
+		Else
+			While ClothingIndex
+				ClothingIndex -= 1
+				If Clothing[ClothingIndex]
+					BathingActor.EquipItem(Clothing[ClothingIndex], False, True)
+				EndIf
+			EndWhile
+		EndIf
 	EndIf
 EndFunction
-Function RinseOff()
+Function RinseOff(bool Showering = false)
 	Debug.SendAnimationEvent(BathingActor, "IdleStop")
 	Utility.Wait(1)
 
-	Debug.SendAnimationEvent(BathingActor, "IdleSearchingChest")
+	if Showering
+		Debug.SendAnimationEvent(BathingActor, "IdleWarmArms")
+	else
+		Debug.SendAnimationEvent(BathingActor, "IdleSearchingChest")
+	endIf
+	GetUnsoapy()
 	Utility.Wait(3)
 
-	GetUnsoapy()
-
 	Debug.SendAnimationEvent(BathingActor, "IdleStop")
-	Utility.Wait(1)
+	Utility.Wait(0.7)
 
 	Debug.SendAnimationEvent(BathingActor, "IdleWipeBrow")
 	Utility.Wait(3)
@@ -372,3 +428,14 @@ Event OnAnimationEvent(ObjectReference Source, string EventName)
 		EndIf
 	EndIf
 EndEvent
+
+Function ForbidSex(Actor akTarget, Bool Forbid)
+	If Init.IsSexlabInstalled && akTarget
+		Faction SexLabForbiddenActors  = Game.GetFormFromFile(0x049068, "SexLab.esm") as Faction
+		If Forbid
+			akTarget.AddToFaction(SexLabForbiddenActors)
+		Else
+			akTarget.RemoveFromFaction(SexLabForbiddenActors)
+		EndIf
+	EndIf
+EndFunction
