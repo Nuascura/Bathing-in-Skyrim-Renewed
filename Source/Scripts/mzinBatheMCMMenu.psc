@@ -353,7 +353,7 @@ Function DisplaySettingsPage()
 	SetCursorPosition(19)
 	AddHeaderOption("$BIS_HEADER_OVERLAYS")
 	OverlayProgressOID_T = AddTextOption("", "")
-	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY")
+	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY_{}")
 	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DisplayFormatPercentage)
 	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DisplayFormatDecimal)
 	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DisplayFormatDecimal)
@@ -706,16 +706,13 @@ EndFunction
 Event OnOptionKeyMapChange(Int OptionID, Int KeyCode, String ConflictControl, String ConflictName)
 	Bool Continue = True
 	
-	If ConflictControl != ""			
-		String ConflictMessage = "$BIS_MSG_KEYMAPCONFLICT_{" + ConflictControl + "}"
+	If ConflictControl != ""
 		
 		If ConflictName != ""
-			 ConflictMessage += "\n(" + ConflictName + ")"
+			ConflictName = "(" + ConflictName + ")"
 		EndIf
 
-		ConflictMessage += "$BIS_MSG_ASK_KEYMAPCONFLICT"
-
-		Continue = ShowMessage(ConflictMessage, True)			
+		Continue = ShowMessage("$BIS_MSG_KEYMAPCONFLICT_{" + ConflictControl + "}{" + ConflictName + "}", True)		
 	EndIf
 	
 	If Continue == True
@@ -1010,7 +1007,7 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(SliderValue)
 	
 	ElseIf OptionID == OverlayApplyAtOID_S
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
 		SliderValue = OptionValue
 		OverlayApplyAt = SliderValue / 100.0
 		UpdateAllActors()
@@ -1172,7 +1169,7 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SliderValue = ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0)
 	
 	ElseIf OptionID == OverlayApplyAtOID_S
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
 		SetSliderDialogDefaultValue(40.0)
 		SetSliderDialogRange(0.0, ((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100.0))
 		SetSliderDialogInterval(1.0)
