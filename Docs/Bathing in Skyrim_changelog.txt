@@ -8,6 +8,7 @@ Primary
 - Added a drying animation via vanilla WarmArms idle for custom Shower animation set.
 - Added text hint when enabling BiS via MCM.
 - Exposed additional translation tokens.
+- Slowed animated soap effect.
 
 Secondary
 - ESL-flagged esp.
