@@ -17,5 +17,6 @@ If you are a general user, peruse the following page instead.<br />
 1. [Last Seed Development Kit](https://www.nexusmods.com/skyrimspecialedition/mods/56393?tab=files&file_id=298100) - includes Frostfall source scripts
 2. [SexLab Framework](https://github.com/eeveelo/SexLab)
 3. [Pee & Fart](https://www.loverslab.com/files/file/31993-paf-fixes-and-addons/)
-4. [Fade Tattoos](https://www.loverslab.com/topic/214810-fade-tattoos-continued/)
-5. [SlaveTats](https://www.loverslab.com/files/file/619-slavetats/)
+4. [DG75's Comment Manager](https://www.loverslab.com/files/file/31907-comment-manager/)
+5. [Fade Tattoos](https://www.loverslab.com/topic/214810-fade-tattoos-continued/)
+6. [SlaveTats](https://www.loverslab.com/files/file/619-slavetats/)
