@@ -23,7 +23,6 @@ FormList Property SoapBonusSpellList Auto
 FormList Property DirtinessSpellList Auto
 FormList Property DirtinessThresholdList Auto
 
-FormList Property WaterList Auto ; unused since we are depending on po3 water detection. Check if this list can be removed
 FormList Property WaterfallList Auto
 
 FormList Property SoapBonusMessageList Auto
