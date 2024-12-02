@@ -15,7 +15,7 @@ Event OnInit()
 	AreasTexNames = new String[4]
 	AreasTexNames[0] = "Body"
 	AreasTexNames[1] = "Hands"
-	AreasTexNames[2] = "Body"
+	AreasTexNames[2] = "Feet"
 	AreasTexNames[3] = "Face"
 EndEvent 
 
@@ -32,9 +32,11 @@ Function BeginOverlay(Actor akTarget, Float Alpha)
 	;StorageUtil.SetStringValue(akTarget, "mzin_DirtTexturePath", TextureToApply)
 	Debug.Trace("Mzin: Applying " + TextureToApply + " to " + akTarget.GetBaseObject().GetName())
 	While i < Areas.Length
+		Debug.Trace("Mzin: Applying " + TextureToApply + AreasTexNames[i] + ".dds to " + Areas[i])
 		ReadyOverlay(akTarget, Gender, Areas[i], (TextureToApply + AreasTexNames[i] + ".dds"), Alpha)
 		i += 1
 	EndWhile
+	Debug.Trace("Mzin: Finished applying overlays")
 EndFunction
 
 Function ReadyOverlay(Actor akTarget, Bool Gender, String Area, String TextureToApply, Float Alpha)
@@ -74,7 +76,8 @@ Function UpdateAlpha(Actor akTarget, Float Alpha)
 	While i > 0
 		i -= 1
 		Int j = GetNumSlots(Areas[i])
-		MatchString = (TexPath + "DirtFX" + AreasTexNames[i] + ".dds")
+		MatchString = (TexPath + "DirtFX" + AreasTexNames[i] + ".dds in slot " + Areas[i])
+		Debug.Trace("Mzin: Update alpha on " + MatchString)
 		While j > 0 && !Result
 			j -= 1
 			Node = Areas[i] + " [ovl" + j + "]"
@@ -85,6 +88,7 @@ Function UpdateAlpha(Actor akTarget, Float Alpha)
 		EndWhile
 		Result = false
 	EndWhile
+	Debug.Trace("Mzin: Finished updating alpha")
 EndFunction
 
 Int Function GetEmptySlot(Actor akTarget, Bool Gender, String Area)

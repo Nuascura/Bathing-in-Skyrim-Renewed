@@ -7,10 +7,11 @@ Int Property DirtSetCount Auto Hidden
 mzinBatheMCMMenu Property Menu Auto
 
 Event OnInit()
-	TexNamez = new String[3]
+	TexNamez = new String[4]
 	TexNamez[0] = "DirtFXBody.dds"
 	TexNamez[1] = "DirtFXHands.dds"
-	TexNamez[2] = "DirtFXFace.dds"
+	TexNamez[2] = "DirtFXFeet.dds"
+	TexNamez[3] = "DirtFXFace.dds"
 
 
 	TexPaths = new String[5]
@@ -45,7 +46,7 @@ Int Function InitTexSets()
 			EndIf
 			j += 1
 		EndWhile
-		If TexCount == 3 ; Complete texture set
+		If TexCount == TexNamez.Length ; Complete texture set
 			Debug.Trace("mzin_: Complete set found!! Set " + i)
 			SetCount += 1
 		
@@ -53,7 +54,7 @@ Int Function InitTexSets()
 			Debug.Trace("mzin_: Empty set detected. Ending search")
 			Return SetCount
 		Else
-			Debug.Messagebox("mzin_: Error: InitTexSets(): Incomplete texture set detected for set " + i + ". There should be 2 texture files per set but Mzin detected only " + TexCount + " files. One or more files are either missing or named incorrectly. You need to fix this first! Check your papyrus log. Search 'mzin'")
+			Debug.Messagebox("mzin_: Error: InitTexSets(): Incomplete texture set detected for set " + i + ". There should be " + TexNamez.Length + " texture files per set but Mzin detected only " + TexCount + " files. One or more files are either missing or named incorrectly. You need to fix this first! Check your papyrus log. Search 'mzin'")
 			Return -1
 		EndIf
 		i += 1
