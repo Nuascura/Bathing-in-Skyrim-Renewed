@@ -46,8 +46,7 @@ Int Property ShyDistance = 2800 Auto Hidden
 
 ;  Modified
 
-
-Int Property BathingInSkyrimVersion = 11 AutoReadOnly
+Int Property BathingInSkyrimVersion = 12 AutoReadOnly
 
 ; references
 Actor Property PlayerRef Auto
@@ -116,6 +115,10 @@ Bool[] TrackedActorsToggleValuesArray
 String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
+String Function GetModVersion()
+	return "2.0.0"
+EndFunction
+
 Int Function GetVersion()
 	Return BathingInSkyrimVersion
 EndFunction
@@ -161,6 +164,11 @@ Event OnConfigInit()
 	TrackedActorsToggleIDs = new Int[128]
 EndEvent
 Event OnVersionUpdate(Int Version)
+	if CurrentVersion != 0
+		Debug.Notification("BISR: Updated Bathing in Skyrim " + GetModVersion())
+	else
+		Debug.Notification("BISR: Installed Bathing in Skyrim " + GetModVersion())
+	endIf
 	OnConfigInit()
 EndEvent
 Event OnPageReset(String Page)
@@ -317,18 +325,18 @@ Function DisplaySettingsPage()
 	PapSetLoadOID_T = AddTextOption("$BIS_L_LOAD_SETTINGS", "$BIS_L_LOAD")
 
 	If Game.GetModByName("FadeTattoos.esp") != 255
-		AddHeaderOption("Fade Tattoos")
-		FadeTatsFadeTimeOID_S = AddSliderOption("Advance Tattoo Age By: ", FadeTatsFadeTime, DisplayFormatDecimal)
-		FadeTatsSoapMultOID_S = AddSliderOption("Soap Mult: ", FadeTatsSoapMult, DisplayFormatDecimal)
+		AddHeaderOption("$BIS_HEADER_FADE_TATTOOS")
+		FadeTatsFadeTimeOID_S = AddSliderOption("$BIS_L_FADETATSADVANCE", FadeTatsFadeTime, DisplayFormatDecimal)
+		FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DisplayFormatDecimal)
 	EndIf
 	
 	If FadeDirtSex
 		SetCursorPosition(36)
-		AddHeaderOption("Dirt Gained Per Tick With")
-		AddTextOption("One Npc, Not Victim: " + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "% ", "")
-		AddTextOption("One Npc, Is Victim: " + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "% ", "")
-		AddTextOption("One Creature, Not Victim: " + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "% ", "")
-		AddTextOption("One Creature, Is Victim: " + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "% ", "")
+		AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
+		AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "")
+		AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "")
+		AddTextOption("$BIS_L_FADEDIRT_CREATURENV_{" + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "}", "")
+		AddTextOption("$BIS_L_FADEDIRT_CREATUREV_{" + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "}", "")
 	EndIf
 	
 	SetCursorPosition(1)
@@ -343,37 +351,37 @@ Function DisplaySettingsPage()
 	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	
 	SetCursorPosition(19)
-	AddHeaderOption("Overlays ")
+	AddHeaderOption("$BIS_HEADER_OVERLAYS")
 	OverlayProgressOID_T = AddTextOption("", "")
-	OverlayApplyAtOID_S = AddSliderOption("Begin Applying Dirt At: ", OverlayApplyAt * 100.0, DisplayFormatPercentage + " Dirtiness")
-	StartingAlphaOID_S = AddSliderOption("Starting Opacity: ", StartingAlpha * 100.0, DisplayFormatPercentage)
-	TimeToCleanOID_S = AddSliderOption("Time To Clean: ", TimeToClean, DisplayFormatDecimal)
-	TimeToCleanIntervalOID_S = AddSliderOption("Time To Clean Interval: ", TimeToCleanInterval, DisplayFormatDecimal)
-	TexSetCountOID_T = AddTextOption("Dirt Texture Sets Detected: " + TexUtil.DirtSetCount, "")
-	RedetectDirtSetsOID_T = AddTextOption("Redetect Sets ", "")
-	RemoveAllOverlaysOID_T = AddTextOption("Remove All Dirt Overlays", "")
+	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY")
+	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DisplayFormatPercentage)
+	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DisplayFormatDecimal)
+	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DisplayFormatDecimal)
+	TexSetCountOID_T = AddTextOption("$BIS_L_OVERLAYTEXSETCOUNT_{" + TexUtil.DirtSetCount + "}", "")
+	RedetectDirtSetsOID_T = AddTextOption("$BIS_L_OVERLAYREDETECT", "")
+	RemoveAllOverlaysOID_T = AddTextOption("$BIS_L_OVERLAYREMOVEALL", "")
 	
 	If Init.IsSexlabInstalled
-		AddHeaderOption("Sex ")
-		DirtinessPerSexOID_S = AddSliderOption("Dirt Per Actor On Sex: ", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
-		VictimMultOID_S = AddSliderOption("Victim Dirt Mult: ", VictimMult, DisplayFormatDecimal)
-		FadeDirtSexToggleID = AddToggleOption("Fade Dirt During Sex", FadeDirtSex)
+		AddHeaderOption("$BIS_HEADER_SEX")
+		DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
+		VictimMultOID_S = AddSliderOption("$BIS_L_VICTIMMULT", VictimMult, DisplayFormatDecimal)
+		FadeDirtSexToggleID = AddToggleOption("$BIS_L_FADEDIRTSEX", FadeDirtSex)
 		
 		If FadeDirtSex
-			SexIntervalDirtOID_S = AddSliderOption("Dirt Gain Per Interval Modifier: ", SexIntervalDirt, DisplayFormatDecimal)
-			SexIntervalOID_S = AddSliderOption("Interval: ", SexInterval, DisplayFormatDecimal)
+			SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DisplayFormatDecimal)
+			SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DisplayFormatDecimal)
 		Else
-			SexIntervalDirtOID_S = AddSliderOption("Dirt Gain Per Interval Modifier: ", SexIntervalDirt, DisplayFormatDecimal, OPTION_FLAG_DISABLED)
-			SexIntervalOID_S = AddSliderOption("Interval: ", SexInterval, DisplayFormatDecimal, OPTION_FLAG_DISABLED)
+			SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DisplayFormatDecimal, OPTION_FLAG_DISABLED)
+			SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DisplayFormatDecimal, OPTION_FLAG_DISABLED)
 		EndIf
 	EndIf
 
-	AddHeaderOption("Misc ")
-	ShynessToggleID = AddToggleOption("Enable/Disable Shyness", Shyness)
-	ShyDistanceOID_S = AddSliderOption("Shyness Distance: ", ShyDistance, DisplayFormatDecimal)
+	AddHeaderOption("$BIS_HEADER_MISC")
+	ShynessToggleID = AddToggleOption("$BIS_L_SHYNESSTOGGLE", Shyness)
+	ShyDistanceOID_S = AddSliderOption("$BIS_L_SHYDISTANCE", ShyDistance, DisplayFormatDecimal)
 	
-	AddHeaderOption("Debug ")
-	UnForbidOID_T = AddTextOption("Unforbid All", "")
+	AddHeaderOption("$BIS_HEADER_DEBUG")
+	UnForbidOID_T = AddTextOption("$BIS_L_UNFORBID", "")
 	
 EndFunction
 Function DisplayTrackedActorsPage()
@@ -393,16 +401,16 @@ Function DisplayTrackedActorsPage()
 		Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
 		String DirtinessString = ""
 		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell)
-			DirtinessString = "Clean"
+			DirtinessString = "$BIS_TXT_CLEAN"
 		EndIf
 		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(1) As Spell)
-			DirtinessString = "Not Dirty"
+			DirtinessString = "$BIS_TXT_NOTDIRTY"
 		EndIf
 		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(2) As Spell)
-			DirtinessString = "Dirty"
+			DirtinessString = "$BIS_TXT_DIRTY"
 		EndIf
 		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(3) As Spell)
-			DirtinessString = "Filthy"
+			DirtinessString = "$BIS_TXT_FILTHY"
 		EndIf
 		TrackedActorsToggleIDs[Index] = AddTextOption(DirtyActor.GetActorBase().GetName(), DirtinessString, OPTION_FLAG_NONE)
 	EndWhile
@@ -643,47 +651,46 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_THRESHOLD_2")
 	ElseIf OptionId == DirtinessThresholdTier3SliderID
 		SetInfoText("$BIS_DESC_THRESHOLD_3")
-		
 	ElseIf OptionId == OverlayProgressOID_T
-		SetInfoText("Operation progress will be displayed here")
+		SetInfoText("$BIS_DESC_OVERLAYPROGRESS")
 	ElseIf OptionId == OverlayApplyAtOID_S
-		SetInfoText("Begin applying the dirt overlay at this dirtiness\nThis allows you to more gradually fade in dirt before the mod will actually consider you dirty\nObviously this slider should be set lower or equal to 'Dirty At' slider\nIf set equal to the 'Dirty At' slider there won't be any fade in prior to the mod considering you as dirty\nAlso, if you set this to less than 'Not Dirty At' your character will still have trace dirt on them after bathing if soap wasn't used")
+		SetInfoText("$BIS_DESC_OVERLAYAPPLY")
 	ElseIf OptionId == StartingAlphaOID_S
-		SetInfoText("An offset for the starting value of the alpha (transparency) of the dirt texture\nThe actual alpha applied = (Starting Alpha + ((Current Dirtiness)pow^3)\nIf the dirt looks to harsh/light starting out try adjusting this\nDefault: 5%")
+		SetInfoText("$BIS_DESC_OVERLAYALPHA")
 	ElseIf OptionId == DirtinessPerSexOID_S
-		SetInfoText("How much dirtiness is gained from sex\nThe dirtiness gained is increased for each actor in the scene - So 3p/4p scene will make you 2/3 times more dirty\nScenes with actors in 'CreatureFaction' will double this amount.")
+		SetInfoText("$BIS_DESC_DIRTPERSEX")
 	ElseIf OptionId == VictimMultOID_S
-		SetInfoText("If the character is a victim in an animation then the dirtiness added is multiplied by this value")
+		SetInfoText("$BIS_DESC_VICTIMMULT")
 	ElseIf OptionId == TexSetCountOID_T
-		SetInfoText("How many texture sets were detected")
+		SetInfoText("$BIS_DESC_OVERLAYTEXSETCOUNT")
 	ElseIf OptionId == RedetectDirtSetsOID_T
-		SetInfoText("Run this to update texture sets\nUse this if you add/remove a texture set\nIf you are removing a set you should Remove All Overlays first!")
+		SetInfoText("$BIS_DESC_OVERLAYREDETECT")
 	ElseIf OptionId == RemoveAllOverlaysOID_T
-		SetInfoText("Remove all dirt overlays from all affected characters including the player character")
+		SetInfoText("$BIS_DESC_OVERLAYREMOVEALL")
 	ElseIf OptionId == PapSetSaveOID_T
-		SetInfoText("Save your settings to file /SKSE/Plugins/StorageUtilData/BathingInSkyrim/Settings.json")
+		SetInfoText("$BIS_DESC_PAPSETSAVE")
 	ElseIf OptionId == PapSetLoadOID_T
-		SetInfoText("Load your settings from file /SKSE/Plugins/StorageUtilData/BathingInSkyrim/Settings.json")
+		SetInfoText("$BIS_DESC_PAPSETLOAD")
 	ElseIf OptionId == FadeTatsFadeTimeOID_S
-		SetInfoText("The number of hours to reduce the duration of a Fade Tattoo when bathing")
+		SetInfoText("$BIS_DESC_FADETATSADVANCE")
 	ElseIf OptionId == FadeTatsSoapMultOID_S
-		SetInfoText("Bathing with soap will multiply the number of hours a tattoo is reduced by this")
+		SetInfoText("$BIS_DESC_FADETATSMULT")
 	ElseIf OptionId == FadeDirtSexToggleID
-		SetInfoText("Fade in dirt during sex rather than dumping it on the actor at the end\nLooks better but comes at the cost of extra processing\nIf disabled dirt will be 'dumped' on the actor at sex end")
+		SetInfoText("$BIS_DESC_FADEDIRTSEX")
 	ElseIf OptionId == SexIntervalDirtOID_S
-		SetInfoText("Determines how much of the dirt calculated from 'Dirt Per Actor' & being a victim is applied to the actor per tick\nThis is an inverted slider so INCREASING the slider DECREASES the amount of dirt gained per tick and vice versa")
+		SetInfoText("$BIS_DESC_SEXINTERVALDIRT")
 	ElseIf OptionId == SexIntervalOID_S
-		SetInfoText("How often to calculate the dirt added to an actor during sex\nLower values look better but are more intensive")
+		SetInfoText("$BIS_DESC_SEXINTERVAL")
 	ElseIf OptionId == TimeToCleanOID_S
-		SetInfoText("How how it takes to clean an actor\nSet this based on how long it takes your animation of choice to complete")
+		SetInfoText("$BIS_DESC_TIMETOCLEAN")
 	ElseIf OptionId == TimeToCleanIntervalOID_S
-		SetInfoText("How often the dirt opacity is updated when bathing\nLower values = smoother removal but higher processing cost")
+		SetInfoText("$BIS_DESC_TIMETOCLEANINTERVAL")
 	ElseIf OptionId == ShynessToggleID
-		SetInfoText("Actors won't be inclined to strip off and begin bathing with other Npcs looking at them\nIn interior cells only LOS matters. Outside both LOS and distance to nearby Npcs is a factor")
+		SetInfoText("$BIS_DESC_SHYNESSTOGGLE")
 	ElseIf OptionId == ShyDistanceOID_S
-		SetInfoText("Distance in Skyrim 'Units' an actor needs to be from the nearest Npc before they will consider bathing")
+		SetInfoText("$BIS_DESC_SHYDISTANCE")
 	ElseIf OptionId == UnForbidOID_T
-		SetInfoText("Unforbid all actors from bathing\nUse this if you're blocked from bathing but think you shouldn't be")
+		SetInfoText("$BIS_DESC_UNFORBID")
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
@@ -700,13 +707,13 @@ Event OnOptionKeyMapChange(Int OptionID, Int KeyCode, String ConflictControl, St
 	Bool Continue = True
 	
 	If ConflictControl != ""			
-		String ConflictMessage = "This key is already mapped to:\n" + ConflictControl
+		String ConflictMessage = "$BIS_MSG_KEYMAPCONFLICT_{" + ConflictControl + "}"
 		
 		If ConflictName != ""
 			 ConflictMessage += "\n(" + ConflictName + ")"
 		EndIf
 
-		ConflictMessage += "\n\nAre you sure you want to continue?"
+		ConflictMessage += "$BIS_MSG_ASK_KEYMAPCONFLICT"
 
 		Continue = ShowMessage(ConflictMessage, True)			
 	EndIf
@@ -781,18 +788,18 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
 	ElseIf OptionID == RedetectDirtSetsOID_T
 		TexUtil.DirtSetCount = TexUtil.InitTexSets()
-		SetTextOptionValue(OverlayProgressOID_T, "Done! ", false)
+		SetTextOptionValue(OverlayProgressOID_T, "$BIS_TXT_DONE", false)
 		ForcePageReset()
 	ElseIf OptionID == RemoveAllOverlaysOID_T
 		RemoveAllOverlays()
 	ElseIf OptionID == PapSetSaveOID_T
-		SetTextOptionValue(PapSetSaveOID_T, "Saving... ", false)
+		SetTextOptionValue(PapSetSaveOID_T, "$BIS_TXT_SAVING", false)
 		SavePapyrusSettings()
-		SetTextOptionValue(PapSetSaveOID_T, "Done! ", false)
+		SetTextOptionValue(PapSetSaveOID_T, "$BIS_TXT_DONE", false)
 	ElseIf OptionID == PapSetLoadOID_T
-		SetTextOptionValue(PapSetLoadOID_T, "Loading... ", false)
+		SetTextOptionValue(PapSetLoadOID_T, "$BIS_TXT_LOADING", false)
 		LoadPapyrusSettings()
-		SetTextOptionValue(PapSetLoadOID_T, "Done! ", false)
+		SetTextOptionValue(PapSetLoadOID_T, "$BIS_TXT_DONE", false)
 	ElseIf OptionID == FadeDirtSexToggleID
 		FadeDirtSex = !FadeDirtSex
 		SetToggleOptionValue(OptionID, FadeDirtSex)
@@ -801,9 +808,9 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 		Shyness = !Shyness
 		SetToggleOptionValue(OptionID, Shyness)
 	ElseIf OptionID == UnForbidOID_T
-		SetTextOptionValue(UnForbidOID_T, "Working... ", false)
+		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_WORKING", false)
 		UnForbidAllActor()
-		SetTextOptionValue(UnForbidOID_T, "Done! ", false)
+		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_DONE", false)
 	EndIf	
 EndFunction
 Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
@@ -1247,6 +1254,9 @@ Function EnableBathingInSkyrim()
 	BatheQuest.RegForEvents()
 
 	BathingInSkyrimEnabled.SetValue(1)
+
+	Debug.Notification("BISR: Enabled Bathing in Skyrim.")
+	Debug.Trace("Mzin: Player enabled Bathing in Skyrim. Mod version: " + GetModVersion() + "; Script version: " + GetVersion())
 EndFunction
 Function DisableBathingInSkyrim()
 	PlayerRef.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
@@ -1279,6 +1289,9 @@ Function DisableBathingInSkyrim()
 	BatheQuest.Stop()
 			
 	BathingInSkyrimEnabled.SetValue(0)
+
+	Debug.Notification("BISR: Disabled Bathing in Skyrim.")
+	Debug.Trace("Mzin: Player disabled Bathing in Skyrim.")
 EndFunction
 Function AddSoapToVendors()
 	Int Index = SoapFormList.GetSize()
@@ -1330,7 +1343,7 @@ EndFunction
 
 Function UpdateProgressRedetectDirtSets(String CurrentTex)
 	If IsConfigOpen
-		SetTextOptionValue(OverlayProgressOID_T, "Checking: " + CurrentTex , false)
+		SetTextOptionValue(OverlayProgressOID_T, "$BIS_NOTIF_CHECKINGSET_{" + CurrentTex + "}", false)
 	EndIF
 EndFunction
 
@@ -1347,13 +1360,13 @@ Function RemoveAllOverlays()
 		DoRemoveAllOverlays(CurrentActor)
 	EndWhile
 	If IsConfigOpen
-		SetTextOptionValue(OverlayProgressOID_T, "Done! ", false)
+		SetTextOptionValue(OverlayProgressOID_T, "$BIS_TXT_DONE", false)
 	EndIf
 EndFunction
 
 Function DoRemoveAllOverlays(Actor akTarget)
 	If IsConfigOpen
-		SetTextOptionValue(OverlayProgressOID_T, "Procing: " + akTarget.GetBaseObject().GetName() , false)
+		SetTextOptionValue(OverlayProgressOID_T, "$BIS_NOTIF_PROCING_{" + akTarget.GetBaseObject().GetName() + "}", false)
 	EndIf
 	Util.ClearDirtGameLoad(akTarget)
 EndFunction
