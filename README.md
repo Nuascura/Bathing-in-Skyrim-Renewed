@@ -1,5 +1,5 @@
 # Bathing in Skyrim - Renewed
-Renewed, cleaned, and improved Bathing in Skyrim. Allows you to bathe in rivers and shower under waterfalls. Improved with modern scripting affordances. 
+Renewed, cleaned, and enhanced Bathing in Skyrim. Allows you to bathe in rivers and shower under waterfalls. Improved with modern scripting affordances. 
 
 This mod is only for Skyrim: Special Edition. Its plugin has a 1.71 file header and is formatted for AE game versions 1.6.1130 and above.
 
@@ -20,3 +20,5 @@ If you are a general user, peruse the following page instead.<br />
 4. [DG75's Comment Manager](https://www.loverslab.com/files/file/31907-comment-manager/)
 5. [Fade Tattoos](https://www.loverslab.com/topic/214810-fade-tattoos-continued/)
 6. [SlaveTats](https://www.loverslab.com/files/file/619-slavetats/)
+
+Script assets are released under MIT License following BIS's own open permissions. Some textures and animation assets are still governed by additional permission requirements.
