@@ -322,7 +322,11 @@ Function DisplaySettingsPage()
 	ShowerKeyMapID = AddKeyMapOption("$BIS_L_SHOWER_HOTKEY", ShowerKeyCode.GetValue() As Int)
 	AddHeaderOption("$BIS_HEADER_SAVELOAD")
 	PapSetSaveOID_T = AddTextOption("$BIS_L_SAVE_SETTINGS", "$BIS_L_SAVE")
-	PapSetLoadOID_T = AddTextOption("$BIS_L_LOAD_SETTINGS", "$BIS_L_LOAD")
+	if MiscUtil.FileExists("data/skse/plugins/StorageUtilData/BathingInSkyrim/Settings.json")
+		PapSetLoadOID_T = AddTextOption("$BIS_L_LOAD_SETTINGS", "$BIS_L_LOAD")
+	else
+		PapSetLoadOID_T = AddTextOption("$BIS_L_LOAD_SETTINGS", "$BIS_L_LOAD", OPTION_FLAG_DISABLED)
+	endIf
 
 	If Game.GetModByName("FadeTattoos.esp") != 255
 		AddHeaderOption("$BIS_HEADER_FADE_TATTOOS")
@@ -791,12 +795,18 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 		RemoveAllOverlays()
 	ElseIf OptionID == PapSetSaveOID_T
 		SetTextOptionValue(PapSetSaveOID_T, "$BIS_TXT_SAVING", false)
-		SavePapyrusSettings()
-		SetTextOptionValue(PapSetSaveOID_T, "$BIS_TXT_DONE", false)
+		if SavePapyrusSettings()
+			SetTextOptionValue(PapSetSaveOID_T, "$BIS_TXT_DONE", false)
+		else
+			SetTextOptionValue(PapSetLoadOID_T, "$BIS_TXT_ERRORED", false)
+		endIf
 	ElseIf OptionID == PapSetLoadOID_T
 		SetTextOptionValue(PapSetLoadOID_T, "$BIS_TXT_LOADING", false)
-		LoadPapyrusSettings()
-		SetTextOptionValue(PapSetLoadOID_T, "$BIS_TXT_DONE", false)
+		if LoadPapyrusSettings()
+			SetTextOptionValue(PapSetLoadOID_T, "$BIS_TXT_DONE", false)
+		else
+			SetTextOptionValue(PapSetLoadOID_T, "$BIS_TXT_ERRORED", false)
+		endIf
 	ElseIf OptionID == FadeDirtSexToggleID
 		FadeDirtSex = !FadeDirtSex
 		SetToggleOptionValue(OptionID, FadeDirtSex)
@@ -1368,7 +1378,19 @@ Function DoRemoveAllOverlays(Actor akTarget)
 	Util.ClearDirtGameLoad(akTarget)
 EndFunction
 
-Function SavePapyrusSettings()
+Bool Function SavePapyrusSettings()
+	if JsonUtil.JsonExists("BathingInSkyrim/Settings.json")
+		if JsonUtil.IsPendingSave("BathingInSkyrim/Settings.json")
+			if !ShowMessage("$BIS_MSG_SAVE_Warn_1")
+				return false
+			endIf
+		else
+			if !ShowMessage("$BIS_MSG_ASK_SAVE")
+				return false
+			endIf
+		endIf
+	endIf
+
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "DialogTopicEnabled", DialogTopicEnabled.GetValueInt())
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValueInt())
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyle", GetSoapyStyle.GetValueInt())
@@ -1427,9 +1449,20 @@ Function SavePapyrusSettings()
 	JsonUtil.Save("BathingInSkyrim/Settings.json")
 
 	ShowMessage("$BIS_MSG_COMPLETED_SAVE", False)
+	ForcePageReset()
+	return True
 EndFunction
 
-Function LoadPapyrusSettings()
+Bool Function LoadPapyrusSettings()
+	if !(JsonUtil.Load("BathingInSkyrim/Settings.json") && JsonUtil.IsGood("BathingInSkyrim/Settings.json"))
+		ShowMessage("$BIS_MSG_LOAD_Warn_1", false)
+		return false
+	else
+		if !ShowMessage("$BIS_MSG_ASK_LOAD")
+			return false
+		endIf
+	endIf
+
 	DialogTopicEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "DialogTopicEnabled"))
 	WaterRestrictionEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "WaterRestrictionEnabled"))
 	GetSoapyStyle.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyle"))
@@ -1489,6 +1522,7 @@ Function LoadPapyrusSettings()
 	
 	ShowMessage("$BIS_MSG_COMPLETED_LOAD", False)
 	ForcePageReset()
+	return true
 EndFunction
 
 Function UpdateAllActors()
