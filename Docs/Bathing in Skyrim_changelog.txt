@@ -1,4 +1,24 @@
-2.0 ; 1.50, 1.501, 1.502, 1.503, 1.504
+2.0.1
+Primary
+- Add: Dirt textures by MoonMods, reorganized for BISR.
+- Add: krzp's bathing animation for female actors.
+- Add: settings.json health check.
+- Add: Description Framework addon, with thanks to alexzk1.
+- Add: sheathe weapon call prior to animation start.
+- Fix: Inaccessible vanilla idle-based bathing animation.
+- Fix: Wash Anim randomization occurring with the wrong animation option selection.
+
+Secondary
+- Changed animation graph reset call during bathing sequence.
+- Removed unused file, mzinBatheAnimation1.hkx.
+- Disabled config imports if missing file.
+- Disabled headtracking during bathing sequence.
+- Disabled Tween and Inventory menu access during bathing sequence.
+- Updated localization file.
+
+
+
+2.0.0 ; 1.50, 1.501, 1.502, 1.503, 1.504
 Primary
 - Fix: Dirt spell not attaching to player on game start.
 - Fix: BiS considering animations while player is underwater or swimming, which would pause animation start until the player next gets out of the water.
