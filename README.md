@@ -21,4 +21,4 @@ If you are a general user, peruse the following page instead.<br />
 5. [Fade Tattoos](https://www.loverslab.com/topic/214810-fade-tattoos-continued/)
 6. [SlaveTats](https://www.loverslab.com/files/file/619-slavetats/)
 
-Script assets are released under MIT License following BIS's own open permissions. Some textures and animation assets are still governed by additional permission requirements.
+Script assets are released under GNU GPL following BIS's FOSS open permissions. Some textures and animation assets are still governed by additional permission requirements.
