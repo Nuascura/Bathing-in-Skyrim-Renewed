@@ -46,7 +46,7 @@ Int Property ShyDistance = 2800 Auto Hidden
 
 ;  Modified
 
-Int Property BathingInSkyrimVersion = 12 AutoReadOnly
+Int Property BathingInSkyrimVersion = 13 AutoReadOnly
 
 ; references
 Actor Property PlayerRef Auto
@@ -116,7 +116,7 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.0.0"
+	return "2.1.0"
 EndFunction
 
 Int Function GetVersion()
@@ -1253,6 +1253,9 @@ EndFunction
 
 ; helper functions
 Function EnableBathingInSkyrim()
+	Utility.Wait(1.0)
+	TexUtil.UtilInit()
+
 	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
 	PlayerRef.AddSpell(GetDirtyOverTimeReactivatorCloakSpell, False)
 

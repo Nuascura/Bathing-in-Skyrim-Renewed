@@ -1,4 +1,4 @@
-2.0.1
+2.1.0
 Primary
 - Add: Dirt textures by MoonMods, reorganized for BISR.
 - Add: krzp's bathing animation for female actors.
@@ -7,6 +7,10 @@ Primary
 - Add: sheathe weapon call prior to animation start.
 - Fix: Inaccessible vanilla idle-based bathing animation.
 - Fix: Wash Anim randomization occurring with the wrong animation option selection.
+- Fix: Dirt texture alphas not changing with accumulation.
+- Fix: UpdateAlpha() invoked when no valid overlays are on the player.
+- Fix: Texture Util duplicate call for set identification.
+- Reduced valid shower distance from waterfall: 500 -> 256.
 
 Secondary
 - Changed animation graph reset call during bathing sequence.
