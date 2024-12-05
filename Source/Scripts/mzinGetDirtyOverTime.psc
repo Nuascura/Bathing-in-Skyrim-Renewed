@@ -94,7 +94,6 @@ Event OnBiS_CleanActorDirt(Form akTarget, Float TimeToClean, Float TimeToCleanIn
 			Utility.Wait(TimeToCleanInterval)
 		EndWhile
 	EndIf
-	;ApplyDirt() ; Run an update now so that if 
 EndEvent
 
 Event OnAnimationStart(int tid, bool HasPlayer)
@@ -226,19 +225,18 @@ Event OnEffectFinish(Actor Target, Actor Caster)
 	EndIf
 EndEvent
 Event OnUpdateGameTime()
-	ApplyDirt()
-	Float CurrentGameTime = Utility.GetCurrentGameTime()
-	LocalLastUpdateTime = CurrentGameTime
-	StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", CurrentGameTime)
-	RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
+	RunDirtCycleUpdate()
 EndEvent
 Event OnUpdate()
+	RunDirtCycleUpdate()
+EndEvent
+Function RunDirtCycleUpdate()
 	ApplyDirt()
 	Float CurrentGameTime = Utility.GetCurrentGameTime()
 	LocalLastUpdateTime = CurrentGameTime
 	StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", CurrentGameTime)
 	RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
-EndEvent
+EndFunction
 Event OnObjectEquipped(Form WashProp, ObjectReference WashPropReference)
 	If WashProp.HasKeyWord(WashPropKeyword) && !BatheQuest.IsInCommmonRestriction(DirtyActor)
 		if !(BatheQuest.WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor)
@@ -328,7 +326,7 @@ Function ApplyDirt()
 	Float DirtyThreshold = (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
 	If Menu.OverlayApplyAt < DirtyThreshold
 		If LocalDirtinessPercentage >= Menu.OverlayApplyAt && LocalDirtinessPercentage < DirtyThreshold
-			DirtyActor.AddSpell(mzinDirtinessTier1p5Spell, false)
+			DirtyActor.AddSpell(mzinDirtinessTier1p5Spell, false) ; this function sends to mzinDirtyOverlay.psc
 		Else
 			DirtyActor.RemoveSpell(mzinDirtinessTier1p5Spell)
 		EndIf
@@ -443,7 +441,9 @@ Function CheckAlpha()
 		If Alpha > 1.0
 			Alpha = 1.0
 		EndIf
-		Util.UpdateAlpha(DirtyActor, Alpha)
+		if !StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") == ""
+			Util.UpdateAlpha(DirtyActor, Alpha)
+		endIf
 	EndIf
 EndFunction
 
