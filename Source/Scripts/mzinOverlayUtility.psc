@@ -30,13 +30,10 @@ Function BeginOverlay(Actor akTarget, Float Alpha)
 	EndIf
 	TextureToApply = TexPrefix + "DirtFX"
 	;StorageUtil.SetStringValue(akTarget, "mzin_DirtTexturePath", TextureToApply)
-	Debug.Trace("Mzin: Applying " + TextureToApply + " to " + akTarget.GetBaseObject().GetName())
 	While i < Areas.Length
-		Debug.Trace("Mzin: Applying " + TextureToApply + AreasTexNames[i] + ".dds to " + Areas[i])
 		ReadyOverlay(akTarget, Gender, Areas[i], (TextureToApply + AreasTexNames[i] + ".dds"), Alpha)
 		i += 1
 	EndWhile
-	Debug.Trace("Mzin: Finished applying overlays")
 EndFunction
 
 Function ReadyOverlay(Actor akTarget, Bool Gender, String Area, String TextureToApply, Float Alpha)
@@ -66,7 +63,6 @@ Function ApplyOverlay(Actor akTarget, Bool Gender, String Area, String OverlaySl
 EndFunction
 
 Function UpdateAlpha(Actor akTarget, Float Alpha)
-	Debug.Trace("Mzin: Update alpha on " + akTarget.GetBaseObject().GetName() + " to " + Alpha)
 	String Node
 	Bool Result = false
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
@@ -76,8 +72,7 @@ Function UpdateAlpha(Actor akTarget, Float Alpha)
 	While i > 0
 		i -= 1
 		Int j = GetNumSlots(Areas[i])
-		MatchString = (TexPath + "DirtFX" + AreasTexNames[i] + ".dds in slot " + Areas[i])
-		Debug.Trace("Mzin: Update alpha on " + MatchString)
+		MatchString = (TexPath + "DirtFX" + AreasTexNames[i] + ".dds")
 		While j > 0 && !Result
 			j -= 1
 			Node = Areas[i] + " [ovl" + j + "]"
@@ -88,7 +83,6 @@ Function UpdateAlpha(Actor akTarget, Float Alpha)
 		EndWhile
 		Result = false
 	EndWhile
-	Debug.Trace("Mzin: Finished updating alpha")
 EndFunction
 
 Int Function GetEmptySlot(Actor akTarget, Bool Gender, String Area)
@@ -98,11 +92,11 @@ Int Function GetEmptySlot(Actor akTarget, Bool Gender, String Area)
 		i -= 1
 		TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender, Area + " [ovl" + i + "]", 9, 0)
 		If TexPath == "" || TexPath == "actors\\character\\overlays\\default.dds"
-			Debug.Trace("_SLS_: GetEmptySlot: Slot " + i + " chosen for area: " + area + " on " + akTarget.GetBaseObject().GetName())
+			Debug.Trace("Mzin: GetEmptySlot: Slot " + i + " chosen for area: " + area + " on " + akTarget.GetBaseObject().GetName())
 			Return i
 		EndIf
 	EndWhile
-	Debug.Trace("_SLS_: GetEmptySlot: Error: Could not find a free slot in area: " + Area + " on "  + akTarget.GetBaseObject().GetName())
+	Debug.Trace("Mzin: GetEmptySlot: Error: Could not find a free slot in area: " + Area + " on "  + akTarget.GetBaseObject().GetName())
 	Return -1
 EndFunction
 
