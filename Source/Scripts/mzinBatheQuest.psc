@@ -206,6 +206,7 @@ Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, 
 		If UsedSoap
 			ApplySoapBonus(DirtyActor, WashProp)
 			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
+			; seems to me that index objects 2 and 3 aren't used in GetDirtyOverTimeSpellList...
 			If DirtyActor != PlayerRef
 				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", 0.0)
 			EndIf
@@ -234,13 +235,11 @@ Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
 		UsedSoap = true
 		;ApplySoapBonus(DirtyActor, WashProp)
 		DirtyActor.RemoveItem(WashProp, 1, True, None)
-		;DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
 		DirtyActor.AddSpell(PlayShowerAnimationWithSoap, False)
 		If DirtyActorIsPlayer
 			ShoweringWithSoapMessage.Show()
 		EndIf
 	Else
-		;DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
 		DirtyActor.AddSpell(PlayShowerAnimationWithoutSoap, False)
 		If DirtyActorIsPlayer
 			ShoweringWithoutSoapMessage.Show()
@@ -353,8 +352,8 @@ Bool Function IsUnderWaterfall(Actor DirtyActor)
 
 		; PC can shower when standing within 2 character lengths of the waterfall (256 units), and at any height below it.
 		if (DirtyActor.GetPositionZ() <= closestWaterfall.GetPositionZ() + 1280.0) \
-		&& (math.abs(DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) <= 500.0) \
-		&& (math.abs(DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) <= 500.0)
+		&& (math.abs(DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) <= 256.0) \
+		&& (math.abs(DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) <= 256.0)
 			debug.trace("IsUnderWaterfall = true")
 			; debug.notification("IsUnderWaterfall = true")
 		Return True
