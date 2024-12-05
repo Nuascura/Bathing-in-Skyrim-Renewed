@@ -13,19 +13,22 @@ Event OnInit()
 	TexNamez[2] = "DirtFXFeet.dds"
 	TexNamez[3] = "DirtFXFace.dds"
 
-
 	TexPaths = new String[5]
 	TexPaths[0] = "\\mzin\\Bathe\\"
 	TexPaths[1] = "\\mzin\\Bathe\\Set2\\"
 	TexPaths[2] = "\\mzin\\Bathe\\Set3\\"
 	TexPaths[3] = "\\mzin\\Bathe\\Set4\\"
 	TexPaths[4] = "\\mzin\\Bathe\\Set5\\"
-	
-	Utility.Wait(4.0)
-	DirtSetCount = InitTexSets()
 EndEvent
 
+Function UtilInit()
+	OnInit()
+	DirtSetCount = InitTexSets()
+EndFunction
+
 Int Function InitTexSets()
+	; this is a relatively heavy function. Should not be run with OnInit()
+
 	Int SetCount = 1 ; vanilla
 	Int TexCount
 	String SetPrefix
