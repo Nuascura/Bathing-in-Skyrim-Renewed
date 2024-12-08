@@ -97,32 +97,20 @@ Function UnRegisterHotKeys()
 EndFunction
 
 Bool Function IsInCommmonRestriction(Actor DirtyActor)
-	if IsDeviceBlocked(DirtyActor) || !IsPermitted(DirtyActor) || IsTooShy(DirtyActor) || DirtyActor.IsSwimming() ;|| IsAnimating(DirtyActor)
-		; if IsDeviceBlocked(DirtyActor)
-		; 	Debug.Notification("IsDeviceBlocked")
-		; endIf
-		; if !IsPermitted(DirtyActor)
-		; 	Debug.Notification("!IsPermitted")
-		; endIf
-		; if IsTooShy(DirtyActor)
-		; 	Debug.Notification("IsTooShy")
-		; endIf
-		; if DirtyActor.IsSwimming()
-		; 	Debug.Notification("IsSwimming")
-		; endIf
-		; Debug.Notification("IsInCommmonRestriction")
-		return true
-	endIf
-	return false
+	return (IsDeviceBlocked(DirtyActor) || !IsPermitted(DirtyActor) || IsTooShy(DirtyActor) || DirtyActor.IsSwimming())
+EndFunction
+
+Bool Function IsInWater(Actor DirtyActor)
+	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor))
 EndFunction
 
 Function TryBatheActor(Actor DirtyActor, MiscObject WashProp)
-	;Debug.Messagebox("TryBatheActor: DirtyActor" + DirtyActor + "\nWashProp: " +WashProp )
+	;Debug.Trace("TryBatheActor: DirtyActor" + DirtyActor + "\nWashProp: " +WashProp )
 	UnRegisterHotKeys()
 	If WashProp == None
 		WashProp = TryFindWashProp(DirtyActor)
 	EndIf
-	If (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor))
+	If IsInWater(DirtyActor)
 		if !IsInCommmonRestriction(DirtyActor)
 			BatheActor(DirtyActor, WashProp)
 		endIf
@@ -391,12 +379,6 @@ Bool Function IsDeviceBlocked(Actor akTarget)
 		Return False
 	EndIf
 EndFunction
-
-;/
-Bool Function IsAnimating(Actor akTarget)
-	return SexlabInt.SlIsActorActive(akTarget)
-EndFunction
-/;
 
 Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
 	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt")
