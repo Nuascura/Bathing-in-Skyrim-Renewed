@@ -38,36 +38,24 @@ Spell Property SoapyAppearanceAnimatedSpell Auto
 Idle Property BathingAnimationStop Auto
 
 Idle Property mzinBatheA1_S1_Soap Auto
-Idle Property mzinBatheA1_end_Soap Auto
 Idle Property mzinBatheA1_S1_Cloth Auto
-Idle Property mzinBatheA1_end_Cloth Auto
 
 Idle Property mzinBatheA2_S1_Soap Auto
-Idle Property mzinBatheA2_end_Soap Auto
 Idle Property mzinBatheA2_S1_Cloth Auto
-Idle Property mzinBatheA2_end_Cloth Auto
 
 Idle Property mzinBatheA3_S1_Soap Auto
-Idle Property mzinBatheA3_end_Soap Auto
 Idle Property mzinBatheA3_S1_Cloth Auto
-Idle Property mzinBatheA3_end_Cloth Auto
 
 Idle Property mzinBatheA4_S0 Auto
 
 Idle Property mzinBatheMA1_S1_Soap Auto
-Idle Property mzinBatheMA1_end_Soap Auto
 Idle Property mzinBatheMA1_S1_Cloth Auto
-Idle Property mzinBatheMA1_end_Cloth Auto
 
 Idle Property mzinBatheMA2_S1_Soap Auto
-Idle Property mzinBatheMA2_end_Soap Auto
 Idle Property mzinBatheMA2_S1_Cloth Auto
-Idle Property mzinBatheMA2_end_Cloth Auto
 
 Idle Property mzinBatheMA3_S1_Soap Auto
-Idle Property mzinBatheMA3_end_Soap Auto
 Idle Property mzinBatheMA3_S1_Cloth Auto
-Idle Property mzinBatheMA3_end_Cloth Auto
 
 Message Property BathingCompleteMessage Auto
 
@@ -120,7 +108,7 @@ Function PlayBathingAnimationDefault()
 	RinseOff()
 	StopAnimation()
 EndFunction
-Function PlayBathingAnimationCustom1(Idle animStart, Idle animEnd, Float animDuration)
+Function PlayBathingAnimationCustom1(Idle anim, Float animDuration)
 	; plays either Tween's for men or Baka's for women
 
 	if !Showering
@@ -135,13 +123,10 @@ Function PlayBathingAnimationCustom1(Idle animStart, Idle animEnd, Float animDur
 		animDuration = ForceCustomAnimationDuration.GetValue() As Float
    endIf
 
-	BathingActor.PlayIdle(animStart)
+	BathingActor.PlayIdle(anim)
     Utility.Wait(1)
 	GetSoapy()
 	Utility.Wait(animDuration)
-	BathingActor.PlayIdle(animEnd)
-	Utility.Wait(3.5)
-	;Debug.SendAnimationEvent(BathingActor, "ResetRoot")
 	Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState") ; if this isn't here, animEnd seems to lock Actor controls for a certain amount of time
 	Utility.Wait(0.5)
 	RinseOff(Showering)
@@ -235,43 +220,43 @@ Function StartAnimation()
 		elseIf AnimationStyle == 2
 			if BathingActorIsFemale
 				if (UsingSoap)
-					PlayBathingAnimationCustom1(mzinBatheA1_S1_Soap, mzinBatheA1_end_Soap, 31.1)
+					PlayBathingAnimationCustom1(mzinBatheA1_S1_Soap, 31.1)
 				else
-					PlayBathingAnimationCustom1(mzinBatheA1_S1_Cloth, mzinBatheA1_end_Cloth, 31.1)
+					PlayBathingAnimationCustom1(mzinBatheA1_S1_Cloth, 31.1)
 				endIf
 			else
 				if (UsingSoap)
-					PlayBathingAnimationCustom1(mzinBatheMA1_S1_Soap, mzinBatheMA1_end_Soap, 31)
+					PlayBathingAnimationCustom1(mzinBatheMA1_S1_Soap, 31)
 				else
-					PlayBathingAnimationCustom1(mzinBatheMA1_S1_Cloth, mzinBatheMA1_end_Cloth, 31)
+					PlayBathingAnimationCustom1(mzinBatheMA1_S1_Cloth, 31)
 				endIf
 			endIf
 		elseIf AnimationStyle == 3
 			if BathingActorIsFemale
 				if (UsingSoap)
-					PlayBathingAnimationCustom1(mzinBatheA2_S1_Soap, mzinBatheA2_end_Soap, 38.5)
+					PlayBathingAnimationCustom1(mzinBatheA2_S1_Soap, 38.5)
 				else
-					PlayBathingAnimationCustom1(mzinBatheA2_S1_Cloth, mzinBatheA2_end_Cloth, 38.5)
+					PlayBathingAnimationCustom1(mzinBatheA2_S1_Cloth, 38.5)
 				endIf
 			else
 				if (UsingSoap)
-					PlayBathingAnimationCustom1(mzinBatheMA2_S1_Soap, mzinBatheMA2_end_Soap, 30.5)
+					PlayBathingAnimationCustom1(mzinBatheMA2_S1_Soap, 30.5)
 				else
-					PlayBathingAnimationCustom1(mzinBatheMA2_S1_Cloth, mzinBatheMA2_end_Cloth, 30.5)
+					PlayBathingAnimationCustom1(mzinBatheMA2_S1_Cloth, 30.5)
 				endIf
 			endIf
 		elseIf AnimationStyle == 4
 			if BathingActorIsFemale
 				if UsingSoap
-					PlayBathingAnimationCustom1(mzinBatheA3_S1_Soap, mzinBatheA3_end_Soap, 31)
+					PlayBathingAnimationCustom1(mzinBatheA3_S1_Soap, 31)
 				else
-					PlayBathingAnimationCustom1(mzinBatheA3_S1_Cloth, mzinBatheA3_end_Cloth, 31)
+					PlayBathingAnimationCustom1(mzinBatheA3_S1_Cloth, 31)
 				endIf
 			else 
 				if UsingSoap
-					PlayBathingAnimationCustom1(mzinBatheMA3_S1_Soap, mzinBatheMA3_end_Soap, 47)
+					PlayBathingAnimationCustom1(mzinBatheMA3_S1_Soap, 47)
 				else
-					PlayBathingAnimationCustom1(mzinBatheMA3_S1_Cloth, mzinBatheMA3_end_Cloth, 47)
+					PlayBathingAnimationCustom1(mzinBatheMA3_S1_Cloth, 47)
 				endIf
 			endIf
 		elseIf AnimationStyle == 5
@@ -417,8 +402,10 @@ Function RinseOff(bool Showering = false)
 	Debug.SendAnimationEvent(BathingActor, "IdleStop")
 	Utility.Wait(0.7)
 
-	Debug.SendAnimationEvent(BathingActor, "IdleWipeBrow")
-	Utility.Wait(3)
+	if !Showering
+		Debug.SendAnimationEvent(BathingActor, "IdleWipeBrow")
+		Utility.Wait(3)
+	endIf
 EndFunction
 
 Function StartAnimationSequence(String AnimationEventToPlay, String AnimationEventToWaitFor)
