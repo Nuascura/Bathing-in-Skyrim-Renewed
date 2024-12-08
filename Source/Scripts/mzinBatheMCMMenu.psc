@@ -45,8 +45,7 @@ Bool Property Shyness = True Auto Hidden
 Int Property ShyDistance = 2800 Auto Hidden
 
 ;  Modified
-
-Int Property BathingInSkyrimVersion = 13 AutoReadOnly
+Int Property ScriptVersion = 13 AutoReadOnly
 
 ; references
 Actor Property PlayerRef Auto
@@ -116,11 +115,11 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.1.0"
+	return "2.1.1"
 EndFunction
 
 Int Function GetVersion()
-	Return BathingInSkyrimVersion
+	Return ScriptVersion
 EndFunction
 
 Event OnConfigOpen()
@@ -162,12 +161,14 @@ Event OnConfigInit()
 
 	; tracked actors array
 	TrackedActorsToggleIDs = new Int[128]
+
+	if CurrentVersion == 0
+		Debug.Notification("BISR: Installed Bathing in Skyrim " + GetModVersion())
+	endIf
 EndEvent
 Event OnVersionUpdate(Int Version)
 	if CurrentVersion != 0
 		Debug.Notification("BISR: Updated Bathing in Skyrim " + GetModVersion())
-	else
-		Debug.Notification("BISR: Installed Bathing in Skyrim " + GetModVersion())
 	endIf
 	OnConfigInit()
 EndEvent
@@ -312,7 +313,15 @@ Function DisplaySettingsPage()
 	SetCursorFillMode(TOP_TO_BOTTOM)
 	
 	AddHeaderOption("$BIS_HEADER_GENERAL")
-	BathingInSkyrimEnableToggleID = AddToggleOption("$BIS_L_ENABLED", BathingInSkyrimEnabled.GetValue() As Bool)
+	if BathingInSkyrimEnabled.GetValue() == 1
+		ModStateOID_T = AddTextOption("$BIS_L_MODSTATE", "$BIS_TXT_ENABLED")
+	elseIf BathingInSkyrimEnabled.GetValue() == 0
+		ModStateOID_T = AddTextOption("$BIS_L_MODSTATE", "$BIS_TXT_DISABLED")
+	elseIf BathingInSkyrimEnabled.GetValue() == -1
+		ModStateOID_T = AddTextOption("$BIS_L_MODSTATE", "$BIS_TXT_WORKING")
+	else
+		ModStateOID_T = AddTextOption("$BIS_L_MODSTATE", "$BIS_TXT_ERRORED")
+	endIf
 	DialogTopicEnableToggleID = AddToggleOption("$BIS_L_ENABLED_DIALOG_TOPIC", DialogTopicEnabled.GetValue() As Bool)
 	WaterRestrictionEnableToggleID = AddToggleOption("$BIS_L_WATER_RESTRICT",WaterRestrictionEnabled.GetValue() As Bool)
 	UpdateIntervalSliderID = AddSliderOption("$BIS_L_UPDATE_INTERVAL", DirtinessUpdateInterval.GetValue(), DisplayFormatDecimal)
@@ -519,11 +528,11 @@ Function HandleOnOptionDefaultAnimationsPageFollowers(Int OptionID)
 	EndIf	
 EndFunction
 Function HandleOnOptionDefaultSettingsPage(Int OptionID)
-	; toggles
-	If OptionID == BathingInSkyrimEnableToggleID
-		BathingInSkyrimEnabled.SetValue(0)
-		SetToggleOptionValue(OptionID, BathingInSkyrimEnabled.GetValue() As Bool)
+	If OptionID == ModStateOID_T
+		BathingInSkyrimEnabled.SetValue(-1)
+		SetTextOptionValue(OptionID, "$BIS_TXT_DISABLED", false)
 		DisableBathingInSkyrim()
+	; toggles
 	ElseIf OptionID == DialogTopicEnableToggleID
 		DialogTopicEnabled.SetValue(1)
 		SetToggleOptionValue(OptionID, DialogTopicEnabled.GetValue() As Bool)
@@ -625,7 +634,7 @@ Function HandleOnOptionHighlightAnimationsPageFollowers(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightSettingsPage(Int OptionID)
-	If OptionID == BathingInSkyrimEnableToggleID
+	If OptionID == ModStateOID_T
 		SetInfoText("$BIS_DESC_ENABLE_MOD")
 	ElseIf OptionID == DialogTopicEnableToggleID
 		SetInfoText("$BIS_DESC_ENABLE_DIALOG_TOPIC")
@@ -772,13 +781,16 @@ Function HandleOnOptionSelectAnimationsPageFollowers(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionSelectSettingsPage(Int OptionID)
-	If OptionID == BathingInSkyrimEnableToggleID
+	If OptionID == ModStateOID_T
 		If BathingInSkyrimEnabled.GetValue() As Bool && ShowMessage("$BIS_MSG_ASK_DISABLE", True) == True
+			BathingInSkyrimEnabled.SetValue(-1)
+			SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
 			DisableBathingInSkyrim()
-			SetToggleOptionValue(OptionID, false)
+			SetTextOptionValue(OptionID, "$BIS_TXT_DISABLED", false)
 		Else
+			BathingInSkyrimEnabled.SetValue(-1)
+			SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
 			ShowMessage("$BIS_MSG_ASK_ENABLE", false)
-			SetToggleOptionValue(OptionID, true)
 			EnableBathingInSkyrim()
 		EndIf
 	ElseIf OptionID == DialogTopicEnableToggleID
@@ -1550,7 +1562,7 @@ EndFunction
 ; ---------- MCM Internal Variables ----------
 
 ; menu - Settings
-Int BathingInSkyrimEnableToggleID
+Int ModStateOID_T
 Int DialogTopicEnableToggleID
 Int WaterRestrictionEnableToggleID
 Int UpdateIntervalSliderID
