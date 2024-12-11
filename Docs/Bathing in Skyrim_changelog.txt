@@ -1,3 +1,14 @@
+2.1.1
+Primary
+- Add: Better visual appearance for mod enabling/disabling processes.
+- Fix: Incorrect text strings for save/load prompts.
+- Fix: Followers don't bathe when requested by the player.
+- Pruned redundant idle end animations.
+- Adjusted rinse off sequence.
+- Updated localization file.
+
+
+
 2.1.0
 Primary
 - Add: Dirt textures by MoonMods, reorganized for BISR.
