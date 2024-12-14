@@ -2,6 +2,7 @@
 Primary
 - Add: OCum Ascended interface.
 - Adjust: Allow PAF overlay removal for NPCs.
+- Fix: Missing FadeTattoos interface function call under BatheActor().
 
 
 

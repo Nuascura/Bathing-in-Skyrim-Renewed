@@ -208,6 +208,7 @@ Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, 
 
 	;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 	Util.SendBatheModEvent(DirtyActor as Form)
+	mzinInterfaceFadeTats.FadeTats(DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 EndFunction
 
 Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
