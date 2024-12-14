@@ -1,3 +1,10 @@
+2.1.2
+Primary
+- Add: OCum Ascended interface.
+- Adjust: Allow PAF overlay removal for NPCs.
+
+
+
 2.1.1
 Primary
 - Add: Better visual appearance for mod enabling/disabling processes.

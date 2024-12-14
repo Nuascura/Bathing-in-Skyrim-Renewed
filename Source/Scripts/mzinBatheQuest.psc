@@ -141,7 +141,6 @@ Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, 
 	DirtyActor.ClearExtraArrows()
 	If DirtyActorIsPlayer
 		mzinInterfaceFrostfall.MakeWet(1000.0)
-		mzinInterfacePaf.ClearPafDirt(DirtyActor)
 	EndIf
 
 	if Animate
@@ -169,9 +168,10 @@ Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, 
 		EndIf
 	endIf
 	If Init.IsSexlabInstalled
-		;Debug.Notification("Clear Cum")
 		SexlabInt.SlClearCum(DirtyActor)
 	EndIf
+	mzinInterfacePaf.ClearPafDirt(DirtyActor)
+	mzinInterfaceOCum.OCClearCum(DirtyActor)
 	
 	SendCleanDirtEvent(DirtyActor, UsedSoap)
 	
@@ -216,7 +216,6 @@ Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
 	DirtyActor.ClearExtraArrows()
 	If DirtyActorIsPlayer
 		mzinInterfaceFrostfall.MakeWet(1000.0)
-		mzinInterfacePaf.ClearPafDirt(DirtyActor)
 	EndIf
 
 	If WashProp && WashProp.HasKeyWord(SoapKeyword)
@@ -236,6 +235,8 @@ Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
 	If Init.IsSexlabInstalled
 		SexlabInt.SlClearCum(DirtyActor)
 	EndIf
+	mzinInterfacePaf.ClearPafDirt(DirtyActor)
+	mzinInterfaceOCum.OCClearCum(DirtyActor)
 	
 	SendCleanDirtEvent(DirtyActor, UsedSoap)
 
