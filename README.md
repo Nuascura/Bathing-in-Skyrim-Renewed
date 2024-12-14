@@ -20,5 +20,7 @@ If you are a general user, peruse the following page instead.<br />
 4. [DG75's Comment Manager](https://www.loverslab.com/files/file/31907-comment-manager/)
 5. [Fade Tattoos](https://www.loverslab.com/topic/214810-fade-tattoos-continued/)
 6. [SlaveTats](https://www.loverslab.com/files/file/619-slavetats/)
+7. [OStimNG](https://github.com/VersuchDrei/OStimNG)
+8. [OCum Ascended](https://github.com/Aietos/OCum-Ascended)
 
 Script assets are released under GNU GPL following BiS's FOSS open permissions. Some textures and animation assets are still governed by additional permission requirements.
