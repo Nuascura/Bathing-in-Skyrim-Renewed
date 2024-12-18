@@ -1,5 +1,5 @@
 # Bathing in Skyrim - Renewed
-Cleaned and enhanced Bathing in Skyrim. Allows you to bathe in rivers and shower under waterfalls. Improved with modern scripting affordances. 
+Renewal of classic Bathing in Skyrim.
 
 This mod is only for Skyrim: Special Edition. Its plugin has a 1.71 file header and is formatted for AE game versions 1.6.1130 and above.
 
