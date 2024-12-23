@@ -1,3 +1,17 @@
+2.2.0
+Primary
+- Add: Followers bathe when the player bathes.
+- Add: Additional safeguards against bathe attempts while already bathing.
+- Fix: Desync between dirt removal and actual animation finish. 
+- Change: Clarify animation loop setting descriptions.
+- Change: Restrict bathing topics to NPCs in faction CurrentFollowerFaction.
+- Change: Refactor soap application and bathing finish code.
+- Update: Localization file.
+- Remove: Deprecated mzinBathe script.
+- Remove: Deprecated mzinBatheActor script.
+
+
+
 2.1.2
 Primary
 - Add: OCum Ascended interface.
