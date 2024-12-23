@@ -194,19 +194,15 @@ Function ApplyDirt(Actor akTarget, Float Alpha)
 	BeginOverlay(akTarget, Alpha)
 EndFunction
 
-Function SendBatheBeginModEvent(Form akBatheActor)
-    int Bis_BatheModEvent = ModEvent.Create("Bis_BatheBeginEvent")
-    If (Bis_BatheModEvent)
-        ModEvent.PushForm(Bis_BatheModEvent, akBatheActor)
-        ModEvent.Send(Bis_BatheModEvent)
-    EndIf
+Function SendBathePlayerModEvent()
+    SendModEvent("BiS_BathePlayerEvent")
 EndFunction
 
 Function SendBatheModEvent(Form akBatheActor)
-    int Bis_BatheModEvent = ModEvent.Create("Bis_BatheEvent")
-    If (Bis_BatheModEvent)
-        ModEvent.PushForm(Bis_BatheModEvent, akBatheActor)
-        ModEvent.Send(Bis_BatheModEvent)
+    int BiS_BatheModEvent = ModEvent.Create("BiS_BatheEvent")
+    If (BiS_BatheModEvent)
+        ModEvent.PushForm(BiS_BatheModEvent, akBatheActor)
+        ModEvent.Send(BiS_BatheModEvent)
     EndIf
 EndFunction
 
