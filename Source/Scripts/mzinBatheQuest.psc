@@ -5,6 +5,7 @@ mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinInterfaceSexlab Property SexlabInt Auto
 mzinOverlayUtility Property Util Auto
+mzinBathePlayerAlias Property PlayerAlias Auto
 
 GlobalVariable Property BathingInSkyrimEnabled Auto
 GlobalVariable Property WaterRestrictionEnabled Auto
@@ -53,6 +54,7 @@ Quest Property mzinGawkers Auto
 
 Function RegForEvents()
 	RegisterForModEvent("BiS_WashActor", "OnBiS_WashActor")
+	RegisterForModEvent("BiS_WashActorFinish", "OnBiS_WashActorFinish")
 EndFunction
 
 Event OnBiS_WashActor(Form akActor, Bool Animate = false, Bool FullClean = false, Bool DoSoap = false)
@@ -62,6 +64,10 @@ Event OnBiS_WashActor(Form akActor, Bool Animate = false, Bool FullClean = false
 	Else
 		Debug.Trace("Mzin: OnBiS_WashActor(): Received invalid actor: " + akActor)
 	EndIf
+EndEvent
+
+Event OnBiS_WashActorFinish(Form akBathingActor, Bool abUsingSoap)
+	WashActorFinish(akBathingActor as Actor, UsedSoap = abUsingSoap)
 EndEvent
 
 Event OnKeyDown(Int KeyCode)
@@ -94,14 +100,6 @@ Function UnRegisterHotKeys()
 	UnregisterForKey(BatheKeyCode.GetValueInt())
 	UnregisterForKey(ShowerKeyCode.GetValueInt())
 	UnregisterForKey(CheckStatusKeyCode.GetValueInt())
-EndFunction
-
-Bool Function IsInCommmonRestriction(Actor DirtyActor)
-	return (IsDeviceBlocked(DirtyActor) || !IsPermitted(DirtyActor) || IsTooShy(DirtyActor) || DirtyActor.IsSwimming())
-EndFunction
-
-Bool Function IsInWater(Actor DirtyActor)
-	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor))
 EndFunction
 
 Function TryBatheActor(Actor DirtyActor, MiscObject WashProp)
@@ -141,18 +139,18 @@ Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, 
 	DirtyActor.ClearExtraArrows()
 	If DirtyActorIsPlayer
 		mzinInterfaceFrostfall.MakeWet(1000.0)
+		PlayerAlias.RunCycleHelper()
+		Util.SendBathePlayerModEvent()
 	EndIf
 
 	if Animate
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
 			UsedSoap = true
-			;ApplySoapBonus(DirtyActor, WashProp)
 			DirtyActor.RemoveItem(WashProp, 1, True, None)
 			DirtyActor.AddSpell(PlayBatheAnimationWithSoap, False)
 			If DirtyActorIsPlayer
 				BathingWithSoapMessage.Show()
 			EndIf
-		
 		Else
 			DirtyActor.AddSpell(PlayBatheAnimationWithoutSoap, False)	
 			If DirtyActorIsPlayer
@@ -167,48 +165,26 @@ Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, 
 			UsedSoap = true
 		EndIf
 	endIf
-	If Init.IsSexlabInstalled
-		SexlabInt.SlClearCum(DirtyActor)
-	EndIf
+
+	SexlabInt.SlClearCum(DirtyActor)
 	mzinInterfacePaf.ClearPafDirt(DirtyActor)
 	mzinInterfaceOCum.OCClearCum(DirtyActor)
+	mzinInterfaceFadeTats.FadeTats(DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 	
 	SendCleanDirtEvent(DirtyActor, UsedSoap)
-	
-	Utility.Wait(Menu.TimeToClean + 3.0 + 0.5) ; 3.0 = Wait time before dirt begins fading. See OnBiS_CleanActorDirt in mzinGetDirtyOverTime. + 0.5 = margin
+
+	; ----
+
+	StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
 
 	if !Animate
 		If DoSoap
 			GetUnsoapy(DirtyActor)
 		EndIf
+		WashActorFinish(DirtyActor, WashProp, UsedSoap)
 	endIf
-
-	if UsedSoap || !DirtyActor.HasSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell)
-		RemoveSpells(DirtyActor, SoapBonusSpellList)
-		RemoveSpells(DirtyActor, DirtinessSpellList)
-		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-		;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", Utility.GetCurrentGameTime())
-		Utility.Wait(1.0)
-		
-		If UsedSoap
-			ApplySoapBonus(DirtyActor, WashProp)
-			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
-			; seems to me that index objects 2 and 3 aren't used in GetDirtyOverTimeSpellList...
-			If DirtyActor != PlayerRef
-				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", 0.0)
-			EndIf
-		Else
-			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
-			If DirtyActor != PlayerRef
-				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
-			EndIf
-		EndIf
-	endIf
-
-	;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+	
 	Util.SendBatheModEvent(DirtyActor as Form)
-	mzinInterfaceFadeTats.FadeTats(DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 EndFunction
 
 Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
@@ -217,11 +193,12 @@ Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
 	DirtyActor.ClearExtraArrows()
 	If DirtyActorIsPlayer
 		mzinInterfaceFrostfall.MakeWet(1000.0)
+		PlayerAlias.RunCycleHelper()
+		Util.SendBathePlayerModEvent()
 	EndIf
 
 	If WashProp && WashProp.HasKeyWord(SoapKeyword)
 		UsedSoap = true
-		;ApplySoapBonus(DirtyActor, WashProp)
 		DirtyActor.RemoveItem(WashProp, 1, True, None)
 		DirtyActor.AddSpell(PlayShowerAnimationWithSoap, False)
 		If DirtyActorIsPlayer
@@ -233,25 +210,30 @@ Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
 			ShoweringWithoutSoapMessage.Show()
 		EndIf
 	EndIf
-	If Init.IsSexlabInstalled
-		SexlabInt.SlClearCum(DirtyActor)
-	EndIf
+
+	SexlabInt.SlClearCum(DirtyActor)
 	mzinInterfacePaf.ClearPafDirt(DirtyActor)
 	mzinInterfaceOCum.OCClearCum(DirtyActor)
+	mzinInterfaceFadeTats.FadeTats(DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 	
 	SendCleanDirtEvent(DirtyActor, UsedSoap)
 
-	Utility.Wait(Menu.TimeToClean + 3.0 + 0.5)
+	; ---
+	StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
+	Util.SendBatheModEvent(DirtyActor as Form)
+EndFunction
 
+Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool UsedSoap = false)
 	if UsedSoap || !DirtyActor.HasSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell)
 		RemoveSpells(DirtyActor, SoapBonusSpellList)
 		RemoveSpells(DirtyActor, DirtinessSpellList)
 		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-		;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", Utility.GetCurrentGameTime())
-		Utility.Wait(1.0)
 		
-		If UsedSoap
+		if !WashProp
+			WashProp = StorageUtil.PluckFormValue(DirtyActor, "mzin_LastWashProp") as MiscObject
+		endIf
+		If WashProp
 			ApplySoapBonus(DirtyActor, WashProp)
 			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
 			If DirtyActor != PlayerRef
@@ -264,10 +246,6 @@ Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
 			EndIf
 		EndIf
 	endIf
-
-	;StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-	Util.SendBatheModEvent(DirtyActor as Form)
-	mzinInterfaceFadeTats.FadeTats(DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 EndFunction
 
 Function ApplySoapBonus(Actor DirtyActor, MiscObject WashProp)
@@ -366,6 +344,32 @@ Bool Function IsUnderWaterfall(Actor DirtyActor)
 	Return False
 EndFunction
 
+Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
+	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt")
+    If (BiS_CleanActorDirtEvent)
+		ModEvent.PushForm(BiS_CleanActorDirtEvent, akTarget)
+		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToClean)
+		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToCleanInterval)
+		ModEvent.PushBool(BiS_CleanActorDirtEvent, UsedSoap)
+        ModEvent.Send(BiS_CleanActorDirtEvent)
+    EndIf
+EndFunction
+
+Bool Function IsInCommmonRestriction(Actor DirtyActor)
+	return (IsDeviceBlocked(DirtyActor) || !IsPermitted(DirtyActor) || IsTooShy(DirtyActor) || DirtyActor.IsSwimming() || IsBathing(DirtyActor))
+EndFunction
+
+Bool Function IsInWater(Actor DirtyActor)
+	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor))
+EndFunction
+
+Bool Function IsBathing(Actor DirtyActor)
+	return DirtyActor.HasSpell(PlayBatheAnimationWithSoap) \
+	|| DirtyActor.HasSpell(PlayBatheAnimationWithoutSoap) \
+	|| DirtyActor.HasSpell(PlayShowerAnimationWithSoap) \
+	|| DirtyActor.HasSpell(PlayShowerAnimationWithoutSoap)
+EndFunction
+
 Bool Function IsDeviceBlocked(Actor akTarget)
 	If Init.IsDdsInstalled
 		If akTarget.WornHasKeyword(Init.zad_DeviousHeavyBondage)
@@ -380,17 +384,6 @@ Bool Function IsDeviceBlocked(Actor akTarget)
 	Else
 		Return False
 	EndIf
-EndFunction
-
-Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
-	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt")
-    If (BiS_CleanActorDirtEvent)
-		ModEvent.PushForm(BiS_CleanActorDirtEvent, akTarget)
-		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToClean)
-		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToCleanInterval)
-		ModEvent.PushBool(BiS_CleanActorDirtEvent, UsedSoap)
-        ModEvent.Send(BiS_CleanActorDirtEvent)
-    EndIf
 EndFunction
 
 Bool Function IsPermitted(Actor akTarget)

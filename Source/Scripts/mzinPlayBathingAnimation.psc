@@ -266,6 +266,8 @@ Function StartAnimation()
 	EndIf
 EndFunction
 Function StopAnimation()
+	SendWashActorFinishModEvent(BathingActor, UsingSoap)
+
 	BathingActor.PlayIdle(BathingAnimationStop)
 
 	If BathingActor.HasSpell(SoapyAppearanceSpell)
@@ -440,4 +442,13 @@ Function ForbidSex(Actor akTarget, Bool Forbid)
 			akTarget.RemoveFromFaction(SexLabForbiddenActors)
 		EndIf
 	EndIf
+EndFunction
+
+Function SendWashActorFinishModEvent(Form akBathingActor, Bool abUsingSoap)
+    int BiS_WashActorFinishModEvent = ModEvent.Create("BiS_WashActorFinish")
+    If (BiS_WashActorFinishModEvent)
+        ModEvent.PushForm(BiS_WashActorFinishModEvent, akBathingActor)
+		ModEvent.PushBool(BiS_WashActorFinishModEvent, abUsingSoap)
+        ModEvent.Send(BiS_WashActorFinishModEvent)
+    EndIf
 EndFunction

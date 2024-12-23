@@ -45,7 +45,7 @@ Bool Property Shyness = True Auto Hidden
 Int Property ShyDistance = 2800 Auto Hidden
 
 ;  Modified
-Int Property ScriptVersion = 13 AutoReadOnly
+Int Property ScriptVersion = 14 AutoReadOnly
 
 ; references
 Actor Property PlayerRef Auto
@@ -110,12 +110,15 @@ Bool[] UndressArmorSlotArray
 Bool[] UndressArmorSlotArrayFollowers
 Bool[] TrackedActorsToggleValuesArray
 
+String[] AutomateFollowerBathingArray
+GlobalVariable Property AutomateFollowerBathing Auto
+
 ; constants
 String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.1.2"
+	return "2.2.0"
 EndFunction
 
 Int Function GetVersion()
@@ -125,16 +128,19 @@ EndFunction
 Event OnConfigOpen()
 	IsConfigOpen = true
 EndEvent
-
-; initialize events
-Event OnConfigInit()
+Function VersionUpdate()
 	; pages
 	Pages = new String[4]
 	Pages[0] = "$BIS_PAGE_SETTINGS"
 	Pages[1] = "$BIS_PAGE_ANIMATIONS"
 	Pages[2] = "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
 	Pages[3] = "$BIS_PAGE_TRACKED_ACTORS"
-	
+	; automate follower bathing
+	AutomateFollowerBathingArray = new String[3]
+	AutomateFollowerBathingArray[0] = "$BIS_L_AUTOMATE_FOLLOWER_BATHING_DISABLED"
+	AutomateFollowerBathingArray[1] = "$BIS_L_AUTOMATE_FOLLOWER_BATHING_TRACKEDONLY"
+	AutomateFollowerBathingArray[2] = "$BIS_L_AUTOMATE_FOLLOWER_BATHING_ALL"
+
 	; bathing animation styles
 	BathingAnimationStyleArray = new String[3]
 	BathingAnimationStyleArray[0] = "$BIS_L_BATHING_ANIM_STYLE_NONE"
@@ -152,7 +158,7 @@ Event OnConfigInit()
 	GetSoapyStyleArray[0] = "$BIS_L_SOAP_STYLE_NONE"
 	GetSoapyStyleArray[1] = "$BIS_L_SOAP_STYLE_STATIC"
 	GetSoapyStyleArray[2] = "$BIS_L_SOAP_STYLE_ANIMATED"
-	
+
 	; undress array
 	UndressArmorSlotArray = new Bool[32]
 	UndressArmorSlotArrayFollowers = new Bool[32]
@@ -161,13 +167,18 @@ Event OnConfigInit()
 
 	; tracked actors array
 	TrackedActorsToggleIDs = new Int[128]
+EndFunction
 
+; initialize events
+Event OnConfigInit()
+	VersionUpdate()
 	if CurrentVersion == 0
 		Debug.Notification("BISR: Installed Bathing in Skyrim " + GetModVersion())
 	endIf
 EndEvent
 Event OnVersionUpdate(Int Version)
 	if CurrentVersion != 0
+		VersionUpdate()
 		Debug.Notification("BISR: Updated Bathing in Skyrim " + GetModVersion())
 	endIf
 	OnConfigInit()
@@ -323,6 +334,7 @@ Function DisplaySettingsPage()
 		ModStateOID_T = AddTextOption("$BIS_L_MODSTATE", "$BIS_TXT_ERRORED")
 	endIf
 	DialogTopicEnableToggleID = AddToggleOption("$BIS_L_ENABLED_DIALOG_TOPIC", DialogTopicEnabled.GetValue() As Bool)
+	AutomateFollowerBathingMenuID = AddMenuOption("$BIS_L_AUTOMATE_FOLLOWER_BATHING", AutomateFollowerBathingArray[AutomateFollowerBathing.GetValue() As Int])
 	WaterRestrictionEnableToggleID = AddToggleOption("$BIS_L_WATER_RESTRICT",WaterRestrictionEnabled.GetValue() As Bool)
 	UpdateIntervalSliderID = AddSliderOption("$BIS_L_UPDATE_INTERVAL", DirtinessUpdateInterval.GetValue(), DisplayFormatDecimal)
 	AddHeaderOption("$BIS_HEADER_HOTKEYS")
@@ -567,13 +579,16 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(0.98)
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)	
-
 	ElseIf OptionID == SexIntervalDirtOID_S
 		SexIntervalDirt = 35.0
 		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)
 	ElseIf OptionID == SexIntervalOID_S
 		SexIntervalDirt = 1.0
 		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)	
+	; menus
+	ElseIf OptionID == AutomateFollowerBathingMenuID
+		AutomateFollowerBathing.SetValue(1)
+		SetMenuOptionValue(OptionID, AutomateFollowerBathingArray[AutomateFollowerBathing.GetValue() As Int])
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultTrackedActorsPage(Int OptionID)
@@ -638,6 +653,8 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_ENABLE_MOD")
 	ElseIf OptionID == DialogTopicEnableToggleID
 		SetInfoText("$BIS_DESC_ENABLE_DIALOG_TOPIC")
+	ElseIf OptionID == AutomateFollowerBathingMenuID
+		SetInfoText("$BIS_DESC_AUTOMATE_FOLLOWER_BATHING")
 	ElseIf OptionID == WaterRestrictionEnableToggleID
 		SetInfoText("$BIS_DESC_WATER_RESTRICT")
 	ElseIf OptionID == UpdateIntervalSliderID
@@ -848,12 +865,22 @@ EndFunction
 
 ; OnOptionMenuAccept
 Event OnOptionMenuAccept(Int OptionID, Int MenuItemIndex)
-	If CurrentPage == "$BIS_PAGE_ANIMATIONS"
+	If CurrentPage == "$BIS_PAGE_SETTINGS"
+		HandleOnOptionMenuAcceptSettingsPage(OptionID, MenuItemIndex)
+	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS"
 		HandleOnOptionMenuAcceptAnimationsPage(OptionID, MenuItemIndex)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
 		HandleOnOptionMenuAcceptAnimationsPageFollowers(OptionID, MenuItemIndex)
 	EndIf
 EndEvent
+Function HandleOnOptionMenuAcceptSettingsPage(Int OptionID, Int MenuItemIndex)
+	If OptionID == AutomateFollowerBathingMenuID
+		If MenuItemIndex >= 0 && MenuItemIndex < AutomateFollowerBathingArray.Length
+			SetMenuOptionValue(OptionID, AutomateFollowerBathingArray[MenuItemIndex])
+			AutomateFollowerBathing.SetValue(MenuItemIndex)
+		EndIf
+	endIf
+EndFunction
 Function HandleOnOptionMenuAcceptAnimationsPage(Int OptionID, Int MenuItemIndex)
 	If OptionID == BathingAnimationStyleMenuID
 		If MenuItemIndex >= 0 && MenuItemIndex < BathingAnimationStyleArray.Length
@@ -893,12 +920,21 @@ EndFunction
 
 ; OnOptionMenuOpen
 Event OnOptionMenuOpen(Int OptionID)
-	If CurrentPage == "$BIS_PAGE_ANIMATIONS"
+	If CurrentPage == "$BIS_PAGE_SETTINGS"
+		HandleOnOptionMenuOpenSettingsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS"
 		HandleOnOptionMenuOpenAnimationsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
 		HandleOnOptionMenuOpenAnimationsPageFollowers(OptionID)
 	EndIf
 EndEvent
+Function HandleOnOptionMenuOpenSettingsPage(Int OptionID)
+	If OptionID == AutomateFollowerBathingMenuID
+		SetMenuDialogOptions(AutomateFollowerBathingArray)
+		SetMenuDialogStartIndex(AutomateFollowerBathing.GetValue() As Int)
+		SetMenuDialogDefaultIndex(1)
+	EndIf
+EndFunction
 Function HandleOnOptionMenuOpenAnimationsPage(Int OptionID)
 	If OptionID == BathingAnimationStyleMenuID
 		SetMenuDialogOptions(BathingAnimationStyleArray)
@@ -1407,6 +1443,7 @@ Bool Function SavePapyrusSettings()
 	endIf
 
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "DialogTopicEnabled", DialogTopicEnabled.GetValueInt())
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AutomateFollowerBathing", AutomateFollowerBathing.GetValueInt())
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValueInt())
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyle", GetSoapyStyle.GetValueInt())
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValueInt())
@@ -1479,6 +1516,7 @@ Bool Function LoadPapyrusSettings()
 	endIf
 
 	DialogTopicEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "DialogTopicEnabled"))
+	AutomateFollowerBathing.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AutomateFollowerBathing"))
 	WaterRestrictionEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "WaterRestrictionEnabled"))
 	GetSoapyStyle.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyle"))
 	GetSoapyStyleFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyleFollowers"))
@@ -1564,6 +1602,7 @@ EndFunction
 ; menu - Settings
 Int ModStateOID_T
 Int DialogTopicEnableToggleID
+Int AutomateFollowerBathingMenuID
 Int WaterRestrictionEnableToggleID
 Int UpdateIntervalSliderID
 Int DirtinessPerHourSettlementSliderID
