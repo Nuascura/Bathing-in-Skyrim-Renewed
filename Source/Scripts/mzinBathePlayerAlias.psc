@@ -35,7 +35,6 @@ Function RunCycleHelper()
 EndFunction
 
 Function CycleFollowers()
-	Debug.Trace("mzin CycleFollowers()")
 	Actor[] PlayerFollowers = PO3_SKSEfunctions.GetPlayerFollowers()
 	int i = 0
 	while i < PlayerFollowers.Length
