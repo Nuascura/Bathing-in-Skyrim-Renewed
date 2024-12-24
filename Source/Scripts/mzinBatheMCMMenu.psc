@@ -1621,6 +1621,8 @@ Function DisableBathingInSkyrim()
 
 	Debug.Notification("BISR: Disabled Bathing in Skyrim.")
 	Debug.Trace("Mzin: Player disabled Bathing in Skyrim.")
+
+	ForcePageReset()
 EndFunction
 Function AddSoapToVendors()
 	Int Index = SoapFormList.GetSize()
