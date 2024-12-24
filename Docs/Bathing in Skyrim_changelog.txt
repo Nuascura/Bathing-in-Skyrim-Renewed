@@ -2,10 +2,14 @@
 Primary
 - Add: Followers bathe when the player bathes.
 - Add: Additional safeguards against bathe attempts while already bathing.
+- Add: Support for JVraven's bathing animations.
 - Fix: Desync between dirt removal and actual animation finish. 
-- Change: Clarify animation loop setting descriptions.
 - Change: Restrict bathing topics to NPCs in faction CurrentFollowerFaction.
+- Change: Revamp MCM for improved option clarity and handling of user actions.
+
+Secondary
 - Change: Refactor soap application and bathing finish code.
+- Change: Overhaul animation code.
 - Update: Localization file.
 - Remove: Deprecated mzinBathe script.
 - Remove: Deprecated mzinBatheActor script.
