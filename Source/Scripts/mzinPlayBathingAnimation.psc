@@ -298,10 +298,10 @@ Function GetAnimationFemale(int aiPreset, bool abOverride = false)
 		BathingStyle[2] = mzinBatheA5_T3
 		BathingStyle[3] = mzinBatheA5_T4
 		String[] BathingStyleInterval = new String[4]
-		BathingStyleInterval[0] = "3,8,11"
-		BathingStyleInterval[1] = "6,23,25.6"
-		BathingStyleInterval[2] = "8,36,40"
-		BathingStyleInterval[3] = "8,54,64.9"
+		BathingStyleInterval[0] = "3,8,10.7"
+		BathingStyleInterval[1] = "6,23,25"
+		BathingStyleInterval[2] = "8,36,39.4"
+		BathingStyleInterval[3] = "8,54,64.2"
 
 		randomStyle = Utility.RandomInt(0, BathingStyle.Length - 1)
 
