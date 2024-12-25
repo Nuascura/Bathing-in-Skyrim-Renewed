@@ -1573,6 +1573,7 @@ EndFunction
 ; helper functions
 Function EnableBathingInSkyrim()
 	Utility.Wait(1.0)
+	VersionUpdate()
 	TexUtil.UtilInit()
 
 	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
