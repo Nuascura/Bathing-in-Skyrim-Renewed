@@ -157,7 +157,7 @@ Function PresetSequence3(Idle anim, Float animDuration)
 	BathingActor.PlayIdle(anim)
     Utility.Wait(1)
 	GetSoapy()
-	Utility.Wait(animDuration)
+	Utility.Wait(animDuration - 1)
 	Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState")
 	Utility.Wait(0.5)
 	RinseOff()
@@ -176,16 +176,10 @@ Function PresetSequence4(Idle anim, Float stage1, Float stage2, Float animDurati
 
 	BathingActor.PlayIdle(anim)
     Utility.Wait(stage1)
-	Debug.Notification("mzin_: finish stage 1 at " + stage1)
-	Debug.Trace("mzin_: finish stage 1 at " + stage1)
 	GetSoapy()
 	Utility.Wait(stage2 - stage1)
-	Debug.Notification("mzin_: finish stage 2 at " + (stage2 - stage1))
-	Debug.Trace("mzin_: finish stage 2 at " + (stage2 - stage1))
 	GetUnsoapy()
 	Utility.Wait(animDuration - stage2)
-	Debug.Notification("mzin_: finish stage 3 at " + (animDuration - stage2))
-	Debug.Trace("mzin_: finish stage 3 at " + (animDuration - stage2))
 
 	Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState")
 	Utility.Wait(0.5)
@@ -237,6 +231,7 @@ Function StartAnimation()
 EndFunction
 int Function GetPresetSequence(float[] animList)
 	int i = 0
+	float f = Utility.RandomFloat(0, 1)
 	float total = 0
 	float setRange = 0
 	If AnimationStyle == 1
@@ -252,7 +247,7 @@ int Function GetPresetSequence(float[] animList)
 			i = 0
 			while i < animList.length
 				setRange += (animList[i] / total)
-				if i < setRange
+				if f < setRange
 					return i
 				endIf
 				i += 1
@@ -290,7 +285,7 @@ Function GetAnimationFemale(int aiPreset, bool abOverride = false)
 
 		PresetSequence2(BathingStyle[randomStyle], BathingStyleInterval[randomStyle] as float)
 	elseIf aiPreset == 3
-		PresetSequence3(mzinBatheA4_S0, 29)
+		PresetSequence3(mzinBatheA4_S0, 29.85)
 	elseIf aiPreset == 4
 		Idle[] BathingStyle = new Idle[4]
 		BathingStyle[0] = mzinBatheA5_T1

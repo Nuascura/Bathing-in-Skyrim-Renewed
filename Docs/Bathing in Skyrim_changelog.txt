@@ -4,6 +4,7 @@ Primary
 - Add: Additional safeguards against bathe attempts while already bathing.
 - Add: Support for JVraven's bathing animations.
 - Fix: Desync between dirt removal and actual animation finish. 
+- Fix: Krzp Bathing timing.
 - Change: Restrict bathing topics to NPCs in faction CurrentFollowerFaction.
 - Change: Revamp MCM for improved option clarity and handling of user actions.
 
