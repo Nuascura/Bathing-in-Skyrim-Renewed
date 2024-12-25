@@ -1,5 +1,6 @@
 2.2.0
 Primary
+- Add: Auto Freecam toggle on animation.
 - Add: Followers bathe when the player bathes.
 - Add: Additional safeguards against bathe attempts while already bathing.
 - Add: Support for JVraven's bathing animations.

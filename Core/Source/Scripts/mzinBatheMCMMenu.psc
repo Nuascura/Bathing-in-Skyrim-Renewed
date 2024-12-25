@@ -43,6 +43,7 @@ Float Property TimeToClean = 10.0 Auto Hidden
 Float Property TimeToCleanInterval = 0.25 Auto Hidden
 Bool Property Shyness = True Auto Hidden
 Int Property ShyDistance = 2800 Auto Hidden
+Bool Property AutoPlayerTFC = False Auto Hidden
 
 Float[] Property AnimCustomMSet Auto
 Float Property AnimCustomMSet1Freq = 0.00 Auto
@@ -270,6 +271,7 @@ Function DisplayAnimationsPage()
 	BathingAnimationStyleMenuID = AddMenuOption("$BIS_L_ANIM_STYLE", BathingAnimationStyleArray[BathingAnimationStyle.GetValue() As Int])
 	ShoweringAnimationStyleMenuID = AddMenuOption("$BIS_L_SHOWER_OVERRIDE", ShoweringAnimationStyleArray[ShoweringAnimationStyle.GetValue() As Int], (!(BathingAnimationStyle.GetValue() as bool)) as int)
 	GetSoapyStyleMenuID = AddMenuOption("$BIS_L_SOAP_STYLE", GetSoapyStyleArray[GetSoapyStyle.GetValue() As Int])
+	AutoPlayerTFCID = AddToggleOption("$BIS_L_AUTOPLAYERTFC", AutoPlayerTFC)
 
 	AddHeaderOption("$BIS_HEADER_ANIM_LOOP")
 	int ANIM_LOOP_FLAG
@@ -584,6 +586,8 @@ Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
 		SetSliderOptionValue(OptionID, AnimCustomFSet3Freq, DisplayFormatPercentage)
 
 	; toggles
+	ElseIf OptionID == AutoPlayerTFCID
+		AutoPlayerTFC = False
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleID
 		GetDressedAfterBathingEnabled.SetValue(1)
 		SetToggleOptionValue(OptionID, GetDressedAfterBathingEnabled.GetValue() As Bool)
@@ -739,6 +743,8 @@ Function HandleOnOptionHighlightAnimationsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_SHOWER_OVERRIDE")
 	ElseIf OptionID == GetSoapyStyleMenuID
 		SetInfoText("$BIS_DESC_SOAP_STYLE")
+	ElseIf OptionID == AutoPlayerTFCID
+		SetInfoText("$BIS_DESC_AUTOPLAYERTFC")
 	ElseIf OptionId == BathingAnimationLoopsTier0SliderID
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER0")
 	ElseIf OptionId == BathingAnimationLoopsTier1SliderID
@@ -919,7 +925,10 @@ Event OnOptionSelect(Int OptionID)
 	EndIf	
 EndEvent
 Function HandleOnOptionSelectAnimationsPage(Int OptionID)
-	If OptionID == GetDressedAfterBathingEnabledToggleID
+	If OptionID == AutoPlayerTFCID
+		AutoPlayerTFC = !AutoPlayerTFC
+		SetToggleOptionValue(OptionID, AutoPlayerTFC)
+	ElseIf OptionID == GetDressedAfterBathingEnabledToggleID
 		GetDressedAfterBathingEnabled.SetValue((!GetDressedAfterBathingEnabled.GetValue() As Bool) As Int)
 		SetToggleOptionValue(OptionID, GetDressedAfterBathingEnabled.GetValue() As Bool)
 	Else
@@ -1765,6 +1774,7 @@ Bool Function SavePapyrusSettings()
 	
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex", FadeDirtSex as Int)
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "Shyness", Shyness as Int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AutoPlayerTFC", AutoPlayerTFC as Int)
 
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime", FadeTatsFadeTime)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult", FadeTatsSoapMult)
@@ -1851,6 +1861,7 @@ Bool Function LoadPapyrusSettings()
 	
 	FadeDirtSex = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex")
 	Shyness = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "Shyness")
+	AutoPlayerTFC = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AutoPlayerTFC")
 
 	FadeTatsFadeTime = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime")
 	FadeTatsSoapMult = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult")
@@ -1903,6 +1914,7 @@ Int ShowerKeyMapID
 Int BathingAnimationStyleMenuID
 Int ShoweringAnimationStyleMenuID
 Int GetSoapyStyleMenuID
+Int AutoPlayerTFCID
 Int BathingAnimationLoopsTier0SliderID
 Int BathingAnimationLoopsTier1SliderID
 Int BathingAnimationLoopsTier2SliderID

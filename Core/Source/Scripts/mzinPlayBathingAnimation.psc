@@ -69,6 +69,7 @@ Form[] Clothing
 Actor  BathingActor
 Bool   BathingActorIsPlayer
 Int AnimationStyle
+Float[] AnimSet
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	BathingActor = Target
@@ -196,12 +197,22 @@ Function StartAnimation()
 	EndIf
 
 	If AnimationStyle > 0 && !BathingActor.IsSwimming()
+		GetNaked()
 		If BathingActorIsPlayer
 			Game.ForceThirdPerson()
 			BathingActor.SetHeadTracking(false)
 			Game.DisablePlayerControls(True, True, False, False, True, True, True)
+			UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
+			if Menu.AutoPlayerTFC 
+				ToggleTFC(true)
+			endIf
 			if showering
 				AnimationStyle = ShoweringAnimationStyle.GetValue() as int
+			endIf
+			if BathingActor.GetActorBase().GetSex() == 1
+				AnimSet = Menu.AnimCustomFSet
+			else
+				AnimSet = Menu.AnimCustomMSet
 			endIf
 		else
 			ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)
@@ -209,24 +220,20 @@ Function StartAnimation()
 			if showering
 				AnimationStyle = ShoweringAnimationStyleFollowers.GetValue() as int
 			endIf
+			if BathingActor.GetActorBase().GetSex() == 1
+				AnimSet = Menu.AnimCustomFSetFollowers
+			else
+				AnimSet = Menu.AnimCustomMSetFollowers
+			endIf
 		EndIf
-
-		GetNaked()
 		Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
-
 		if BathingActor.GetActorBase().GetSex() == 1
-			if BathingActorIsPlayer
-				GetAnimationFemale(AnimationStyle + GetPresetSequence(Menu.AnimCustomFSet), showering)
-			else
-				GetAnimationFemale(AnimationStyle + GetPresetSequence(Menu.AnimCustomFSetFollowers), showering)
-			endIf
+			GetAnimationFemale(AnimationStyle + GetPresetSequence(AnimSet), showering)
 		else
-			if BathingActorIsPlayer
-				GetAnimationMale(AnimationStyle + GetPresetSequence(Menu.AnimCustomMSet), showering)
-			else
-				GetAnimationMale(AnimationStyle + GetPresetSequence(Menu.AnimCustomMSetFollowers), showering)
-			endIf
+			GetAnimationMale(AnimationStyle + GetPresetSequence(AnimSet), showering)
 		endIf
+	else
+		EffectFinish()
 	EndIf
 EndFunction
 int Function GetPresetSequence(float[] animList)
@@ -333,13 +340,13 @@ Function GetAnimationMale(int aiPreset, bool abOverride = false)
 	endIf
 EndFunction
 Function StopAnimation()
-	SendWashActorFinishModEvent(BathingActor, UsingSoap)
-
 	Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
 
 	GetDressed()
 
 	If BathingActorIsPlayer
+		ToggleTFC(false)
+		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
 		Game.EnablePlayerControls()
 		BathingActor.SetHeadTracking(true)
 		BathingCompleteMessage.Show()
@@ -350,6 +357,10 @@ Function StopAnimation()
 
 	Utility.Wait(0.5)
 
+	EffectFinish()
+EndFunction
+Function EffectFinish()
+	SendWashActorFinishModEvent(BathingActor, UsingSoap)
 	BathingActor.RemoveSpell(PlayBatheAnimationWithSoap)
 	BathingActor.RemoveSpell(PlayBatheAnimationWithoutSoap)
 	BathingActor.RemoveSpell(PlayShowerAnimationWithSoap)
@@ -487,4 +498,16 @@ Function SendWashActorFinishModEvent(Form akBathingActor, Bool abUsingSoap)
 		ModEvent.PushBool(BiS_WashActorFinishModEvent, abUsingSoap)
         ModEvent.Send(BiS_WashActorFinishModEvent)
     EndIf
+EndFunction
+
+Function ToggleTFC(bool toggle)
+	if toggle
+		if Game.GetCameraState() != 3
+			MiscUtil.SetFreeCameraState(true)
+		endIf
+	else
+		if Game.GetCameraState() == 3
+			MiscUtil.SetFreeCameraState(false)
+		endIf
+	endIf
 EndFunction
