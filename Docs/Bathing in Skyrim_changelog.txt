@@ -10,6 +10,7 @@ Primary
 - Change: Revamp MCM for improved option clarity and handling of user actions.
 
 Secondary
+- Change: Sound effect annotation for krzp's animation.
 - Change: Refactor soap application and bathing finish code.
 - Change: Overhaul animation code.
 - Update: Localization file.

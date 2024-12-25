@@ -25,7 +25,7 @@ so -a,o   mzinBatheA3_S1_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
 ' ---------------------------------
 ' Female animation by Krzp
 
-b -TSoundPlay.PHYWaterSplash/3.200000,TSoundPlay.PHYWaterSplash/5.000000,TSoundPlay.PHYWaterSplash/7.000000,TSoundPlay.PHYWaterSplash/9.333333,TSoundPlay.PHYWaterSplash/11.066670 mzinBatheA4_S0 KrzpBathing01.hkx
+b -TSoundPlay.FSTPlayerWaterRunL/3.200000,TSoundPlay.FSTPlayerWaterRunL/5.000000,TSoundPlay.FSTPlayerWaterRunL/7.000000,TSoundPlay.FSTPlayerWaterRunL/9.333333,TSoundPlay.FSTPlayerWaterRunL/11.066670 mzinBatheA4_S0 KrzpBathing01.hkx
 
 ' ---------------------------------
 ' Male animations by Tweens
