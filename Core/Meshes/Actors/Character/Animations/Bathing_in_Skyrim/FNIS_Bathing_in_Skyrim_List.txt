@@ -4,29 +4,23 @@
 ' soap
 so -a,o   mzinBatheA1_S1_Soap BakaBathing03.hkx mzinAnimObjectSoap
 +  -o     mzinBatheA1_S2_Soap BakaBathing01.hkx mzinAnimObjectSoap
-+  -a,k   mzinBatheA1_end_Soap mt_idle.hkx
 
 so -a,o   mzinBatheA2_S1_Soap  BakaBathing03.hkx mzinAnimObjectSoap
 +  -a,o   mzinBatheA2_S2_Soap  BakaBathing02.hkx mzinAnimObjectSoap
 +  -o     mzinBatheA2_S3_Soap  BakaBathing01.hkx mzinAnimObjectSoap
-+  -a,k   mzinBatheA2_end_Soap mt_idle.hkx
 
 so -a,o   mzinBatheA3_S1_Soap  BakaBathing01.hkx mzinAnimObjectSoap
 +  -o     mzinBatheA3_S2_Soap  BakaBathing03.hkx mzinAnimObjectSoap
-+  -a,k   mzinBatheA3_end_Soap mt_idle.hkx
 
 ' rag
 so -a,o   mzinBatheA1_S1_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
 +  -o     mzinBatheA1_S2_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
-+  -a,k   mzinBatheA1_end_Cloth mt_idle.hkx
 
 so -a,o   mzinBatheA2_S1_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
 +  -o     mzinBatheA2_S2_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
-+  -a,k   mzinBatheA2_end_Cloth mt_idle.hkx
 
 so -a,o   mzinBatheA3_S1_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
 +  -o     mzinBatheA3_S2_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
-+  -a,k   mzinBatheA3_end_Cloth mt_idle.hkx
 
 ' ---------------------------------
 ' Female animation by Krzp
@@ -44,30 +38,24 @@ b -TSoundPlay.PHYWaterSplash/3.200000,TSoundPlay.PHYWaterSplash/5.000000,TSoundP
 ' soap 
 so -a,h,o mzinBatheMA1_S1_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
 +  -h,o   mzinBatheMA1_S2_Soap BIS_MaleShower_2.hkx mzinAnimObjectSoap
-+  -a,k   mzinBatheMA1_end_Soap mt_idle.hkx
 
 so -a,h,o mzinBatheMA2_S1_Soap BIS_MaleShower_1.hkx mzinAnimObjectSoap
 +  -h,o   mzinBatheMA2_S2_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
-+  -a,k   mzinBatheMA2_end_Soap mt_idle.hkx
 
 so -a,h,o mzinBatheMA3_S1_Soap BIS_MaleShower_1.hkx mzinAnimObjectSoap
 +  -a,h,o mzinBatheMA3_S2_Soap BIS_MaleShower_2.hkx mzinAnimObjectSoap
 +  -h,o   mzinBatheMA3_S3_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
-+  -a,k   mzinBatheMA3_end_Soap mt_idle.hkx
 
 ' rag
 so -a,h,o mzinBatheMA1_S1_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
 +  -h,o   mzinBatheMA1_S2_Cloth BIS_MaleShower_2.hkx mzinAnimObjectWashRag
-+  -a,k   mzinBatheMA1_end_Cloth mt_idle.hkx
 
 so -a,h,o mzinBatheMA2_S1_Cloth BIS_MaleShower_1.hkx mzinAnimObjectWashRag
 +  -h,o   mzinBatheMA2_S2_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
-+  -a,k   mzinBatheMA2_end_Cloth mt_idle.hkx
 
 so -a,h,o mzinBatheMA3_S1_Cloth BIS_MaleShower_1.hkx mzinAnimObjectWashRag
 +  -a,h,o mzinBatheMA3_S2_Cloth BIS_MaleShower_2.hkx mzinAnimObjectWashRag
 +  -h,o   mzinBatheMA3_S3_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
-+  -a,k   mzinBatheMA3_end_Cloth mt_idle.hkx
 
 
 
