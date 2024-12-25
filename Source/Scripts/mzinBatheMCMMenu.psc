@@ -107,12 +107,7 @@ GlobalVariable Property DirtinessPerHourDungeon Auto
 GlobalVariable Property DirtinessPerHourWilderness Auto
 
 ; soap lists
-FormList Property SoapFormList Auto
 FormList Property SoapBonusSpellList Auto
-
-; leveled lists
-LeveledItem Property LeveledItemListGeneral Auto
-LeveledItem Property LeveledItemListInnkeeper Auto
 
 ; local variables
 String[] BathingAnimationStyleArray
@@ -1624,14 +1619,6 @@ Function DisableBathingInSkyrim()
 	Debug.Trace("Mzin: Player disabled Bathing in Skyrim.")
 
 	ForcePageReset()
-EndFunction
-Function AddSoapToVendors()
-	Int Index = SoapFormList.GetSize()
-	While Index
-		Index -= 1
-		LeveledItemListGeneral.AddForm(SoapFormList.GetAt(Index), 1, 5)
-		LeveledItemListInnkeeper.AddForm(SoapFormList.GetAt(Index), 1, 5)
-	EndWhile	
 EndFunction
 Function RemoveSpells(Actor DirtyActor, FormList SpellFormList)
 	Int SpellListIndex = SpellFormList.GetSize()
