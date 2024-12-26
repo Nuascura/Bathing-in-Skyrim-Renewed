@@ -20,10 +20,8 @@ Event OnLocationChange(Location akOldLoc, Location akNewLoc)
 EndEvent
 
 Event OnPlayerLoadGame()
-	if BatheQuest.BathingInSkyrimEnabled.GetValue() As Bool
-		BatheQuest.RegisterHotKeys()
-		BatheQuest.RegForEvents()
-	endIf
+	BatheQuest.RegisterHotKeys()
+	BatheQuest.RegForEvents()
 EndEvent
 
 Event OnUpdate()
