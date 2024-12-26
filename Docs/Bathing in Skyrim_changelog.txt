@@ -1,18 +1,23 @@
 2.2.0
 Primary
+- Add: Hard dependency: Scrab's Papyrus Extender.
 - Add: Auto Freecam toggle on animation.
 - Add: Followers bathe when the player bathes.
 - Add: Additional safeguards against bathe attempts while already bathing.
 - Add: Support for JVraven's bathing animations.
+- Add: Player House differentiated dirt accumulation rate.
 - Add: Skypatcher LeveledList patch to distribute soaps.
 - Fix: Desync between dirt removal and actual animation finish. 
 - Fix: Krzp Bathing timing.
+- Change: Move default dirt texture set location to Set1 folder.
+- Change: Improve support for interior and nested locations.
 - Change: Restrict bathing topics to NPCs in faction CurrentFollowerFaction.
 - Change: Revamp MCM for improved option clarity and handling of user actions.
 
 Secondary
 - Change: Sound effect annotation for krzp's animation.
 - Change: Refactor soap application and bathing finish code.
+- Change: Refactor location detection code.
 - Change: Overhaul animation code.
 - Update: Localization file.
 - Remove: Deprecated mzinBathe script.
