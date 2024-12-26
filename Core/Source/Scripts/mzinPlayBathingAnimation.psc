@@ -3,6 +3,7 @@ ScriptName mzinPlayBathingAnimation Extends ActiveMagicEffect
 
 mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
+mzinBatheQuest Property BatheQuest Auto
 
 Bool Property UsingSoap Auto
 Bool Property Showering Auto
@@ -16,6 +17,9 @@ FormList Property DirtinessSpellList Auto
 
 FormList Property BathingAnimationLoopCountList Auto
 FormList Property BathingAnimationLoopCountListFollowers Auto
+FormList Property PlayerHouseLocationList Auto
+FormList Property DungeonLocationList Auto
+FormList Property SettlementLocationList Auto
 
 GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property GetSoapyStyleFollowers Auto
@@ -69,7 +73,37 @@ Form[] Clothing
 Actor  BathingActor
 Bool   BathingActorIsPlayer
 Int AnimationStyle
+Int TieredSetCondition
 Float[] AnimSet
+Int Property DirtinessTier
+	Int Function Get()
+		Int DirtinessTierIndex = DirtinessSpellList.GetSize()
+		While DirtinessTierIndex
+			DirtinessTierIndex -= 1
+			If BathingActor.HasSpell(DirtinessSpellList.GetAt(DirtinessTierIndex) As Spell)
+				return DirtinessTierIndex
+			EndIf
+		EndWhile
+	EndFunction
+EndProperty
+Int Property DangerTier
+	Int Function Get()
+		Location CurrentLocation = BathingActor.GetCurrentLocation()
+		Location[] LocationList = SPE_Cell.GetExteriorLocations(BathingActor.GetParentCell())
+		if CurrentLocation
+			If BathingActor.IsInInterior() && BatheQuest.LocationHasKeyWordInList(CurrentLocation, PlayerHouseLocationList)
+				return 4
+			ElseIf BatheQuest.LocationHasKeyWordInList(CurrentLocation, SettlementLocationList) \
+				|| (BathingActor.IsInInterior() && BatheQuest.ExteriorHasKeyWordInList(LocationList, SettlementLocationList))
+				return 3
+			ElseIf BatheQuest.LocationHasKeyWordInList(CurrentLocation, DungeonLocationList) \
+				|| (BathingActor.IsInInterior() && BatheQuest.ExteriorHasKeyWordInList(LocationList, DungeonLocationList))
+				return 1
+			endIf
+		endIf
+		return 2
+	EndFunction
+EndProperty
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	BathingActor = Target
@@ -85,16 +119,7 @@ EndEvent
 
 ; bathing
 Function PresetSequence1()
-	Int DirtinessTier = 0
 	Int AnimationCyclesRemaining = 0
-	Int DirtinessTierIndex = DirtinessSpellList.GetSize()
-
-	While DirtinessTierIndex
-		DirtinessTierIndex -= 1
-		If BathingActor.HasSpell(DirtinessSpellList.GetAt(DirtinessTierIndex) As Spell)
-			DirtinessTier = DirtinessTierIndex
-		EndIf
-	EndWhile
 
 	if BathingActorIsPlayer
 		AnimationCyclesRemaining = (BathingAnimationLoopCountList.GetAt(DirtinessTier) As GlobalVariable).GetValue() As Int
@@ -204,7 +229,7 @@ Function StartAnimation()
 			Game.DisablePlayerControls(True, True, False, False, True, True, True)
 			UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
 			if Menu.AutoPlayerTFC 
-				ToggleTFC(true)
+				SetFreeCam(true)
 			endIf
 			if showering
 				AnimationStyle = ShoweringAnimationStyle.GetValue() as int
@@ -214,6 +239,7 @@ Function StartAnimation()
 			else
 				AnimSet = Menu.AnimCustomMSet
 			endIf
+			TieredSetCondition = Menu.AnimCustomTierCond
 		else
 			ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)
 			BathingActor.EvaluatePackage()
@@ -225,12 +251,13 @@ Function StartAnimation()
 			else
 				AnimSet = Menu.AnimCustomMSetFollowers
 			endIf
+			TieredSetCondition = Menu.AnimCustomTierCondFollowers
 		EndIf
 		Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
 		if BathingActor.GetActorBase().GetSex() == 1
-			GetAnimationFemale(AnimationStyle + GetPresetSequence(AnimSet), showering)
+			GetAnimationFemale(AnimationStyle + GetPresetSequence(AnimSet), showering, TieredSetCondition)
 		else
-			GetAnimationMale(AnimationStyle + GetPresetSequence(AnimSet), showering)
+			GetAnimationMale(AnimationStyle + GetPresetSequence(AnimSet), showering, TieredSetCondition)
 		endIf
 	else
 		EffectFinish()
@@ -265,7 +292,7 @@ int Function GetPresetSequence(float[] animList)
 		endIf
 	endIf
 EndFunction
-Function GetAnimationFemale(int aiPreset, bool abOverride = false)
+Function GetAnimationFemale(int aiPreset, bool abOverride = false, int aiTierCond)
 	int randomStyle = 0
 
 	if aiPreset == 1
@@ -305,13 +332,19 @@ Function GetAnimationFemale(int aiPreset, bool abOverride = false)
 		BathingStyleInterval[2] = "8,36,39.4"
 		BathingStyleInterval[3] = "8,54,64.2"
 
-		randomStyle = Utility.RandomInt(0, BathingStyle.Length - 1)
+		if aiTierCond == 1
+			randomStyle = DirtinessTier
+		elseIf aiTierCond == 2
+			randomStyle = DangerTier
+		else
+			randomStyle = Utility.RandomInt(0, BathingStyle.Length - 1)
+		endIf
 
 		String[] randomStyleInterval = StringUtil.Split(BathingStyleInterval[randomStyle], ",")
 		PresetSequence4(BathingStyle[randomStyle], randomStyleInterval[0] as float, randomStyleInterval[1] as float, randomStyleInterval[2] as float)
 	endIf
 EndFunction
-Function GetAnimationMale(int aiPreset, bool abOverride = false)
+Function GetAnimationMale(int aiPreset, bool abOverride = false, int aiTierCond)
 	int randomStyle = 0
 
 	If aiPreset == 1
@@ -345,7 +378,7 @@ Function StopAnimation()
 	GetDressed()
 
 	If BathingActorIsPlayer
-		ToggleTFC(false)
+		SetFreeCam(false)
 		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
 		Game.EnablePlayerControls()
 		BathingActor.SetHeadTracking(true)
@@ -500,7 +533,7 @@ Function SendWashActorFinishModEvent(Form akBathingActor, Bool abUsingSoap)
     EndIf
 EndFunction
 
-Function ToggleTFC(bool toggle)
+Function SetFreeCam(bool toggle)
 	if toggle
 		if Game.GetCameraState() != 3
 			MiscUtil.SetFreeCameraState(true)

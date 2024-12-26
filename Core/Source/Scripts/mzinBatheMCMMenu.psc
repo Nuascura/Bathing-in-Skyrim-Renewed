@@ -103,6 +103,7 @@ FormList Property DirtinessSpellList Auto
 FormList Property DirtinessThresholdList Auto
 GlobalVariable Property DirtinessUpdateInterval Auto
 GlobalVariable Property DirtinessPercentage Auto
+GlobalVariable Property DirtinessPerHourPlayerHouse Auto
 GlobalVariable Property DirtinessPerHourSettlement Auto
 GlobalVariable Property DirtinessPerHourDungeon Auto
 GlobalVariable Property DirtinessPerHourWilderness Auto
@@ -121,6 +122,9 @@ Bool[] TrackedActorsToggleValuesArray
 
 String[] AutomateFollowerBathingArray
 GlobalVariable Property AutomateFollowerBathing Auto
+String[] AnimCustomTierCondArray
+Int Property AnimCustomTierCond = 1 Auto
+Int Property AnimCustomTierCondFollowers = 1 Auto
 
 ; constants
 String DisplayFormatPercentage = "{1}%"
@@ -187,7 +191,12 @@ Function VersionUpdate()
 	AnimCustomFSet = new Float[3]
 	AnimCustomMSetFollowers = new Float[1]
 	AnimCustomFSetFollowers = new Float[3]
-	
+
+	; set tiered conditioning
+	AnimCustomTierCondArray = new String[3]
+	AnimCustomTierCondArray[0] = "$BIS_L_ANIM_TIERCOND_NONE"
+	AnimCustomTierCondArray[1] = "$BIS_L_ANIM_TIERCOND_DIRTINESS"
+	AnimCustomTierCondArray[2] = "$BIS_L_ANIM_TIERCOND_DANGER"
 EndFunction
 Function SetLocalArrays()
 	AnimCustomMSet[0] = AnimCustomMSet1Freq
@@ -292,12 +301,14 @@ Function DisplayAnimationsPage()
 	else
 		CUSTOM_FREQ_FLAG = OPTION_FLAG_DISABLED
 	endIf
-	AnimCustomMSet1SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_MSet1", AnimCustomMSet1Freq, DisplayFormatPercentage, CUSTOM_FREQ_FLAG)
-	AnimCustomFSet1SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet1", AnimCustomFSet1Freq, DisplayFormatPercentage, CUSTOM_FREQ_FLAG)
-	AnimCustomFSet2SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet2", AnimCustomFSet2Freq, DisplayFormatPercentage, CUSTOM_FREQ_FLAG)
+	AnimCustomMSet1SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_MSet1", AnimCustomMSet1Freq, "{0}", CUSTOM_FREQ_FLAG)
+	AnimCustomFSet1SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet1", AnimCustomFSet1Freq, "{0}", CUSTOM_FREQ_FLAG)
+	AnimCustomFSet2SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet2", AnimCustomFSet2Freq, "{0}", CUSTOM_FREQ_FLAG)
 	if MiscUtil.FileExists("data/meshes/actors/character/behaviors/FNIS_Bathing_in_Skyrim_JVraven_Behavior.hkx")
-		AnimCustomFSet3SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet3", AnimCustomFSet3Freq, DisplayFormatPercentage, CUSTOM_FREQ_FLAG)
+		AnimCustomFSet3SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet3", AnimCustomFSet3Freq, "{0}", CUSTOM_FREQ_FLAG)
 	endIf
+	AddHeaderOption("$BIS_HEADER_COND_ANIM")
+	AnimCustomTierCondMenuID = AddMenuOption("$BIS_L_ANIM_TIERCOND", AnimCustomTierCondArray[AnimCustomTierCond], CUSTOM_FREQ_FLAG)
 
 	SetCursorPosition(1)
 
@@ -369,12 +380,14 @@ Function DisplayAnimationsPageFollowers()
 	else
 		CUSTOM_FREQ_FLAG = OPTION_FLAG_DISABLED
 	endIf
-	AnimCustomMSet1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_MSet1", AnimCustomMSet1FreqFollowers, DisplayFormatPercentage, CUSTOM_FREQ_FLAG)
-	AnimCustomFSet1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet1", AnimCustomFSet1FreqFollowers, DisplayFormatPercentage, CUSTOM_FREQ_FLAG)
-	AnimCustomFSet2SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet2", AnimCustomFSet2FreqFollowers, DisplayFormatPercentage, CUSTOM_FREQ_FLAG)
+	AnimCustomMSet1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_MSet1", AnimCustomMSet1FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
+	AnimCustomFSet1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet1", AnimCustomFSet1FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
+	AnimCustomFSet2SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet2", AnimCustomFSet2FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
 	if MiscUtil.FileExists("data/meshes/actors/character/behaviors/FNIS_Bathing_in_Skyrim_JVraven_Behavior.hkx")
-		AnimCustomFSet3SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet3", AnimCustomFSet3FreqFollowers, DisplayFormatPercentage, CUSTOM_FREQ_FLAG)
+		AnimCustomFSet3SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet3", AnimCustomFSet3FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
 	endIf
+	AddHeaderOption("$BIS_HEADER_COND_ANIM")
+	AnimCustomTierCondMenuIDFollowers = AddMenuOption("$BIS_L_ANIM_TIERCOND", AnimCustomTierCondArray[AnimCustomTierCondFollowers], CUSTOM_FREQ_FLAG)
 
 	SetCursorPosition(1)
 
@@ -453,10 +466,10 @@ Function DisplaySettingsPage()
 	SetCursorPosition(1)
 
 	AddHeaderOption("$BIS_HEADER_DIRT_RATE")
+	DirtinessPerHourPlayerHouseSliderID = AddSliderOption("$BIS_L_IN_PLAYERHOUSE", DirtinessPerHourPlayerHouse.GetValue() * 100, DisplayFormatPercentage)
 	DirtinessPerHourSettlementSliderID = AddSliderOption("$BIS_L_IN_SETTLEMENTS", DirtinessPerHourSettlement.GetValue() * 100, DisplayFormatPercentage)
 	DirtinessPerHourDungeonSliderID = AddSliderOption("$BIS_L_IN_DUNGEONS", DirtinessPerHourDungeon.GetValue() * 100, DisplayFormatPercentage)
 	DirtinessPerHourWildernessSliderID = AddSliderOption("$BIS_L_IN_WILDERNESS", DirtinessPerHourWilderness.GetValue() * 100, DisplayFormatPercentage)
-	AddEmptyOption()
 	AddHeaderOption("$BIS_HEADER_DIRT_THRESHOLDS")
 	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
@@ -553,6 +566,9 @@ Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
 	ElseIf OptionID == GetSoapyStyleMenuID
 		GetSoapyStyle.SetValue(1)
 		SetMenuOptionValue(OptionID, GetSoapyStyleArray[GetSoapyStyle.GetValue() As Int])
+	ElseIf OptionID == AnimCustomTierCondMenuID
+		AnimCustomTierCond = 1
+		SetMenuOptionValue(OptionID, AnimCustomTierCondArray[AnimCustomTierCond])
 
 	; sliders
 	ElseIf OptionID == BathingAnimationLoopsTier0SliderID
@@ -571,19 +587,19 @@ Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
 	ElseIf OptionID == AnimCustomMSet1SliderID
 		AnimCustomMSet1Freq = 0
 		AnimCustomMSet[0] = AnimCustomMSet1Freq
-		SetSliderOptionValue(OptionID, AnimCustomMSet1Freq, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, AnimCustomMSet1Freq, "{0}")
 	ElseIf OptionID == AnimCustomFSet1SliderID
 		AnimCustomFSet1Freq = 0
 		AnimCustomFSet[0] = AnimCustomFSet1Freq
-		SetSliderOptionValue(OptionID, AnimCustomFSet1Freq, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, AnimCustomFSet1Freq, "{0}")
 	ElseIf OptionID == AnimCustomFSet2SliderID
 		AnimCustomFSet2Freq = 0
 		AnimCustomFSet[1] = AnimCustomFSet2Freq
-		SetSliderOptionValue(OptionID, AnimCustomFSet2Freq, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, AnimCustomFSet2Freq, "{0}")
 	ElseIf OptionID == AnimCustomFSet3SliderID
 		AnimCustomFSet3Freq = 0
 		AnimCustomFSet[2] = AnimCustomFSet3Freq
-		SetSliderOptionValue(OptionID, AnimCustomFSet3Freq, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, AnimCustomFSet3Freq, "{0}")
 
 	; toggles
 	ElseIf OptionID == AutoPlayerTFCID
@@ -615,6 +631,9 @@ Function HandleOnOptionDefaultAnimationsPageFollowers(Int OptionID)
 	ElseIf OptionID == GetSoapyStyleMenuIDFollowers
 		GetSoapyStyleFollowers.SetValue(1)
 		SetMenuOptionValue(OptionID, GetSoapyStyleArray[GetSoapyStyleFollowers.GetValue() As Int])
+	ElseIf OptionID == AnimCustomTierCondMenuIDFollowers
+		AnimCustomTierCondFollowers = 1
+		SetMenuOptionValue(OptionID, AnimCustomTierCondArray[AnimCustomTierCondFollowers])
 
 	; sliders
 	ElseIf OptionID == BathingAnimationLoopsTier0SliderIDFollowers
@@ -633,19 +652,19 @@ Function HandleOnOptionDefaultAnimationsPageFollowers(Int OptionID)
 	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
 		AnimCustomMSet1FreqFollowers = 0
 		AnimCustomMSetFollowers[0] = AnimCustomMSet1FreqFollowers
-		SetSliderOptionValue(OptionID, AnimCustomMSet1FreqFollowers, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, AnimCustomMSet1FreqFollowers, "{0}")
 	ElseIf OptionID == AnimCustomFSet1SliderIDFollowers
 		AnimCustomFSet1FreqFollowers = 0
 		AnimCustomFSetFollowers[0] = AnimCustomFSet1FreqFollowers
-		SetSliderOptionValue(OptionID, AnimCustomFSet1FreqFollowers, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, AnimCustomFSet1FreqFollowers, "{0}")
 	ElseIf OptionID == AnimCustomFSet2SliderIDFollowers
 		AnimCustomFSet2FreqFollowers = 0
 		AnimCustomFSetFollowers[1] = AnimCustomFSet2FreqFollowers
-		SetSliderOptionValue(OptionID, AnimCustomFSet2FreqFollowers, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, AnimCustomFSet2FreqFollowers, "{0}")
 	ElseIf OptionID == AnimCustomFSet3SliderIDFollowers
 		AnimCustomFSet3FreqFollowers = 0
 		AnimCustomFSetFollowers[2] = AnimCustomFSet3FreqFollowers
-		SetSliderOptionValue(OptionID, AnimCustomFSet3FreqFollowers, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, AnimCustomFSet3FreqFollowers, "{0}")
 
 	; toggles
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleIDFollowers
@@ -689,6 +708,9 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == UpdateIntervalSliderID
 		DirtinessUpdateInterval.SetValue(1.0)
 		SetSliderOptionValue(OptionID, DirtinessUpdateInterval.GetValue(), DisplayFormatDecimal)
+	ElseIf OptionID == DirtinessPerHourPlayerHouseSliderID
+		DirtinessPerHourPlayerHouse.SetValue(0.00)
+		SetSliderOptionValue(OptionID, DirtinessPerHourPlayerHouse.GetValue() * 100, DisplayFormatPercentage)
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
 		DirtinessPerHourSettlement.SetValue(0.01)
 		SetSliderOptionValue(OptionID, DirtinessPerHourSettlement.GetValue() * 100, DisplayFormatPercentage)
@@ -761,6 +783,8 @@ Function HandleOnOptionHighlightAnimationsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet2")
 	ElseIf OptionId == AnimCustomFSet3SliderID
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet3")
+	ElseIf OptionId == AnimCustomTierCondMenuID
+		SetInfoText("$BIS_DESC_ANIM_TIERCOND")
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleID
 		SetInfoText("$BIS_DESC_GET_DRESSED")
 	Else
@@ -790,6 +814,8 @@ Function HandleOnOptionHighlightAnimationsPageFollowers(Int OptionID)
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet2")
 	ElseIf OptionId == AnimCustomFSet3SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet3")
+	ElseIf OptionId == AnimCustomTierCondMenuIDFollowers
+		SetInfoText("$BIS_DESC_ANIM_TIERCOND")
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleIDFollowers
 		SetInfoText("$BIS_DESC_GET_DRESSED")
 	Else
@@ -820,6 +846,8 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_BATHE_HOTKEY")
 	ElseIf OptionID == ShowerKeyMapID
 		SetInfoText("$BIS_DESC_SHOWER_HOTKEY")
+	ElseIf OptionID == DirtinessPerHourPlayerHouseSliderID
+		SetInfoText("$BIS_DESC_RATE_IN_PLAYERHOUSE")
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
 		SetInfoText("$BIS_DESC_RATE_IN_SETTLEMENT")
 	ElseIf OptionID == DirtinessPerHourDungeonSliderID
@@ -1058,6 +1086,11 @@ Function HandleOnOptionMenuAcceptAnimationsPage(Int OptionID, Int MenuItemIndex)
 			SetMenuOptionValue(OptionID, GetSoapyStyleArray[MenuItemIndex])
 			GetSoapyStyle.SetValue(MenuItemIndex)
 		EndIf
+	ElseIf OptionID == AnimCustomTierCondMenuID
+		If MenuItemIndex >= 0 && MenuItemIndex < AnimCustomTierCondArray.Length
+			SetMenuOptionValue(OptionID, AnimCustomTierCondArray[MenuItemIndex])
+			AnimCustomTierCond = MenuItemIndex
+		EndIf
 	EndIf
 EndFunction
 Function HandleOnOptionMenuAcceptAnimationsPageFollowers(Int OptionID, Int MenuItemIndex)
@@ -1077,6 +1110,11 @@ Function HandleOnOptionMenuAcceptAnimationsPageFollowers(Int OptionID, Int MenuI
 		If MenuItemIndex >= 0 && MenuItemIndex < GetSoapyStyleArray.Length
 			SetMenuOptionValue(OptionID, GetSoapyStyleArray[MenuItemIndex])
 			GetSoapyStyleFollowers.SetValue(MenuItemIndex)
+		EndIf
+	ElseIf OptionID == AnimCustomTierCondMenuIDFollowers
+		If MenuItemIndex >= 0 && MenuItemIndex < AnimCustomTierCondArray.Length
+			SetMenuOptionValue(OptionID, AnimCustomTierCondArray[MenuItemIndex])
+			AnimCustomTierCondFollowers = MenuItemIndex
 		EndIf
 	EndIf
 EndFunction
@@ -1111,6 +1149,10 @@ Function HandleOnOptionMenuOpenAnimationsPage(Int OptionID)
 		SetMenuDialogOptions(GetSoapyStyleArray)
 		SetMenuDialogStartIndex(GetSoapyStyle.GetValue() As Int)
 		SetMenuDialogDefaultIndex(1)
+	ElseIf OptionID == AnimCustomTierCondMenuID
+		SetMenuDialogOptions(AnimCustomTierCondArray)
+		SetMenuDialogStartIndex(AnimCustomTierCond)
+		SetMenuDialogDefaultIndex(1)
 	EndIf
 EndFunction
 Function HandleOnOptionMenuOpenAnimationsPageFollowers(Int OptionID)
@@ -1125,6 +1167,10 @@ Function HandleOnOptionMenuOpenAnimationsPageFollowers(Int OptionID)
 	ElseIf OptionID == GetSoapyStyleMenuIDFollowers
 		SetMenuDialogOptions(GetSoapyStyleArray)
 		SetMenuDialogStartIndex(GetSoapyStyleFollowers.GetValue() As Int)
+		SetMenuDialogDefaultIndex(1)
+	ElseIf OptionID == AnimCustomTierCondMenuIDFollowers
+		SetMenuDialogOptions(AnimCustomTierCondArray)
+		SetMenuDialogStartIndex(AnimCustomTierCond)
 		SetMenuDialogDefaultIndex(1)
 	EndIf
 EndFunction
@@ -1157,19 +1203,19 @@ Function HandleOnOptionSliderAcceptAnimationsPage(Int OptionID, Float OptionValu
 		(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValue(SliderValue)
 
 	ElseIf OptionID == AnimCustomMSet1SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		AnimCustomMSet1Freq = SliderValue
 		AnimCustomMSet[0] = AnimCustomMSet1Freq
 	ElseIf OptionID == AnimCustomFSet1SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		AnimCustomFSet1Freq = SliderValue
 		AnimCustomFSet[0] = AnimCustomFSet1Freq
 	ElseIf OptionID == AnimCustomFSet2SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		AnimCustomFSet2Freq = SliderValue
 		AnimCustomFSet[1] = AnimCustomFSet2Freq
 	ElseIf OptionID == AnimCustomFSet3SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		AnimCustomFSet3Freq = SliderValue
 		AnimCustomFSet[2] = AnimCustomFSet3Freq
 	EndIf
@@ -1194,19 +1240,19 @@ Function HandleOnOptionSliderAcceptAnimationsPageFollowers(Int OptionID, Float O
 		(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValue(SliderValue)
 
 	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		AnimCustomMSet1FreqFollowers = SliderValue
 		AnimCustomMSetFollowers[0] = AnimCustomMSet1FreqFollowers
 	ElseIf OptionID == AnimCustomFSet1SliderIDFollowers
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		AnimCustomFSet1FreqFollowers = SliderValue
 		AnimCustomFSetFollowers[0] = AnimCustomFSet1FreqFollowers
 	ElseIf OptionID == AnimCustomFSet2SliderIDFollowers
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		AnimCustomFSet2FreqFollowers = SliderValue
 		AnimCustomFSetFollowers[1] = AnimCustomFSet2FreqFollowers
 	ElseIf OptionID == AnimCustomFSet3SliderIDFollowers
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		AnimCustomFSet3FreqFollowers = SliderValue
 		AnimCustomFSetFollowers[2] = AnimCustomFSet3FreqFollowers
 	EndIf
@@ -1220,6 +1266,10 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 	If OptionID == UpdateIntervalSliderID
 		DisplayFormat = DisplayFormatDecimal
 		DirtinessUpdateInterval.SetValue(SliderValue)
+	ElseIf OptionID == DirtinessPerHourPlayerHouseSliderID
+		DisplayFormat = DisplayFormatPercentage
+		SliderValue = OptionValue / 100.0
+		DirtinessPerHourPlayerHouse.SetValue(SliderValue)
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
 		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue / 100.0
@@ -1365,25 +1415,25 @@ Function HandleOnOptionSliderOpenAnimationsPage(Int OptionID)
 		SliderValue = (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue() As Int
 
 	ElseIf OptionID == AnimCustomMSet1SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(5.0)
 		SetSliderDialogDefaultValue(0.0)
 		SliderValue = AnimCustomMSet1Freq
 	ElseIf OptionID == AnimCustomFSet1SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(5.0)
 		SetSliderDialogDefaultValue(0.0)
 		SliderValue = AnimCustomFSet1Freq
 	ElseIf OptionID == AnimCustomFSet2SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(5.0)
 		SetSliderDialogDefaultValue(0.0)
 		SliderValue = AnimCustomFSet2Freq
 	ElseIf OptionID == AnimCustomFSet3SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(5.0)
 		SetSliderDialogDefaultValue(0.0)
@@ -1424,25 +1474,25 @@ Function HandleOnOptionSliderOpenAnimationsPageFollowers(Int OptionID)
 		SliderValue = (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue() As Int
 
 	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(5.0)
 		SetSliderDialogDefaultValue(0.0)
 		SliderValue = AnimCustomMSet1FreqFollowers
 	ElseIf OptionID == AnimCustomFSet1SliderIDFollowers
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(5.0)
 		SetSliderDialogDefaultValue(0.0)
 		SliderValue = AnimCustomFSet1FreqFollowers
 	ElseIf OptionID == AnimCustomFSet2SliderIDFollowers
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(5.0)
 		SetSliderDialogDefaultValue(0.0)
 		SliderValue = AnimCustomFSet2FreqFollowers
 	ElseIf OptionID == AnimCustomFSet3SliderIDFollowers
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = "{0}"
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(5.0)
 		SetSliderDialogDefaultValue(0.0)
@@ -1464,6 +1514,12 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogInterval(0.25)
 		SetSliderDialogDefaultValue(1.0)
 		SliderValue = (DirtinessUpdateInterval.GetValue())
+	ElseIf OptionID == DirtinessPerHourPlayerHouseSliderID
+		DisplayFormat = DisplayFormatPercentage
+		SetSliderDialogRange(0.0, 100.0)
+		SetSliderDialogInterval(0.5)
+		SetSliderDialogDefaultValue(1.0)
+		SliderValue = (DirtinessPerHourPlayerHouse.GetValue() * 100.0)
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
 		DisplayFormat = DisplayFormatPercentage
 		SetSliderDialogRange(0.0, 100.0)
@@ -1733,6 +1789,7 @@ Bool Function SavePapyrusSettings()
 	
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessUpdateInterval", DirtinessUpdateInterval.GetValue())
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPercentage", DirtinessPercentage.GetValue())
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourPlayerHouse", DirtinessPerHourPlayerHouse.GetValue())
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourSettlement", DirtinessPerHourSettlement.GetValue())
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue())
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue())
@@ -1755,11 +1812,13 @@ Bool Function SavePapyrusSettings()
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet1Freq", AnimCustomFSet1Freq)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet2Freq", AnimCustomFSet2Freq)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet3Freq", AnimCustomFSet3Freq)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AnimCustomTierCond", AnimCustomTierCond)
 	
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomMSet1FreqFollowers", AnimCustomMSet1FreqFollowers)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet1FreqFollowers", AnimCustomFSet1FreqFollowers)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet2FreqFollowers", AnimCustomFSet2FreqFollowers)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet3FreqFollowers", AnimCustomFSet3FreqFollowers)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AnimCustomTierCondFollowers", AnimCustomTierCondFollowers)
 	
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerSexActor", DirtinessPerSexActor)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "VictimMult", VictimMult)
@@ -1820,6 +1879,7 @@ Bool Function LoadPapyrusSettings()
 	
 	DirtinessUpdateInterval.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessUpdateInterval"))
 	DirtinessPercentage.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPercentage"))
+	DirtinessPerHourPlayerHouse.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourPlayerHouse"))
 	DirtinessPerHourSettlement.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourSettlement"))
 	DirtinessPerHourDungeon.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourDungeon"))
 	DirtinessPerHourWilderness.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourWilderness"))
@@ -1842,11 +1902,13 @@ Bool Function LoadPapyrusSettings()
 	AnimCustomFSet1Freq = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet1Freq")
 	AnimCustomFSet2Freq = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet2Freq")
 	AnimCustomFSet3Freq = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet3Freq")
+	AnimCustomTierCond = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AnimCustomTierCond")
 
 	AnimCustomMSet1FreqFollowers = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomMSet1FreqFollowers")
 	AnimCustomFSet1FreqFollowers = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet1FreqFollowers")
 	AnimCustomFSet2FreqFollowers = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet2FreqFollowers")
 	AnimCustomFSet3FreqFollowers = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet3FreqFollowers")
+	AnimCustomTierCondFollowers = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AnimCustomTierCondFollowers")
 
 	DirtinessPerSexActor = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerSexActor")
 	StartingAlpha = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "StartingAlpha")
@@ -1900,6 +1962,7 @@ Int DialogTopicEnableToggleID
 Int AutomateFollowerBathingMenuID
 Int WaterRestrictionEnableToggleID
 Int UpdateIntervalSliderID
+Int DirtinessPerHourPlayerHouseSliderID
 Int DirtinessPerHourSettlementSliderID
 Int DirtinessPerHourDungeonSliderID
 Int DirtinessPerHourWildernessSliderID
@@ -1923,6 +1986,7 @@ Int AnimCustomMSet1SliderID
 Int AnimCustomFSet1SliderID
 Int AnimCustomFSet2SliderID
 Int AnimCustomFSet3SliderID
+Int AnimCustomTierCondMenuID
 
 ; menu - Animations - Right
 Int   GetDressedAfterBathingEnabledToggleID
@@ -1940,6 +2004,7 @@ Int AnimCustomMSet1SliderIDFollowers
 Int AnimCustomFSet1SliderIDFollowers
 Int AnimCustomFSet2SliderIDFollowers
 Int AnimCustomFSet3SliderIDFollowers
+Int AnimCustomTierCondMenuIDFollowers
 
 ; menu - Animations - Followers - Right
 Int   GetDressedAfterBathingEnabledToggleIDFollowers
