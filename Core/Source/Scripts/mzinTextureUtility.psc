@@ -14,7 +14,7 @@ Event OnInit()
 	TexNamez[3] = "DirtFXFace.dds"
 
 	TexPaths = new String[5]
-	TexPaths[0] = "\\mzin\\Bathe\\"
+	TexPaths[0] = "\\mzin\\Bathe\\Set1\\"
 	TexPaths[1] = "\\mzin\\Bathe\\Set2\\"
 	TexPaths[2] = "\\mzin\\Bathe\\Set3\\"
 	TexPaths[3] = "\\mzin\\Bathe\\Set4\\"
@@ -66,10 +66,5 @@ Int Function InitTexSets()
 EndFunction
 
 String Function PickRandomDirtSet()
-	Int SetSelect = Utility.RandomInt(1, DirtSetCount)
-	If SetSelect == 1
-		Return "\\mzin\\Bathe\\"
-	Else
-		Return "\\mzin\\Bathe\\Set" + SetSelect + "\\"
-	EndIf
+	Return "\\mzin\\Bathe\\Set" + Utility.RandomInt(1, DirtSetCount) + "\\"
 EndFunction
