@@ -9,10 +9,10 @@ mzinInit Property Init Auto
 
 FormList Property DirtyActors Auto
 
+FormList Property PlayerHouseLocationList Auto
 FormList Property DungeonLocationList Auto
 FormList Property SettlementLocationList Auto
 FormList Property mzinAnimationInProcList Auto 
-
 FormList Property GetDirtyOverTimeSpellList Auto
 FormList Property SoapBonusSpellList Auto
 FormList Property DirtinessSpellList Auto
@@ -29,6 +29,7 @@ FormList Property ExitTierMessageList Auto
 
 GlobalVariable Property DirtinessUpdateInterval Auto
 GlobalVariable Property DirtinessPercentage Auto
+GlobalVariable Property DirtinessPerHourPlayerHouse Auto
 GlobalVariable Property DirtinessPerHourDungeon Auto
 GlobalVariable Property DirtinessPerHourSettlement Auto
 GlobalVariable Property DirtinessPerHourWilderness Auto
@@ -259,19 +260,7 @@ EndFunction
 
 Function ApplyDirt()
 	Float HoursPassed = (Utility.GetCurrentGameTime() - LocalLastUpdateTime) * 24
-	Float DirtPerHour = 0.0
-	
-	Location CurrentLocation = DirtyActor.GetCurrentLocation()
-
-	If LocationHasKeyWordInList(CurrentLocation, SettlementLocationList)
-		DirtPerHour = DirtinessPerHourSettlement.GetValue()
-	ElseIf LocationHasKeyWordInList(CurrentLocation, DungeonLocationList)
-		DirtPerHour = DirtinessPerHourDungeon.GetValue()
-	ElseIf DirtyActor.IsInInterior()
-		DirtPerHour = DirtinessPerHourSettlement.GetValue()
-	Else
-		DirtPerHour = DirtinessPerHourWilderness.GetValue()
-	EndIf
+	Float DirtPerHour = GetDirtPerHour()
 
 	Float DirtAdded = (DirtPerHour * HoursPassed)
 	DirtAdded += SexDirt
@@ -397,18 +386,21 @@ Function ApplyDirtSex()
 	EndIf
 EndFunction
 
-Bool Function LocationHasKeyWordInList(Location CurrentLocation, FormList KeyWordList)
-	If CurrentLocation != None
-		Int KeyWordListIndex = KeyWordList.GetSize()	
-		While KeyWordListIndex
-			KeyWordListIndex -= 1
-			If CurrentLocation.HasKeyWord(KeyWordList.GetAt(KeyWordListIndex) As KeyWord)
-				Return True
-			EndIf		
-		EndWhile
-	EndIf
-	
-	Return False
+Float Function GetDirtPerHour()
+	Location CurrentLocation = DirtyActor.GetCurrentLocation()
+	Location[] LocationList = SPE_Cell.GetExteriorLocations(DirtyActor.GetParentCell())
+	if CurrentLocation
+		If DirtyActor.IsInInterior() && BatheQuest.LocationHasKeyWordInList(CurrentLocation, PlayerHouseLocationList)
+			return DirtinessPerHourPlayerHouse.GetValue()
+		ElseIf BatheQuest.LocationHasKeyWordInList(CurrentLocation, SettlementLocationList) \
+			|| (DirtyActor.IsInInterior() && BatheQuest.ExteriorHasKeyWordInList(LocationList, SettlementLocationList))
+			return DirtinessPerHourSettlement.GetValue()
+		ElseIf BatheQuest.LocationHasKeyWordInList(CurrentLocation, DungeonLocationList) \
+			|| (DirtyActor.IsInInterior() && BatheQuest.ExteriorHasKeyWordInList(LocationList, DungeonLocationList))
+			return DirtinessPerHourDungeon.GetValue()
+		endIf
+	endIf
+	return DirtinessPerHourWilderness.GetValue() ; default case
 EndFunction
 
 Function RemoveSpells(FormList SpellFormList)

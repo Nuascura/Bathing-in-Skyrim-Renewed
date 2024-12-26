@@ -7,7 +7,6 @@ mzinInterfaceSexlab Property SexlabInt Auto
 mzinOverlayUtility Property Util Auto
 mzinBathePlayerAlias Property PlayerAlias Auto
 
-GlobalVariable Property BathingInSkyrimEnabled Auto
 GlobalVariable Property WaterRestrictionEnabled Auto
 GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property GetSoapyStyleFollowers Auto
@@ -23,9 +22,7 @@ FormList Property SoapBonusSpellList Auto
 
 FormList Property DirtinessSpellList Auto
 FormList Property DirtinessThresholdList Auto
-
 FormList Property WaterfallList Auto
-
 FormList Property SoapBonusMessageList Auto
 
 Keyword Property SoapKeyword Auto
@@ -71,7 +68,7 @@ Event OnBiS_WashActorFinish(Form akBathingActor, Bool abUsingSoap)
 EndEvent
 
 Event OnKeyDown(Int KeyCode)
-	If Utility.IsInMenuMode() || !(BathingInSkyrimEnabled.GetValue() As Bool)
+	If Utility.IsInMenuMode()
 		Return
 	EndIf
 	
@@ -497,4 +494,29 @@ Function GetUnsoapy(Actor akActor)
 	ElseIf akActor.HasSpell(SoapyAppearanceAnimatedSpell)
 		akActor.RemoveSpell(SoapyAppearanceAnimatedSpell)
 	EndIf
+EndFunction
+
+Bool Function ExteriorHasKeyWordInList(Location[] ExteriorLocation, FormList KeyWordList)
+	int i = 0
+	while i < ExteriorLocation.Length
+		Int KeyWordListIndex = KeyWordList.GetSize()	
+		While KeyWordListIndex
+			KeyWordListIndex -= 1
+			If ExteriorLocation[i].HasKeyWord(KeyWordList.GetAt(KeyWordListIndex) As KeyWord)
+				Return True
+			EndIf		
+		EndWhile
+		i += 1
+	endWhile
+	Return False
+EndFunction
+Bool Function LocationHasKeyWordInList(Location CurrentLocation, FormList KeyWordList)
+	Int KeyWordListIndex = KeyWordList.GetSize()	
+	While KeyWordListIndex
+		KeyWordListIndex -= 1
+		If CurrentLocation.HasKeyWord(KeyWordList.GetAt(KeyWordListIndex) As KeyWord)
+			Return True
+		EndIf		
+	EndWhile
+	Return False
 EndFunction
