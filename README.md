@@ -12,6 +12,7 @@ If you are a general user, peruse the following page instead.<br />
 1. [PapyrusUtil](https://github.com/eeveelo/PapyrusUtil)
 2. [PO3's Papyrus Extender](https://github.com/powerof3/PapyrusExtenderSSE)
 3. [RaceMenu﻿](https://www.nexusmods.com/skyrimspecialedition/mods/19080)
+4. [Scrab's Papyrus Extender](https://github.com/Scrabx3/ScrabsPapyrusExtender/)
 
 **Compiler Dependencies**
 1. [Last Seed Development Kit](https://www.nexusmods.com/skyrimspecialedition/mods/56393?tab=files&file_id=298100) - includes Frostfall source scripts
