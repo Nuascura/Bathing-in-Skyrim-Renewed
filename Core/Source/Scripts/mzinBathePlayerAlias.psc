@@ -33,6 +33,9 @@ Function RunCycleHelper()
 EndFunction
 
 Function CycleFollowers()
+	if AutomateFollowerBathing.GetValue() < 1
+		return
+	endIf
 	Actor[] PlayerFollowers = PO3_SKSEfunctions.GetPlayerFollowers()
 	int i = 0
 	while i < PlayerFollowers.Length

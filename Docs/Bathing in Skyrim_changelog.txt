@@ -1,3 +1,12 @@
+2.2.1
+Primary
+- Fix: No controls after bathing with follower via dialogue command.
+- Change: Reword Tier 1 and Tier 3 dirtiness messages for messaging consistency.
+- Optimize: Reduce redundant follower checks if automated follower bathing is disabled.
+- Other miscellaneous optimizations.
+
+
+
 2.2.0
 Primary
 - Add: Hard dependency: Scrab's Papyrus Extender.

@@ -6,8 +6,13 @@ Scriptname mzinTIF__02000065 Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-BatheQuest.TryBatheActor(Game.GetPlayer(), None)
-BatheQuest.TryBatheActor(akSpeaker, None)
+if UI.IsMenuOpen("Dialogue Menu")
+    UI.InvokeString("Dialogue Menu", "_global.skse.CloseMenu", "Dialogue Menu")
+endIf
+BatheQuest.TryBatheActor(BatheQuest.PlayerRef, None)
+if BatheQuest.Menu.AutomateFollowerBathing.GetValue() < 1
+    BatheQuest.TryBatheActor(akSpeaker, None)
+endIf
 ;END CODE
 EndFunction
 ;END FRAGMENT
