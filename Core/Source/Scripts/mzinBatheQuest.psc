@@ -17,13 +17,14 @@ GlobalVariable Property CheckStatusKeyCode Auto
 
 GlobalVariable Property DirtinessPercentage Auto
 
+FormList Property DirtyActors Auto
 FormList Property WashPropList Auto
 FormList Property SoapBonusSpellList Auto
-
 FormList Property DirtinessSpellList Auto
 FormList Property DirtinessThresholdList Auto
 FormList Property WaterfallList Auto
 FormList Property SoapBonusMessageList Auto
+FormList Property GetDirtyOverTimeSpellList Auto
 
 Keyword Property SoapKeyword Auto
 
@@ -33,8 +34,6 @@ Spell Property PlayShowerAnimationWithSoap Auto
 Spell Property PlayShowerAnimationWithoutSoap Auto
 Spell Property SoapyAppearanceSpell Auto
 Spell Property SoapyAppearanceAnimatedSpell Auto
-
-FormList Property GetDirtyOverTimeSpellList Auto
 
 Message Property BathingNeedsWaterMessage Auto
 Message Property BathingWithSoapMessage Auto
@@ -221,15 +220,17 @@ Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
 EndFunction
 
 Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool UsedSoap = false)
-	if UsedSoap || !DirtyActor.HasSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell)
+	if StorageUtil.HasFormValue(DirtyActor, "mzin_LastWashProp")
+		WashProp = StorageUtil.PluckFormValue(DirtyActor, "mzin_LastWashProp") as MiscObject
+	endIf
+
+	if (DirtyActor == PlayerRef || DirtyActors.Find(DirtyActor) != -1) \
+	&& (UsedSoap || !DirtyActor.HasSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell))
 		RemoveSpells(DirtyActor, SoapBonusSpellList)
 		RemoveSpells(DirtyActor, DirtinessSpellList)
 		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
 		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", Utility.GetCurrentGameTime())
 		
-		if !WashProp
-			WashProp = StorageUtil.PluckFormValue(DirtyActor, "mzin_LastWashProp") as MiscObject
-		endIf
 		If WashProp
 			ApplySoapBonus(DirtyActor, WashProp)
 			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
