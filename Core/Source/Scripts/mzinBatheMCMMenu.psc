@@ -5,6 +5,7 @@ ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 mzinTextureUtility Property TexUtil Auto
 mzinOverlayUtility Property Util Auto
 mzinInit Property Init Auto
+Quest Property mzinBatheFollowerDialogQuest Auto
 
 Formlist Property mzinDirtyActorsList Auto
 
@@ -131,7 +132,7 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.2.1"
+	return "2.2.2"
 EndFunction
 
 Int Function GetVersion()
@@ -1642,6 +1643,7 @@ Function EnableBathingInSkyrim()
 	BatheQuest.Start()
 	BatheQuest.RegisterHotKeys()
 	BatheQuest.RegForEvents()
+	mzinBatheFollowerDialogQuest.Start()
 
 	BathingInSkyrimEnabled.SetValue(1)
 
@@ -1677,6 +1679,7 @@ Function DisableBathingInSkyrim()
 	EndIf
 
 	BatheQuest.Stop()
+	mzinBatheFollowerDialogQuest.Stop()
 			
 	BathingInSkyrimEnabled.SetValue(0)
 

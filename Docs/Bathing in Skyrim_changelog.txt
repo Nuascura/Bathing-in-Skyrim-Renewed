@@ -1,3 +1,13 @@
+2.2.2
+Primary
+- Fix: Missing "About bathing..." topic on new games until save file or game session is reloaded.
+- Change: Start and stop follower dialogue quest with BISR mod state.
+- Change: NPCs are no longer automatically tracked if bathed through Automated Follower Bathing function.
+- Optimize: Always pluck and unset last wash object to guard against unused cached objects.
+- Regenerate SEQ.
+
+
+
 2.2.1
 Primary
 - Fix: No controls after bathing with follower via dialogue command.
