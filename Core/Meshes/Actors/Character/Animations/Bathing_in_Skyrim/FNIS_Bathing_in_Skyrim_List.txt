@@ -1,31 +1,31 @@
 ' Female animations by BakaFactory
-' https://www.patreon.com/posts/bathing-le-se-57079899
+' https://subscribestar.adult/posts/905595
 
 ' soap
-so -a,o   mzinBatheA1_S1_Soap BakaBathing03.hkx mzinAnimObjectSoap
-+  -o     mzinBatheA1_S2_Soap BakaBathing01.hkx mzinAnimObjectSoap
+so -a,o,Tmzin_GetSoapy/1.00000               mzinBatheA1_S1_Soap BakaBathing03.hkx mzinAnimObjectSoap
++  -o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheA1_S2_Soap BakaBathing01.hkx mzinAnimObjectSoap
 
-so -a,o   mzinBatheA2_S1_Soap  BakaBathing03.hkx mzinAnimObjectSoap
-+  -a,o   mzinBatheA2_S2_Soap  BakaBathing02.hkx mzinAnimObjectSoap
-+  -o     mzinBatheA2_S3_Soap  BakaBathing01.hkx mzinAnimObjectSoap
+so -a,o,Tmzin_GetSoapy/1.00000               mzinBatheA2_S1_Soap  BakaBathing03.hkx mzinAnimObjectSoap
++  -a,o                                      mzinBatheA2_S2_Soap  BakaBathing02.hkx mzinAnimObjectSoap
++  -o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheA2_S3_Soap  BakaBathing01.hkx mzinAnimObjectSoap
 
-so -a,o   mzinBatheA3_S1_Soap  BakaBathing01.hkx mzinAnimObjectSoap
-+  -o     mzinBatheA3_S2_Soap  BakaBathing03.hkx mzinAnimObjectSoap
+so -a,o,Tmzin_GetSoapy/1.00000               mzinBatheA3_S1_Soap  BakaBathing01.hkx mzinAnimObjectSoap
++  -o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheA3_S2_Soap  BakaBathing03.hkx mzinAnimObjectSoap
 
 ' rag
-so -a,o   mzinBatheA1_S1_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
-+  -o     mzinBatheA1_S2_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
+so -a,o,Tmzin_GetSoapy/1.00000               mzinBatheA1_S1_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
++  -o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheA1_S2_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
 
-so -a,o   mzinBatheA2_S1_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
-+  -o     mzinBatheA2_S2_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
+so -a,o,Tmzin_GetSoapy/1.00000               mzinBatheA2_S1_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
++  -o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheA2_S2_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
 
-so -a,o   mzinBatheA3_S1_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
-+  -o     mzinBatheA3_S2_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
+so -a,o,Tmzin_GetSoapy/1.00000               mzinBatheA3_S1_Cloth  BakaBathing01.hkx mzinAnimObjectWashRag
++  -o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheA3_S2_Cloth  BakaBathing03.hkx mzinAnimObjectWashRag
 
 ' ---------------------------------
 ' Female animation by Krzp
 
-b -TSoundPlay.FSTPlayerWaterRunL/3.200000,TSoundPlay.FSTPlayerWaterRunL/5.000000,TSoundPlay.FSTPlayerWaterRunL/7.000000,TSoundPlay.FSTPlayerWaterRunL/9.333333,TSoundPlay.FSTPlayerWaterRunL/11.066670 mzinBatheA4_S0 KrzpBathing01.hkx
+b -TSoundPlay.FSTPlayerWaterRunL/3.200000,TSoundPlay.FSTPlayerWaterRunL/5.000000,TSoundPlay.FSTPlayerWaterRunL/7.000000,TSoundPlay.FSTPlayerWaterRunL/9.333333,TSoundPlay.FSTPlayerWaterRunL/11.066670,Tmzin_GetSoapy/1.00000,Tmzin_StopAnimationWithIdle/29.85000 mzinBatheA4_S0 KrzpBathing01.hkx
 
 ' ---------------------------------
 ' Male animations by Tweens
@@ -36,26 +36,26 @@ b -TSoundPlay.FSTPlayerWaterRunL/3.200000,TSoundPlay.FSTPlayerWaterRunL/5.000000
 ' BIS_MaleShower_3.HKX = wash mid body
 
 ' soap 
-so -a,h,o mzinBatheMA1_S1_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
-+  -h,o   mzinBatheMA1_S2_Soap BIS_MaleShower_2.hkx mzinAnimObjectSoap
+so -a,h,o,Tmzin_GetSoapy/1.00000               mzinBatheMA1_S1_Soap TweensBathing03.hkx mzinAnimObjectSoap
++  -h,o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheMA1_S2_Soap TweensBathing02.hkx mzinAnimObjectSoap
 
-so -a,h,o mzinBatheMA2_S1_Soap BIS_MaleShower_1.hkx mzinAnimObjectSoap
-+  -h,o   mzinBatheMA2_S2_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
+so -a,h,o,Tmzin_GetSoapy/1.00000               mzinBatheMA2_S1_Soap TweensBathing01.hkx mzinAnimObjectSoap
++  -h,o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheMA2_S2_Soap TweensBathing03.hkx mzinAnimObjectSoap
 
-so -a,h,o mzinBatheMA3_S1_Soap BIS_MaleShower_1.hkx mzinAnimObjectSoap
-+  -a,h,o mzinBatheMA3_S2_Soap BIS_MaleShower_2.hkx mzinAnimObjectSoap
-+  -h,o   mzinBatheMA3_S3_Soap BIS_MaleShower_3.hkx mzinAnimObjectSoap
+so -a,h,o,Tmzin_GetSoapy/1.00000               mzinBatheMA3_S1_Soap TweensBathing01.hkx mzinAnimObjectSoap
++  -a,h,o                                      mzinBatheMA3_S2_Soap TweensBathing02.hkx mzinAnimObjectSoap
++  -h,o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheMA3_S3_Soap TweensBathing03.hkx mzinAnimObjectSoap
 
 ' rag
-so -a,h,o mzinBatheMA1_S1_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
-+  -h,o   mzinBatheMA1_S2_Cloth BIS_MaleShower_2.hkx mzinAnimObjectWashRag
+so -a,h,o,Tmzin_GetSoapy/1.00000               mzinBatheMA1_S1_Cloth TweensBathing03.hkx mzinAnimObjectWashRag
++  -h,o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheMA1_S2_Cloth TweensBathing02.hkx mzinAnimObjectWashRag
 
-so -a,h,o mzinBatheMA2_S1_Cloth BIS_MaleShower_1.hkx mzinAnimObjectWashRag
-+  -h,o   mzinBatheMA2_S2_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
+so -a,h,o,Tmzin_GetSoapy/1.00000               mzinBatheMA2_S1_Cloth TweensBathing01.hkx mzinAnimObjectWashRag
++  -h,o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheMA2_S2_Cloth TweensBathing03.hkx mzinAnimObjectWashRag
 
-so -a,h,o mzinBatheMA3_S1_Cloth BIS_MaleShower_1.hkx mzinAnimObjectWashRag
-+  -a,h,o mzinBatheMA3_S2_Cloth BIS_MaleShower_2.hkx mzinAnimObjectWashRag
-+  -h,o   mzinBatheMA3_S3_Cloth BIS_MaleShower_3.hkx mzinAnimObjectWashRag
+so -a,h,o,Tmzin_GetSoapy/1.00000               mzinBatheMA3_S1_Cloth TweensBathing01.hkx mzinAnimObjectWashRag
++  -a,h,o                                      mzinBatheMA3_S2_Cloth TweensBathing02.hkx mzinAnimObjectWashRag
++  -h,o,Tmzin_StopAnimationWithIdle/-1.00000   mzinBatheMA3_S3_Cloth TweensBathing03.hkx mzinAnimObjectWashRag
 
 
 
