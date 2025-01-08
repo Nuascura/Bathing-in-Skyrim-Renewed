@@ -3,10 +3,14 @@ Primary
 - Fix: Missing "About bathing..." topic on new games until save file or game session is reloaded.
 - Fix: TopicInfo appearing for all followers regardless of global dialogue setting.
 - Change: Play Animation sequence progression, now relying on animevents rather than hardcoded timings and set function calls.
+- Change: NPCs are no longer automatically tracked if bathed through Automated Follower Bathing function.
+
+Secondary
+- Change: Allow reception of WashProp object via WashActor event.
+- Change: Defragment bathe and shower function calls.
 - Change: Annotate animation files with custom animevents.
 - Change: Rename Tweens' animation files.
 - Change: Start and stop follower dialogue quest with BISR mod state.
-- Change: NPCs are no longer automatically tracked if bathed through Automated Follower Bathing function.
 - Optimize: Always pluck and unset last wash object to guard against unused cached objects.
 - Regenerate SEQ.
 

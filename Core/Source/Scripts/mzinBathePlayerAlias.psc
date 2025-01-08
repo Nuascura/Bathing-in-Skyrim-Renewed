@@ -43,9 +43,9 @@ Function CycleFollowers()
 			MiscObject WashProp = BatheQuest.TryFindWashProp(PlayerFollowers[i])
 			if WashProp && !BatheQuest.IsInCommmonRestriction(PlayerFollowers[i])
 				if PO3_SKSEfunctions.IsActorInWater(PlayerFollowers[i])
-					BatheQuest.BatheActor(PlayerFollowers[i], WashProp)
+					BatheQuest.WashActor(PlayerFollowers[i], WashProp, false)
 				ElseIf BatheQuest.IsUnderWaterfall(PlayerFollowers[i])
-					BatheQuest.ShowerActor(PlayerFollowers[i], WashProp)
+					BatheQuest.WashActor(PlayerFollowers[i], WashProp, true)
 				EndIf
 			EndIf
 		endIf

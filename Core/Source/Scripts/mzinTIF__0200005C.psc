@@ -6,7 +6,7 @@ Scriptname mzinTIF__0200005C Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-BatheQuest.TryBatheActor(akSpeaker, None)
+BatheQuest.TryWashActor(akSpeaker, None)
 ;END CODE
 EndFunction
 ;END FRAGMENT

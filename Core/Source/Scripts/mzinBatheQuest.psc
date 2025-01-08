@@ -53,17 +53,21 @@ Function RegForEvents()
 	RegisterForModEvent("BiS_WashActorFinish", "OnBiS_WashActorFinish")
 EndFunction
 
-Event OnBiS_WashActor(Form akActor, Bool Animate = false, Bool FullClean = false, Bool DoSoap = false)
+Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool Animate = false, Bool FullClean = false, Bool DoSoap = false, Bool Shower)
 	;Debug.Messagebox("Receive event")
-	If akActor as Actor
-		BatheActor(akActor as Actor, None, Animate, FullClean, DoSoap)
+	If akDirtyActor as Actor
+		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, Animate, FullClean, DoSoap, Shower)
 	Else
-		Debug.Trace("Mzin: OnBiS_WashActor(): Received invalid actor: " + akActor)
+		Debug.Trace("Mzin: OnBiS_WashActor(): Received invalid actor: " + akDirtyActor)
 	EndIf
 EndEvent
 
-Event OnBiS_WashActorFinish(Form akBathingActor, Bool abUsingSoap)
-	WashActorFinish(akBathingActor as Actor, UsedSoap = abUsingSoap)
+Event OnBiS_WashActorFinish(Form akBathingActor, Bool abUsingSoap = false)
+	If akBathingActor as Actor
+		WashActorFinish(akBathingActor as Actor, UsedSoap = abUsingSoap)
+	Else
+		Debug.Trace("Mzin: OnBiS_WashActorFinish(): Received invalid actor: " + akBathingActor)
+	EndIf
 EndEvent
 
 Event OnKeyDown(Int KeyCode)
@@ -74,9 +78,9 @@ Event OnKeyDown(Int KeyCode)
 	If KeyCode == CheckStatusKeyCode.GetValueInt()
 		DirtinessStatusMessage.Show(DirtinessPercentage.GetValue() * 100)
 	ElseIf KeyCode == BatheKeyCode.GetValueInt()
-		TryBatheActor(PlayerRef, None)
+		TryWashActor(PlayerRef, None, false)
 	ElseIf KeyCode == ShowerKeyCode.GetValueInt()
-		TryShowerActor(PlayerRef, None)
+		TryWashActor(PlayerRef, None, true)
 	Endif
 EndEvent
 
@@ -98,38 +102,33 @@ Function UnRegisterHotKeys()
 	UnregisterForKey(CheckStatusKeyCode.GetValueInt())
 EndFunction
 
-Function TryBatheActor(Actor DirtyActor, MiscObject WashProp)
-	;Debug.Trace("TryBatheActor: DirtyActor" + DirtyActor + "\nWashProp: " +WashProp )
+Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = false)
 	UnRegisterHotKeys()
 	If WashProp == None
 		WashProp = TryFindWashProp(DirtyActor)
 	EndIf
-	If IsInWater(DirtyActor)
-		if !IsInCommmonRestriction(DirtyActor)
-			BatheActor(DirtyActor, WashProp)
-		endIf
-	Else
-		BathingNeedsWaterMessage.Show()
+	If WashProp && !IsInCommmonRestriction(DirtyActor)
+		If Shower
+			If (!(WaterRestrictionEnabled.GetValue() As Bool) || IsUnderWaterfall(DirtyActor))
+				WashActor(DirtyActor, WashProp, DoShower = true)
+				return true
+			Else
+				ShoweringNeedsWaterMessage.Show()
+			EndIf
+		Else
+			If IsInWater(DirtyActor)
+				WashActor(DirtyActor, WashProp, DoShower = false)
+				return true
+			Else
+				BathingNeedsWaterMessage.Show()
+			EndIf
+		EndIf
 	EndIf
 	RegisterHotKeys()
+	return false
 EndFunction
 
-Function TryShowerActor(Actor DirtyActor, MiscObject WashProp)
-	UnRegisterHotKeys()
-	If WashProp == None
-		WashProp = TryFindWashProp(DirtyActor)
-	EndIf
-	If (!(WaterRestrictionEnabled.GetValue() As Bool) || IsUnderWaterfall(DirtyActor))
-		if !IsInCommmonRestriction(DirtyActor)
-			ShowerActor(DirtyActor, WashProp)
-		endIf
-	Else
-		ShoweringNeedsWaterMessage.Show()
-	EndIf
-	RegisterHotKeys()
-EndFunction
-
-Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, Bool FullClean = false, Bool DoSoap = false)
+Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, Bool FullClean = false, Bool DoSoap = false, Bool DoShower = false)
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
 	Bool UsedSoap = false
 	DirtyActor.ClearExtraArrows()
@@ -143,14 +142,28 @@ Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, 
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
 			UsedSoap = true
 			DirtyActor.RemoveItem(WashProp, 1, True, None)
-			DirtyActor.AddSpell(PlayBatheAnimationWithSoap, False)
-			If DirtyActorIsPlayer
-				BathingWithSoapMessage.Show()
+			if DoShower
+				DirtyActor.AddSpell(PlayShowerAnimationWithSoap, False)
+				If DirtyActorIsPlayer
+					ShoweringWithSoapMessage.Show()
+				EndIf
+			else
+				DirtyActor.AddSpell(PlayBatheAnimationWithSoap, False)
+				If DirtyActorIsPlayer
+					BathingWithSoapMessage.Show()
+				EndIf
 			EndIf
 		Else
-			DirtyActor.AddSpell(PlayBatheAnimationWithoutSoap, False)	
-			If DirtyActorIsPlayer
-				BathingWithoutSoapMessage.Show()
+			if DoShower
+				DirtyActor.AddSpell(PlayShowerAnimationWithoutSoap, False)
+				If DirtyActorIsPlayer
+					ShoweringWithoutSoapMessage.Show()
+				EndIf
+			else
+				DirtyActor.AddSpell(PlayBatheAnimationWithoutSoap, False)	
+				If DirtyActorIsPlayer
+					BathingWithoutSoapMessage.Show()
+				EndIf
 			EndIf
 		EndIf
 	else
@@ -183,42 +196,6 @@ Function BatheActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, 
 	Util.SendBatheModEvent(DirtyActor as Form)
 EndFunction
 
-Function ShowerActor(Actor DirtyActor, MiscObject WashProp)
-	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
-	Bool UsedSoap = false
-	DirtyActor.ClearExtraArrows()
-	If DirtyActorIsPlayer
-		mzinInterfaceFrostfall.MakeWet(1000.0)
-		PlayerAlias.RunCycleHelper()
-		Util.SendBathePlayerModEvent()
-	EndIf
-
-	If WashProp && WashProp.HasKeyWord(SoapKeyword)
-		UsedSoap = true
-		DirtyActor.RemoveItem(WashProp, 1, True, None)
-		DirtyActor.AddSpell(PlayShowerAnimationWithSoap, False)
-		If DirtyActorIsPlayer
-			ShoweringWithSoapMessage.Show()
-		EndIf
-	Else
-		DirtyActor.AddSpell(PlayShowerAnimationWithoutSoap, False)
-		If DirtyActorIsPlayer
-			ShoweringWithoutSoapMessage.Show()
-		EndIf
-	EndIf
-
-	SexlabInt.SlClearCum(DirtyActor)
-	mzinInterfacePaf.ClearPafDirt(DirtyActor)
-	mzinInterfaceOCum.OCClearCum(DirtyActor)
-	mzinInterfaceFadeTats.FadeTats(DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
-	
-	SendCleanDirtEvent(DirtyActor, UsedSoap)
-
-	; ---
-	StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
-	Util.SendBatheModEvent(DirtyActor as Form)
-EndFunction
-
 Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool UsedSoap = false)
 	if StorageUtil.HasFormValue(DirtyActor, "mzin_LastWashProp")
 		WashProp = StorageUtil.PluckFormValue(DirtyActor, "mzin_LastWashProp") as MiscObject
@@ -244,6 +221,10 @@ Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool Used
 			EndIf
 		EndIf
 	endIf
+
+	if DirtyActor == PlayerRef
+		RegisterHotKeys()
+	EndIf
 EndFunction
 
 Function ApplySoapBonus(Actor DirtyActor, MiscObject WashProp)

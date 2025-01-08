@@ -9,9 +9,9 @@ Actor akSpeaker = akSpeakerRef as Actor
 if UI.IsMenuOpen("Dialogue Menu")
     UI.InvokeString("Dialogue Menu", "_global.skse.CloseMenu", "Dialogue Menu")
 endIf
-BatheQuest.TryBatheActor(BatheQuest.PlayerRef, None)
+BatheQuest.TryWashActor(BatheQuest.PlayerRef, None)
 if BatheQuest.Menu.AutomateFollowerBathing.GetValue() < 1
-    BatheQuest.TryBatheActor(akSpeaker, None)
+    BatheQuest.TryWashActor(akSpeaker, None)
 endIf
 ;END CODE
 EndFunction
