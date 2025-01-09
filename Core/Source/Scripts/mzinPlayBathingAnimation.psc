@@ -142,6 +142,8 @@ EndFunction
 
 ; helpers
 Function StartAnimation()
+	SetAutoTerminate()
+
 	If BathingActorIsPlayer
 		AnimationStyle = BathingAnimationStyle.GetValue() as int
 	else
@@ -415,6 +417,7 @@ Function RinseOff()
 	endIf
 EndFunction
 Function StopAnimation(bool PlayRinseOff = false)
+	UnregisterForUpdate()
 	Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState")
 	Utility.Wait(0.5)
 
@@ -473,6 +476,10 @@ Function SetFreeCam(bool toggle)
 	endIf
 EndFunction
 
+Function SetAutoTerminate()
+	RegisterForSingleUpdate(180.0) ; 3 minutes
+EndFunction
+
 Function RegisterAnimationEvent()
 	RegisterForAnimationEvent(BathingActor, "mzin_GetSoapy")
 	RegisterForAnimationEvent(BathingActor, "mzin_GetUnsoapy")
@@ -490,4 +497,8 @@ Event OnAnimationEvent(ObjectReference akSource, String asEventName)
 	elseIf asEventName == "mzin_StopAnimation"
 		StopAnimation(false)
 	EndIf
+EndEvent
+
+Event OnUpdate()
+	StopAnimation()
 EndEvent
