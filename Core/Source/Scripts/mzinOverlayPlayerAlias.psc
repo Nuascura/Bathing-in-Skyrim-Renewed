@@ -11,7 +11,7 @@ MagicEffect Property mzinDirtinessTier3Effect Auto
 
 Formlist Property mzinDirtyActorsList Auto
 
-Event OnPlayerLoadGame()
+Event OnPlayerLoadGame() ; run whenever possible
 	Debug.Trace("Mzin: PlayerLoadGame ============================")
 	Init.DoSoftCheck()
 	

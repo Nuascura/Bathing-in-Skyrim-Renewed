@@ -3,6 +3,7 @@ Scriptname mzinInit extends Quest
 Bool Property IsSexlabInstalled = false Auto Hidden
 Bool Property IsDdsInstalled = false Auto Hidden
 Bool Property IsZazInstalled = false Auto Hidden
+Bool Property IsMalignisAnimInstalled = false Auto Hidden
 
 Keyword Property SexLabNoStrip Auto Hidden
 Keyword Property zad_DeviousHeavyBondage Auto Hidden
@@ -32,5 +33,10 @@ Function DoSoftCheck()
 	If Game.GetModByName("ZaZAnimationPack.esm") != 255
 		ZazSlaveFaction = Game.GetFormFromFile(0x000096AE, "ZaZAnimationPack.esm") as Faction
 		IsZazInstalled = true
+	EndIf
+
+	IsMalignisAnimInstalled = false
+	If MiscUtil.FileExists("data/meshes/actors/character/behaviors/FNIS_Bathing_in_Skyrim_Malignis_Behavior.hkx")
+		IsMalignisAnimInstalled = true
 	EndIf
 EndFunction

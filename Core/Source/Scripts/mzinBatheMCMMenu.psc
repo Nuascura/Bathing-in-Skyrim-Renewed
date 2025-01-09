@@ -199,6 +199,10 @@ Function VersionUpdate()
 	AnimCustomTierCondArray[1] = "$BIS_L_ANIM_TIERCOND_DIRTINESS"
 	AnimCustomTierCondArray[2] = "$BIS_L_ANIM_TIERCOND_DANGER"
 EndFunction
+Function InternalUpdate()
+	VersionUpdate()
+	IntegrationUpdate()
+EndFunction
 Function SetLocalArrays()
 	AnimCustomMSet[0] = AnimCustomMSet1Freq
 	AnimCustomFSet[0] = AnimCustomFSet1Freq
@@ -224,13 +228,13 @@ EndFunction
 ; initialize events
 Event OnConfigInit()
 	if CurrentVersion == 0
-		VersionUpdate()
+		InternalUpdate()
 		Debug.Notification("BISR: Installed Bathing in Skyrim " + GetModVersion())
 	endIf
 EndEvent
 Event OnVersionUpdate(Int Version)
 	if CurrentVersion != 0
-		VersionUpdate()
+		InternalUpdate()
 		Debug.Notification("BISR: Updated Bathing in Skyrim " + GetModVersion())
 	endIf
 EndEvent
@@ -305,7 +309,7 @@ Function DisplayAnimationsPage()
 	AnimCustomMSet1SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_MSet1", AnimCustomMSet1Freq, "{0}", CUSTOM_FREQ_FLAG)
 	AnimCustomFSet1SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet1", AnimCustomFSet1Freq, "{0}", CUSTOM_FREQ_FLAG)
 	AnimCustomFSet2SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet2", AnimCustomFSet2Freq, "{0}", CUSTOM_FREQ_FLAG)
-	if MiscUtil.FileExists("data/meshes/actors/character/behaviors/FNIS_Bathing_in_Skyrim_Malignis_Behavior.hkx")
+	if Init.IsMalignisAnimInstalled
 		AnimCustomFSet3SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet3", AnimCustomFSet3Freq, "{0}", CUSTOM_FREQ_FLAG)
 	endIf
 	AddHeaderOption("$BIS_HEADER_COND_ANIM")
@@ -384,7 +388,7 @@ Function DisplayAnimationsPageFollowers()
 	AnimCustomMSet1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_MSet1", AnimCustomMSet1FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
 	AnimCustomFSet1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet1", AnimCustomFSet1FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
 	AnimCustomFSet2SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet2", AnimCustomFSet2FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
-	if MiscUtil.FileExists("data/meshes/actors/character/behaviors/FNIS_Bathing_in_Skyrim_Malignis_Behavior.hkx")
+	if Init.IsMalignisAnimInstalled
 		AnimCustomFSet3SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet3", AnimCustomFSet3FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
 	endIf
 	AddHeaderOption("$BIS_HEADER_COND_ANIM")
@@ -1933,6 +1937,8 @@ Bool Function LoadPapyrusSettings()
 	
 	SetLocalArrays()
 	BatheQuest.RegisterHotKeys()
+
+	IntegrationUpdate()
 	
 	ShowMessage("$BIS_MSG_COMPLETED_LOAD", False)
 	return true
@@ -1955,6 +1961,16 @@ Function UnForbidAllActor()
 		StorageUtil.FormListClear(CurrentActor, "BiS_ForbiddenSenders")
 	EndWhile
 	StorageUtil.FormListClear(none, "BiS_ForbiddenActors")
+EndFunction
+
+Function IntegrationUpdate()
+	float fDefault = 0.0
+	if !Init.IsMalignisAnimInstalled
+		AnimCustomFSet3Freq = fDefault
+		AnimCustomFSet3FreqFollowers = fDefault
+		AnimCustomFSet[2] = fDefault
+		AnimCustomFSetFollowers[2] = fDefault
+	endIf
 EndFunction
 
 ; ---------- MCM Internal Variables ----------

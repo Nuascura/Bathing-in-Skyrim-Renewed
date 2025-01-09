@@ -7,6 +7,8 @@ Primary
 - Change: NPCs are no longer automatically tracked if bathed through Automated Follower Bathing function.
 
 Secondary
+- Add: Bathing animation script auto termination.
+- Add: Safeguards against removal of Malignis Bathing Animations mid-game.
 - Change: Allow reception of WashProp object via WashActor event.
 - Change: Defragment bathe and shower function calls.
 - Change: Annotate animation files with custom animevents.

@@ -19,7 +19,7 @@ Event OnLocationChange(Location akOldLoc, Location akNewLoc)
 	EndIf
 EndEvent
 
-Event OnPlayerLoadGame()
+Event OnPlayerLoadGame() ; run only when mod is "enabled"
 	BatheQuest.RegisterHotKeys()
 	BatheQuest.RegForEvents()
 EndEvent
