@@ -555,15 +555,14 @@ Function DisplayTrackedActorsPage()
 		String DirtinessString = ""
 		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell)
 			DirtinessString = "$BIS_TXT_CLEAN"
-		EndIf
-		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(1) As Spell)
+		ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(1) As Spell)
 			DirtinessString = "$BIS_TXT_NOTDIRTY"
-		EndIf
-		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(2) As Spell)
+		ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(2) As Spell)
 			DirtinessString = "$BIS_TXT_DIRTY"
-		EndIf
-		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(3) As Spell)
+		ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(3) As Spell)
 			DirtinessString = "$BIS_TXT_FILTHY"
+		Else
+			DirtinessString = "$BIS_TXT_MISSINGSPELL"
 		EndIf
 		TrackedActorsToggleIDs[Index] = AddTextOption(DirtyActor.GetActorBase().GetName(), DirtinessString, OPTION_FLAG_NONE)
 	EndWhile
@@ -1069,9 +1068,7 @@ Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
 	If Index >= 0
 		If ShowMessage("$BIS_MSG_ASK_STOP_TRACK", True) == True
 			Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
-			RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-			RemoveSpells(DirtyActor, DirtinessSpellList)
-			RemoveSpells(DirtyActor, SoapBonusSpellList)
+			UntrackActor(DirtyActor)
 			DirtyActors.RemoveAddedForm(DirtyActor)
 			ForcePageReset()
 		EndIf
@@ -1218,32 +1215,24 @@ Function HandleOnOptionSliderAcceptAnimationsPage(Int OptionID, Float OptionValu
 	String DisplayFormat = "{0}"
 
 	If OptionID == BathingAnimationLoopsTier0SliderID
-		DisplayFormat = "{0}"
 		(BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == BathingAnimationLoopsTier1SliderID
-		DisplayFormat = "{0}"
 		(BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == BathingAnimationLoopsTier2SliderID
-		DisplayFormat = "{0}"
 		(BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == BathingAnimationLoopsTier3SliderID
-		DisplayFormat = "{0}"
 		(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValue(SliderValue)
 
 	ElseIf OptionID == AnimCustomMSet1SliderID
-		DisplayFormat = "{0}"
 		AnimCustomMSet1Freq = SliderValue
 		AnimCustomMSet[0] = AnimCustomMSet1Freq
 	ElseIf OptionID == AnimCustomFSet1SliderID
-		DisplayFormat = "{0}"
 		AnimCustomFSet1Freq = SliderValue
 		AnimCustomFSet[0] = AnimCustomFSet1Freq
 	ElseIf OptionID == AnimCustomFSet2SliderID
-		DisplayFormat = "{0}"
 		AnimCustomFSet2Freq = SliderValue
 		AnimCustomFSet[1] = AnimCustomFSet2Freq
 	ElseIf OptionID == AnimCustomFSet3SliderID
-		DisplayFormat = "{0}"
 		AnimCustomFSet3Freq = SliderValue
 		AnimCustomFSet[2] = AnimCustomFSet3Freq
 	EndIf
@@ -1255,32 +1244,24 @@ Function HandleOnOptionSliderAcceptAnimationsPageFollowers(Int OptionID, Float O
 	String DisplayFormat = "{0}"
 
 	If OptionID == BathingAnimationLoopsTier0SliderIDFollowers
-		DisplayFormat = "{0}"
 		(BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == BathingAnimationLoopsTier1SliderIDFollowers
-		DisplayFormat = "{0}"
 		(BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == BathingAnimationLoopsTier2SliderIDFollowers
-		DisplayFormat = "{0}"
 		(BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == BathingAnimationLoopsTier3SliderIDFollowers
-		DisplayFormat = "{0}"
 		(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValue(SliderValue)
 
 	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
-		DisplayFormat = "{0}"
 		AnimCustomMSet1FreqFollowers = SliderValue
 		AnimCustomMSetFollowers[0] = AnimCustomMSet1FreqFollowers
 	ElseIf OptionID == AnimCustomFSet1SliderIDFollowers
-		DisplayFormat = "{0}"
 		AnimCustomFSet1FreqFollowers = SliderValue
 		AnimCustomFSetFollowers[0] = AnimCustomFSet1FreqFollowers
 	ElseIf OptionID == AnimCustomFSet2SliderIDFollowers
-		DisplayFormat = "{0}"
 		AnimCustomFSet2FreqFollowers = SliderValue
 		AnimCustomFSetFollowers[1] = AnimCustomFSet2FreqFollowers
 	ElseIf OptionID == AnimCustomFSet3SliderIDFollowers
-		DisplayFormat = "{0}"
 		AnimCustomFSet3FreqFollowers = SliderValue
 		AnimCustomFSetFollowers[2] = AnimCustomFSet3FreqFollowers
 	EndIf
@@ -1682,25 +1663,14 @@ Function DisableBathingInSkyrim()
 	
 	RemoveAllOverlays(false)
 	
-	RemoveSpells(PlayerRef, GetDirtyOverTimeSpellList)
-	RemoveSpells(PlayerRef, DirtinessSpellList)
-	RemoveSpells(PlayerRef, SoapBonusSpellList)
-	StorageUtil.UnSetFloatValue(PlayerRef, "BiS_Dirtiness")
-	StorageUtil.UnSetFloatValue(PlayerRef, "BiS_LastUpdate")
-	StorageUtil.UnSetStringValue(PlayerRef, "mzin_DirtTexturePrefix")
+	UntrackActor(PlayerRef)
 
 	Int DirtyActorIndex = DirtyActors.Getsize()
 	If DirtyActorIndex > 0
 		While DirtyActorIndex
 			DirtyActorIndex -= 1
 			Actor DirtyActor = DirtyActors.GetAt(DirtyActorIndex) As Actor
-			RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-			RemoveSpells(DirtyActor, DirtinessSpellList)
-			RemoveSpells(DirtyActor, SoapBonusSpellList)
-			
-			StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
-			StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
-			StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+			UntrackActor(DirtyActor)
 		EndWhile
 		DirtyActors.Revert()
 	EndIf
@@ -1718,6 +1688,16 @@ Function DisableBathingInSkyrim()
 	endIf
 
 	ForcePageReset()
+EndFunction
+Function UntrackActor(Actor DirtyActor)
+	RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
+	RemoveSpells(DirtyActor, DirtinessSpellList)
+	RemoveSpells(DirtyActor, SoapBonusSpellList)
+	
+	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
+	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
+	StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+	StorageUtil.UnSetStringValue(DirtyActor, "mzin_LastWashProp")
 EndFunction
 Function RemoveSpells(Actor DirtyActor, FormList SpellFormList)
 	Int SpellListIndex = SpellFormList.GetSize()
