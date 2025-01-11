@@ -10,7 +10,7 @@ if UI.IsMenuOpen("Dialogue Menu")
     UI.InvokeString("Dialogue Menu", "_global.skse.CloseMenu", "Dialogue Menu")
 endIf
 BatheQuest.TryWashActor(BatheQuest.PlayerRef, None)
-if BatheQuest.Menu.AutomateFollowerBathing.GetValue() < 1
+if BatheQuest.Menu.AutomateFollowerBathing.GetValue() < 1 || PO3_SKSEfunctions.GetPlayerFollowers().Find(akSpeaker) == -1
     BatheQuest.TryWashActor(akSpeaker, None)
 endIf
 ;END CODE
