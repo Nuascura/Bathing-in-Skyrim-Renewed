@@ -4,6 +4,7 @@ String[] Areas
 String[] Property AreasTexNames Auto Hidden
 Actor Property PlayerRef Auto
 mzinTextureUtility Property TexUtil Auto
+mzinUtility Property mzinUtil Auto
 
 Event OnInit()
 	Areas = new String[4]
@@ -41,7 +42,7 @@ Function ReadyOverlay(Actor akTarget, Bool Gender, String Area, String TextureTo
 	If SlotToUse != -1
 		ApplyOverlay(akTarget, Gender, Area, SlotToUse, TextureToApply, Alpha)
 	Else
-		Debug.Trace("mzin_: Error applying overlay to area: " + Area)
+		mzinUtil.LogTrace("Error applying overlay to area: " + Area)
 	EndIf
 EndFunction
 
@@ -92,11 +93,11 @@ Int Function GetEmptySlot(Actor akTarget, Bool Gender, String Area)
 		i -= 1
 		TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender, Area + " [ovl" + i + "]", 9, 0)
 		If TexPath == "" || TexPath == "actors\\character\\overlays\\default.dds"
-			Debug.Trace("Mzin: GetEmptySlot: Slot " + i + " chosen for area: " + area + " on " + akTarget.GetBaseObject().GetName())
+			mzinUtil.LogTrace("GetEmptySlot: Slot " + i + " chosen for area: " + area + " on " + akTarget.GetBaseObject().GetName())
 			Return i
 		EndIf
 	EndWhile
-	Debug.Trace("Mzin: GetEmptySlot: Error: Could not find a free slot in area: " + Area + " on "  + akTarget.GetBaseObject().GetName())
+	mzinUtil.LogTrace("GetEmptySlot: Error: Could not find a free slot in area: " + Area + " on "  + akTarget.GetBaseObject().GetName())
 	Return -1
 EndFunction
 
@@ -128,10 +129,10 @@ Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all s
 				k -= 1
 				TexPrefix = TexUtil.TexPaths[k]
 				TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender, Node, 9, 0)
-				;Debug.Trace("Mzin: ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath)
+				;mzinUtil.LogTrace("ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath)
 				If TexPath == (TexPrefix + "DirtFX" + AreasTexNames[i] + ".dds") || TexPath == ""
 					RemoveOverlay(akTarget, Gender, Node)
-					;Debug.Trace("_mzin_: Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
+					;mzinUtil.LogTrace("Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
 				EndIf
 			EndWhile
 		EndWhile
@@ -144,7 +145,7 @@ Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all s
 EndFunction
 
 Function ClearDirt(Actor akTarget) ; Clears the first dirt overlay it finds from each overlay area - faster
-	Debug.Trace("Mzin: Clearing dirt from " + akTarget.GetBaseObject().GetName())
+	mzinUtil.LogTrace("Clearing dirt from " + akTarget.GetBaseObject().GetName())
 	;StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
 	String TexPath
@@ -160,11 +161,11 @@ Function ClearDirt(Actor akTarget) ; Clears the first dirt overlay it finds from
 			j -= 1
 			Node = Areas[i] + " [ovl" + j + "]"
 			TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender, Node, 9, 0)
-			;Debug.Trace("Mzin: ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath + ". MatchString: " + MatchString)
+			;mzinUtil.LogTrace("ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath + ". MatchString: " + MatchString)
 			If TexPath == MatchString
 				RemoveOverlay(akTarget, Gender, Node)
 				Result = true
-				Debug.Trace("_mzin_: Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
+				mzinUtil.LogTrace("_mzin_: Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
 			EndIf
 		EndWhile
 		Result = false
@@ -178,7 +179,7 @@ Function ClearDirt(Actor akTarget) ; Clears the first dirt overlay it finds from
 EndFunction
 
 Function RemoveOverlay(Actor akTarget, Bool Gender, String Node)
-	;Debug.Trace("Mzin: ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". Clearing ! TexPath: " + TexPath)
+	;mzinUtil.LogTrace("ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". Clearing ! TexPath: " + TexPath)
 	NiOverride.AddNodeOverrideString(akTarget, Gender, Node, 9, 0, "actors\\character\\overlays\\default.dds", true)
 	
 	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 9, 0)

@@ -5,6 +5,7 @@ String[] Property TexPaths Auto Hidden
 Int Property DirtSetCount Auto Hidden
 
 mzinBatheMCMMenu Property Menu Auto
+mzinUtility Property mzinUtil Auto
 
 Event OnInit()
 	TexNamez = new String[4]
@@ -40,24 +41,24 @@ Int Function InitTexSets()
 		int j = 0
 		While j < TexNamez.Length
 			Menu.UpdateProgressRedetectDirtSets((TexPaths[i] + TexNamez[j]))
-			Debug.Trace("mzin: Checking: " + SetPrefix + TexNamez[j])
+			mzinUtil.LogTrace("Checking: " + SetPrefix + TexNamez[j])
 			If MiscUtil.FileExists(SetPrefix + TexNamez[j])
-				Debug.Trace("mzin_: Dirt Set " + (i + 1) + ": Found " + TexNamez[j])
+				mzinUtil.LogTrace("Dirt Set " + (i + 1) + ": Found " + TexNamez[j])
 				TexCount += 1
 			Else
-				Debug.Trace("mzin_: Warning: Dirt Set " + (i + 1) + ": DOES NOT EXIST: " + TexNamez[j])
+				mzinUtil.LogTrace("Warning: Dirt Set " + (i + 1) + ": DOES NOT EXIST: " + TexNamez[j])
 			EndIf
 			j += 1
 		EndWhile
 		If TexCount == TexNamez.Length ; Complete texture set
-			Debug.Trace("mzin_: Complete set found!! Set " + i)
+			mzinUtil.LogTrace("Complete set found!! Set " + i)
 			SetCount += 1
 		
 		ElseIf TexCount == 0
-			Debug.Trace("mzin_: Empty set detected. Ending search")
+			mzinUtil.LogTrace("Empty set detected. Ending search")
 			Return SetCount
 		Else
-			Debug.Messagebox("mzin_: Error: InitTexSets(): Incomplete texture set detected for set " + i + ". There should be " + TexNamez.Length + " texture files per set but Mzin detected only " + TexCount + " files. One or more files are either missing or named incorrectly. You need to fix this first! Check your papyrus log. Search 'mzin'")
+			mzinUtil.LogMessageBox("Error: InitTexSets(): Incomplete texture set detected for set " + i + ". There should be " + TexNamez.Length + " texture files per set but Mzin detected only " + TexCount + " files. One or more files are either missing or named incorrectly. You need to fix this first! Check your papyrus log. Search 'mzin'")
 			Return -1
 		EndIf
 		i += 1

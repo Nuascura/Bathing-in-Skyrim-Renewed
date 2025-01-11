@@ -13,7 +13,7 @@ DirtyActors.RemoveAddedForm(akSpeaker)
 Utility.Wait(2.0) ; Give time for the magic effec to end which normally would only re-add storageUtil variables. See GetDirtyOverTime Mgef
 StorageUtil.UnSetFloatValue(akSpeaker, "BiS_Dirtiness")
 StorageUtil.UnSetFloatValue(akSpeaker, "BiS_LastUpdate")
-Util.ClearDirtGameLoad(akSpeaker)
+OlUtil.ClearDirtGameLoad(akSpeaker)
 ;END CODE
 EndFunction
 ;END FRAGMENT
@@ -34,4 +34,4 @@ FormList Property GetDirtyOverTimeSpellList Auto
 FormList Property DirtinessSpellList Auto
 FormList Property SoapBonusSpellList Auto
 
-mzinOverlayUtility Property Util Auto
+mzinOverlayUtility Property OlUtil Auto

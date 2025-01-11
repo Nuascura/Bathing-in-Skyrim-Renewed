@@ -1,8 +1,9 @@
-Scriptname mzinOverlayPlayerAlias extends ReferenceAlias
+Scriptname mzinUtilityPlayerAlias extends ReferenceAlias
 
 mzinTextureUtility Property TexUtil Auto
-mzinOverlayUtility Property Util Auto
+mzinOverlayUtility Property OlUtil Auto
 mzinInit Property Init Auto
+mzinUtility Property mzinUtil Auto
 
 Actor Property PlayerRef Auto
 
@@ -12,7 +13,7 @@ MagicEffect Property mzinDirtinessTier3Effect Auto
 Formlist Property mzinDirtyActorsList Auto
 
 Event OnPlayerLoadGame() ; run whenever possible
-	Debug.Trace("Mzin: PlayerLoadGame ============================")
+	mzinUtil.LogTrace("PlayerLoadGame ============================")
 	Init.DoSoftCheck()
 	
 	RegisterForModEvent("BiS_ForbidBathing", "OnBiS_ForbidBathing")
@@ -22,14 +23,14 @@ Event OnPlayerLoadGame() ; run whenever possible
 EndEvent
 
 Event OnBiS_ForbidBathing(Form Sender, Form ForbiddenActor, String ForbiddenString)
-	;Debug.Messagebox("Forbidding")
+	;mzinUtil.LogMessagebox("Forbidding")
 	If StorageUtil.FormListFind(ForbiddenActor, "BiS_ForbiddenSenders", Sender) == -1
 		StorageUtil.FormListAdd(none, "BiS_ForbiddenActors", ForbiddenActor, allowDuplicate = false)
 		StorageUtil.FormListAdd(ForbiddenActor, "BiS_ForbiddenSenders", Sender, allowDuplicate = false)
 		StorageUtil.StringListAdd(ForbiddenActor, "BiS_ForbiddenString", ForbiddenString, allowDuplicate = true)
-		Debug.Trace("Mzin: Forbid bathing event received for " + ForbiddenActor + " from sender " + Sender)
+		mzinUtil.LogTrace("Forbid bathing event received for " + ForbiddenActor + " from sender " + Sender)
 	Else
-		Debug.Trace("Mzin: Forbid bathing event received for " + ForbiddenActor + " but sender " + Sender + " has already forbidden bathing")
+		mzinUtil.LogTrace("Forbid bathing event received for " + ForbiddenActor + " but sender " + Sender + " has already forbidden bathing")
 	EndIf
 EndEvent
 
@@ -45,22 +46,22 @@ Event OnBiS_PermitBathing(Form Sender, Form ForbiddenActor)
 			StorageUtil.StringListClear(ForbiddenActor, "BiS_ForbiddenString")
 			StorageUtil.FormListClear(ForbiddenActor, "BiS_ForbiddenSenders")
 		EndIf
-		Debug.Trace("Mzin: " + Sender + " permits bathing on " + ForbiddenActor)
+		mzinUtil.LogTrace(Sender + " permits bathing on " + ForbiddenActor)
 	Else
-		Debug.Trace("Mzin: PermitBathing event received for " + ForbiddenActor + " but sender " +  Sender + " was not found in the list")
+		mzinUtil.LogTrace("PermitBathing event received for " + ForbiddenActor + " but sender " +  Sender + " was not found in the list")
 	EndIf
 EndEvent
 
 Function CheckDirt(Actor akTarget)
-	Util.ClearDirtGameLoad(akTarget)
+	OlUtil.ClearDirtGameLoad(akTarget)
 	If akTarget.HasMagicEffect(mzinDirtinessTier2Effect) || akTarget.HasMagicEffect(mzinDirtinessTier3Effect)
-		Debug.Trace("Mzin: Adding dirt to: " + akTarget.GetBaseObject().GetName())
-		Util.ApplyDirt(akTarget, StorageUtil.GetFloatValue(akTarget, "Mzin_ActorDirtiness", 1.0))
+		mzinUtil.LogTrace("Adding dirt to: " + akTarget.GetBaseObject().GetName())
+		OlUtil.ApplyDirt(akTarget, StorageUtil.GetFloatValue(akTarget, "Mzin_ActorDirtiness", 1.0))
 	;ElseIf akTarget.HasMagicEffect(mzinDirtinessTier3Effect)
-	;	Debug.Trace("Mzin: Adding filth to: " + akTarget.GetBaseObject().GetName())
-	;	Util.ApplyDirt(akTarget, "FilthFX.dds",  StorageUtil.GetFloatValue(akTarget, "Mzin_ActorDirtiness", 1.0))
+	;	mzinUtil.LogTrace("Adding filth to: " + akTarget.GetBaseObject().GetName())
+	;	OlUtil.ApplyDirt(akTarget, "FilthFX.dds",  StorageUtil.GetFloatValue(akTarget, "Mzin_ActorDirtiness", 1.0))
 	Else
-		Debug.Trace("Mzin: Actor is clean: " + akTarget.GetBaseObject().GetName())
+		mzinUtil.LogTrace("Actor is clean: " + akTarget.GetBaseObject().GetName())
 	EndIf
 EndFunction
 ;/

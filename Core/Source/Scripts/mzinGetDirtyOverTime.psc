@@ -4,7 +4,8 @@ ScriptName mzinGetDirtyOverTime Extends ActiveMagicEffect
 mzinBatheQuest Property BatheQuest Auto
 mzinInterfaceSexlab Property SexlabInt Auto
 mzinBatheMCMMenu Property Menu Auto
-mzinOverlayUtility Property Util Auto
+mzinOverlayUtility Property OlUtil Auto
+mzinUtility Property mzinUtil Auto
 mzinInit Property Init Auto
 
 FormList Property DirtyActors Auto
@@ -91,7 +92,7 @@ Event OnBiS_CleanActorDirt(Form akTarget, Float TimeToClean, Float TimeToCleanIn
 			If LocalDirtinessPercentage < LowerLimit
 				LocalDirtinessPercentage = LowerLimit
 			EndIf
-			Util.UpdateAlpha(DirtyActor, LocalDirtinessPercentage)
+			OlUtil.UpdateAlpha(DirtyActor, LocalDirtinessPercentage)
 			Utility.Wait(TimeToCleanInterval)
 		EndWhile
 	EndIf
@@ -99,12 +100,12 @@ EndEvent
 
 Event OnAnimationStart(int tid, bool HasPlayer)
 	Actor[] actorList = SexlabInt.GetSexActors(tid)
-	;Debug.Messagebox("tid" + tid + "\nHasPlayer: " + HasPlayer + "\nFadeDirtSex: " + Menu.FadeDirtSex + "\nactorList.Find(DirtyActor): " + actorList.Find(DirtyActor) + "\nLocalDirtinessPercentage: " + LocalDirtinessPercentage + "\n\nDirtyActor: " + DirtyActor + "\n\nactorList: " + actorList)
+	;mzinUtil.LogMessageBox("tid" + tid + "\nHasPlayer: " + HasPlayer + "\nFadeDirtSex: " + Menu.FadeDirtSex + "\nactorList.Find(DirtyActor): " + actorList.Find(DirtyActor) + "\nLocalDirtinessPercentage: " + LocalDirtinessPercentage + "\n\nDirtyActor: " + DirtyActor + "\n\nactorList: " + actorList)
 	If Menu.FadeDirtSex && actorList.Find(DirtyActor) >= 0 && LocalDirtinessPercentage < 1.0
 		If !mzinAnimationInProcList.HasForm(DirtyActor)
 			mzinAnimationInProcList.AddForm(DirtyActor)
 			Int i = actorList.Length
-			Debug.Trace("Mzin: Sex started on " + DirtyActor.GetBaseObject().GetName())
+			mzinUtil.LogTrace("Sex started on " + DirtyActor.GetBaseObject().GetName())
 			SexDirt = 0.0
 			Float SexDirtiness = 0.0
 			Actor CurrentActor
@@ -163,7 +164,7 @@ Event OnAnimationEnd(int tid, bool HasPlayer)
 			If IsVictim
 				SexDirt *= Menu.VictimMult
 			EndIf
-			Debug.Trace("Mzin: " + DirtyActor.GetBaseObject().GetName() + " gained " + SexDirt + " dirtiness from sex. IsVictim: " + IsVictim)
+			mzinUtil.LogTrace(DirtyActor.GetBaseObject().GetName() + " gained " + SexDirt + " dirtiness from sex. IsVictim: " + IsVictim)
 			RegisterForSingleUpdate(0.1)
 		EndIf
 	EndIf
@@ -208,10 +209,10 @@ Event OnEffectStart(Actor Target, Actor Caster)
 		LocalLastUpdateTime = LastUpdate
 		Float UpdateIntervalInGameTime = (DirtinessUpdateInterval.GetValue() / 24)
 		If Utility.GetCurrentGameTime() > LocalLastUpdateTime + UpdateIntervalInGameTime
-			Debug.Trace("Mzin: Running update now on " + DirtyActor.GetBaseObject().GetName())
+			mzinUtil.LogTrace("Running update now on " + DirtyActor.GetBaseObject().GetName())
 			RegisterForSingleUpdate(0.1)
 		Else
-			Debug.Trace("Mzin: Running update in " + (UpdateIntervalInGameTime - (Utility.GetCurrentGameTime() - LocalLastUpdateTime)) + " on " + DirtyActor.GetBaseObject().GetName())
+			mzinUtil.LogTrace("Running update in " + (UpdateIntervalInGameTime - (Utility.GetCurrentGameTime() - LocalLastUpdateTime)) + " on " + DirtyActor.GetBaseObject().GetName())
 			RegisterForSingleUpdateGameTime(UpdateIntervalInGameTime - (Utility.GetCurrentGameTime() - LocalLastUpdateTime))
 		EndIf
 	EndIf
@@ -306,7 +307,7 @@ Function RenewDirtSpell()
 
 			ExitMessage = ExitTierMessageList.GetAt(Index) As Message
 			If EnterMessage == None
-				EnterMessage= EnterTierMessageList.GetAt(Index + 1) As Message
+				EnterMessage = EnterTierMessageList.GetAt(Index + 1) As Message
 			EndIf
 
 		EndIf
@@ -327,10 +328,10 @@ Function RenewDirtSpell()
 	
 	If DirtyActorIsPlayer
 		If ExitMessage
-			ExitMessage.Show()
+			mzinUtil.GameMessage(ExitMessage)
 		EndIf
 		If EnterMessage
-			EnterMessage.Show()
+			mzinUtil.GameMessage(EnterMessage)
 		EndIf
 	EndIf
 EndFunction
@@ -339,13 +340,13 @@ Float Function GetDirtPerHour()
 	Location CurrentLocation = DirtyActor.GetCurrentLocation()
 	Location[] LocationList = SPE_Cell.GetExteriorLocations(DirtyActor.GetParentCell())
 	if CurrentLocation
-		If DirtyActor.IsInInterior() && BatheQuest.LocationHasKeyWordInList(CurrentLocation, PlayerHouseLocationList)
+		If DirtyActor.IsInInterior() && mzinUtil.LocationHasKeyWordInList(CurrentLocation, PlayerHouseLocationList)
 			return DirtinessPerHourPlayerHouse.GetValue()
-		ElseIf BatheQuest.LocationHasKeyWordInList(CurrentLocation, SettlementLocationList) \
-			|| (DirtyActor.IsInInterior() && BatheQuest.ExteriorHasKeyWordInList(LocationList, SettlementLocationList))
+		ElseIf mzinUtil.LocationHasKeyWordInList(CurrentLocation, SettlementLocationList) \
+			|| (DirtyActor.IsInInterior() && mzinUtil.ExteriorHasKeyWordInList(LocationList, SettlementLocationList))
 			return DirtinessPerHourSettlement.GetValue()
-		ElseIf BatheQuest.LocationHasKeyWordInList(CurrentLocation, DungeonLocationList) \
-			|| (DirtyActor.IsInInterior() && BatheQuest.ExteriorHasKeyWordInList(LocationList, DungeonLocationList))
+		ElseIf mzinUtil.LocationHasKeyWordInList(CurrentLocation, DungeonLocationList) \
+			|| (DirtyActor.IsInInterior() && mzinUtil.ExteriorHasKeyWordInList(LocationList, DungeonLocationList))
 			return DirtinessPerHourDungeon.GetValue()
 		endIf
 	endIf
@@ -361,18 +362,18 @@ Function RemoveSpells(FormList SpellFormList)
 EndFunction
 
 Function CheckDirt()
-	Util.ClearDirtGameLoad(DirtyActor)
+	OlUtil.ClearDirtGameLoad(DirtyActor)
 	If DirtyActor.HasMagicEffect(mzinDirtinessTier2Effect) || DirtyActor.HasMagicEffect(mzinDirtinessTier3Effect)
-		Debug.Trace("Mzin: Adding dirt to: " + DirtyActor.GetBaseObject().GetName())
-		Util.ApplyDirt(DirtyActor, Menu.StartingAlpha)
+		mzinUtil.LogTrace("Adding dirt to: " + DirtyActor.GetBaseObject().GetName())
+		OlUtil.ApplyDirt(DirtyActor, Menu.StartingAlpha)
 	;ElseIf DirtyActor.HasMagicEffect(mzinDirtinessTier3Effect)
-	;	Debug.Trace("Mzin: Adding filth to: " + DirtyActor.GetBaseObject().GetName())
+	;	mzinUtil.LogTrace("Adding filth to: " + DirtyActor.GetBaseObject().GetName())
 	;	Util.ApplyDirt(DirtyActor, "FilthFX.dds",  1.0)
 	ElseIf DirtyActor.HasMagicEffect(mzinDirtinessTier1p5Effect)
-		Util.ApplyDirt(DirtyActor, Menu.StartingAlpha)
-		Debug.Trace("Mzin: Adding fade in dirt to: " + DirtyActor.GetBaseObject().GetName())
+		OlUtil.ApplyDirt(DirtyActor, Menu.StartingAlpha)
+		mzinUtil.LogTrace("Adding fade in dirt to: " + DirtyActor.GetBaseObject().GetName())
 	Else
-		Debug.Trace("Mzin: Actor is clean: " + DirtyActor.GetBaseObject().GetName())
+		mzinUtil.LogTrace("Actor is clean: " + DirtyActor.GetBaseObject().GetName())
 	EndIf
 EndFunction
 
@@ -383,7 +384,7 @@ Function CheckAlpha()
 			Alpha = 1.0
 		EndIf
 		if !StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") == ""
-			Util.UpdateAlpha(DirtyActor, Alpha)
+			OlUtil.UpdateAlpha(DirtyActor, Alpha)
 		endIf
 	EndIf
 EndFunction

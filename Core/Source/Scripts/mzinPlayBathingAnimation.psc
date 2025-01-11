@@ -4,6 +4,7 @@ ScriptName mzinPlayBathingAnimation Extends ActiveMagicEffect
 mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinBatheQuest Property BatheQuest Auto
+mzinUtility Property mzinUtil Auto
 
 Bool Property UsingSoap Auto
 Bool Property Showering Auto
@@ -89,13 +90,13 @@ Int Property DangerTier
 		Location CurrentLocation = BathingActor.GetCurrentLocation()
 		Location[] LocationList = SPE_Cell.GetExteriorLocations(BathingActor.GetParentCell())
 		if CurrentLocation
-			If BathingActor.IsInInterior() && BatheQuest.LocationHasKeyWordInList(CurrentLocation, PlayerHouseLocationList)
+			If BathingActor.IsInInterior() && mzinUtil.LocationHasKeyWordInList(CurrentLocation, PlayerHouseLocationList)
 				return 4
-			ElseIf BatheQuest.LocationHasKeyWordInList(CurrentLocation, SettlementLocationList) \
-				|| (BathingActor.IsInInterior() && BatheQuest.ExteriorHasKeyWordInList(LocationList, SettlementLocationList))
+			ElseIf mzinUtil.LocationHasKeyWordInList(CurrentLocation, SettlementLocationList) \
+				|| (BathingActor.IsInInterior() && mzinUtil.ExteriorHasKeyWordInList(LocationList, SettlementLocationList))
 				return 3
-			ElseIf BatheQuest.LocationHasKeyWordInList(CurrentLocation, DungeonLocationList) \
-				|| (BathingActor.IsInInterior() && BatheQuest.ExteriorHasKeyWordInList(LocationList, DungeonLocationList))
+			ElseIf mzinUtil.LocationHasKeyWordInList(CurrentLocation, DungeonLocationList) \
+				|| (BathingActor.IsInInterior() && mzinUtil.ExteriorHasKeyWordInList(LocationList, DungeonLocationList))
 				return 1
 			endIf
 		endIf
@@ -136,6 +137,14 @@ Function PresetSequenceDefault()
 	EndWhile
 
 	StopAnimation(true)
+EndFunction
+Function PresetSequenceDebug(Idle anim, Float animDuration)
+	if ForceCustomAnimationDuration.GetValue() > 0
+		animDuration = ForceCustomAnimationDuration.GetValue()
+	endIf
+	BathingActor.PlayIdle(anim)
+	Utility.Wait(animDuration)
+	StopAnimation()
 EndFunction
 
 ; helpers
@@ -400,7 +409,7 @@ Function StopAnimation(bool PlayRinseOff = false)
 		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
 		Game.EnablePlayerControls()
 		BathingActor.SetHeadTracking(true)
-		BathingCompleteMessage.Show()
+		mzinUtil.GameMessage(BathingCompleteMessage)
 	else
 		ActorUtil.RemovePackageOverride(BathingActor, StopMovementPackage)
 		BathingActor.EvaluatePackage()

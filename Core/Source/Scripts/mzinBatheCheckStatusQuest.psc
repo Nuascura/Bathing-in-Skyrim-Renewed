@@ -4,7 +4,7 @@ ScriptName mzinBatheCheckStatusQuest Extends Quest
 GlobalVariable Property CheckStatusKeyCode Auto
 GlobalVariable Property DirtyLevel Auto
 
-Message Property DirtinessStautsMessage Auto
+Message Property DirtinessStatusMessage Auto
 
 Event OnInit()
 	RegisterHotKeys()
@@ -27,7 +27,7 @@ Event OnKeyDown(Int KeyCode)
 	
 	; display dirty level
 	If KeyCode == CheckStatusKeyCode.GetValueInt()
-		DirtinessStautsMessage.Show(DirtyLevel.GetValue() * 100)
+		DirtinessStatusMessage.Show(DirtyLevel.GetValue() * 100)
 	Endif
 	
 EndEvent

@@ -2,11 +2,11 @@ Scriptname mzinDirtyOverlay extends ActiveMagicEffect
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	If StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix", "") == ""
-		Util.ClearDirt(akTarget)
-		Util.BeginOverlay(akTarget, Menu.StartingAlpha)
+		OlUtil.ClearDirt(akTarget)
+		OlUtil.BeginOverlay(akTarget, Menu.StartingAlpha)
 	EndIf
-	Util.SendAlphaUpdateEvent(akTarget)
+	OlUtil.SendAlphaUpdateEvent(akTarget)
 EndEvent
 
-mzinOverlayUtility Property Util Auto
+mzinOverlayUtility Property OlUtil Auto
 mzinBatheMCMMenu Property Menu Auto

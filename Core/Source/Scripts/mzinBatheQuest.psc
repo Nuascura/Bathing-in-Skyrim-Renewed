@@ -4,7 +4,8 @@ ScriptName mzinBatheQuest Extends Quest
 mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinInterfaceSexlab Property SexlabInt Auto
-mzinOverlayUtility Property Util Auto
+mzinOverlayUtility Property OlUtil Auto
+mzinUtility Property mzinUtil Auto
 mzinBathePlayerAlias Property PlayerAlias Auto
 
 GlobalVariable Property WaterRestrictionEnabled Auto
@@ -55,11 +56,11 @@ Function RegForEvents()
 EndFunction
 
 Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool Animate = false, Bool FullClean = false, Bool DoSoap = false, Bool Shower)
-	;Debug.Messagebox("Receive event")
+	;mzinUtil.LogMessageBox("Receive event")
 	If akDirtyActor as Actor
 		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, Animate, FullClean, DoSoap, Shower)
 	Else
-		Debug.Trace("Mzin: OnBiS_WashActor(): Received invalid actor: " + akDirtyActor)
+		mzinUtil.LogTrace("OnBiS_WashActor(): Received invalid actor: " + akDirtyActor)
 	EndIf
 EndEvent
 
@@ -67,7 +68,7 @@ Event OnBiS_WashActorFinish(Form akBathingActor, Bool abUsingSoap = false)
 	If akBathingActor as Actor
 		WashActorFinish(akBathingActor as Actor, UsedSoap = abUsingSoap)
 	Else
-		Debug.Trace("Mzin: OnBiS_WashActorFinish(): Received invalid actor: " + akBathingActor)
+		mzinUtil.LogTrace("OnBiS_WashActorFinish(): Received invalid actor: " + akBathingActor)
 	EndIf
 EndEvent
 
@@ -77,7 +78,7 @@ Event OnKeyDown(Int KeyCode)
 	EndIf
 	
 	If KeyCode == CheckStatusKeyCode.GetValueInt()
-		DirtinessStatusMessage.Show(DirtinessPercentage.GetValue() * 100)
+		mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
 	ElseIf KeyCode == BatheKeyCode.GetValueInt()
 		TryWashActor(PlayerRef, None, false)
 	ElseIf KeyCode == ShowerKeyCode.GetValueInt()
@@ -114,14 +115,14 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 				WashActor(DirtyActor, WashProp, DoShower = true)
 				return true
 			Else
-				ShoweringNeedsWaterMessage.Show()
+				mzinUtil.GameMessage(ShoweringNeedsWaterMessage)
 			EndIf
 		Else
 			If IsInWater(DirtyActor)
 				WashActor(DirtyActor, WashProp, DoShower = false)
 				return true
 			Else
-				BathingNeedsWaterMessage.Show()
+				mzinUtil.GameMessage(BathingNeedsWaterMessage)
 			EndIf
 		EndIf
 	EndIf
@@ -136,7 +137,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 	If DirtyActorIsPlayer
 		mzinInterfaceFrostfall.MakeWet(1000.0)
 		PlayerAlias.RunCycleHelper()
-		Util.SendBathePlayerModEvent()
+		OlUtil.SendBathePlayerModEvent()
 	EndIf
 
 	if Animate
@@ -146,24 +147,24 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 			if DoShower
 				DirtyActor.AddSpell(PlayShowerAnimationWithSoap, False)
 				If DirtyActorIsPlayer
-					ShoweringWithSoapMessage.Show()
+					mzinUtil.GameMessage(ShoweringWithSoapMessage)
 				EndIf
 			else
 				DirtyActor.AddSpell(PlayBatheAnimationWithSoap, False)
 				If DirtyActorIsPlayer
-					BathingWithSoapMessage.Show()
+					mzinUtil.GameMessage(BathingWithSoapMessage)
 				EndIf
 			EndIf
 		Else
 			if DoShower
 				DirtyActor.AddSpell(PlayShowerAnimationWithoutSoap, False)
 				If DirtyActorIsPlayer
-					ShoweringWithoutSoapMessage.Show()
+					mzinUtil.GameMessage(ShoweringWithSoapMessage)
 				EndIf
 			else
 				DirtyActor.AddSpell(PlayBatheAnimationWithoutSoap, False)	
 				If DirtyActorIsPlayer
-					BathingWithoutSoapMessage.Show()
+					mzinUtil.GameMessage(BathingWithSoapMessage)
 				EndIf
 			EndIf
 		EndIf
@@ -194,7 +195,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 		WashActorFinish(DirtyActor, WashProp, UsedSoap)
 	endIf
 	
-	Util.SendBatheModEvent(DirtyActor as Form)
+	OlUtil.SendBatheModEvent(DirtyActor as Form)
 EndFunction
 
 Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool UsedSoap = false)
@@ -234,7 +235,7 @@ Function ApplySoapBonus(Actor DirtyActor, MiscObject WashProp)
 		Spell SoapBonusSpell = SoapBonusSpellList.GetAt(Index) As Spell
 		DirtyActor.AddSpell(SoapBonusSpell, False)
 		If DirtyActor == PlayerRef
-			(SoapBonusMessageList.GetAt(Index) As Message).Show()
+			mzinUtil.GameMessage(SoapBonusMessageList.GetAt(Index) As Message)
 		EndIf
 	EndIf
 EndFunction
@@ -290,36 +291,36 @@ Bool Function IsUnderWaterfall(Actor DirtyActor)
 	; If Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 1280.0)	
 	If closestWaterfall
 
-		debug.trace("player_Z() = " + DirtyActor.GetPositionZ() + "     Waterfall_Z = " + closestWaterfall.GetPositionZ() + "  diff_Z = " + (DirtyActor.GetPositionZ() - closestWaterfall.GetPositionZ()) as float)
-		; debug.notification("player_Z() = " + DirtyActor.GetPositionZ() + "     Waterfall_Z = " + closestWaterfall.GetPositionZ() + "  diff_Z = " + (DirtyActor.GetPositionZ() - closestWaterfall.GetPositionZ()) as float)
-		debug.trace("player_X() = " + DirtyActor.GetPositionX() + "     Waterfall_X() = " + closestWaterfall.GetPositionX() + "  diff_X = " + (DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) as float)
-		; debug.notification("player_X() = " + DirtyActor.GetPositionX() + "     Waterfall_X() = " + closestWaterfall.GetPositionX() + "  diff_X = " + (DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) as float)
-		debug.trace("player_Y() = " + DirtyActor.GetPositionY() + "     Waterfall_Y() = " + closestWaterfall.GetPositionY() + "  diff_Y = " + (DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) as float)
-		; debug.notification("player_Y() = " + DirtyActor.GetPositionY() + "     Waterfall_Y() = " + closestWaterfall.GetPositionY() + "  diff_Y = " + (DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) as float)
+		mzinUtil.LogTrace("player_Z() = " + DirtyActor.GetPositionZ() + "     Waterfall_Z = " + closestWaterfall.GetPositionZ() + "  diff_Z = " + (DirtyActor.GetPositionZ() - closestWaterfall.GetPositionZ()) as float)
+		; mzinUtil.LogNotification("player_Z() = " + DirtyActor.GetPositionZ() + "     Waterfall_Z = " + closestWaterfall.GetPositionZ() + "  diff_Z = " + (DirtyActor.GetPositionZ() - closestWaterfall.GetPositionZ()) as float)
+		mzinUtil.LogTrace("player_X() = " + DirtyActor.GetPositionX() + "     Waterfall_X() = " + closestWaterfall.GetPositionX() + "  diff_X = " + (DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) as float)
+		; mzinUtil.LogNotification("player_X() = " + DirtyActor.GetPositionX() + "     Waterfall_X() = " + closestWaterfall.GetPositionX() + "  diff_X = " + (DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) as float)
+		mzinUtil.LogTrace("player_Y() = " + DirtyActor.GetPositionY() + "     Waterfall_Y() = " + closestWaterfall.GetPositionY() + "  diff_Y = " + (DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) as float)
+		; mzinUtil.LogNotification("player_Y() = " + DirtyActor.GetPositionY() + "     Waterfall_Y() = " + closestWaterfall.GetPositionY() + "  diff_Y = " + (DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) as float)
 
 
 		; PC can shower when standing within 2 character lengths of the waterfall (256 units), and at any height below it.
 		if (DirtyActor.GetPositionZ() <= closestWaterfall.GetPositionZ() + 1280.0) \
 		&& (math.abs(DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) <= 256.0) \
 		&& (math.abs(DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) <= 256.0)
-			debug.trace("IsUnderWaterfall = true")
-			; debug.notification("IsUnderWaterfall = true")
+			mzinUtil.LogTrace("IsUnderWaterfall = true")
+			; mzinUtil.LogNotification("IsUnderWaterfall = true")
 		Return True
 		else
-			debug.notification("A waterfall detected nearby")
-			debug.trace("A waterfall detected nearby")
+			mzinUtil.LogNotification("A waterfall detected nearby")
+			mzinUtil.LogTrace("A waterfall detected nearby")
 			
 		EndIf
 	Else
-		debug.notification("There is no waterfall to shower under")
-		debug.trace("There is no waterfall to shower under")
+		mzinUtil.LogNotification("There is no waterfall to shower under")
+		mzinUtil.LogTrace("There is no waterfall to shower under")
 	EndIf
 	; 
 	; ===================================== HAZARDUSS - End edit ==============================================
 
-	; debug.notification("IsUnderWaterfall = False")
-	; debug.trace("IsUnderWaterfall = False")
-	; debug.messagebox("IsUnderWaterfall = False")
+	; mzinUtil.LogNotification("IsUnderWaterfall = False")
+	; mzinUtil.LogTrace("IsUnderWaterfall = False")
+	; mzinUtil.LogMessageBox("IsUnderWaterfall = False")
 
 	Return False
 EndFunction
@@ -351,10 +352,10 @@ EndFunction
 Bool Function IsDeviceBlocked(Actor akTarget)
 	If Init.IsDdsInstalled
 		If akTarget.WornHasKeyword(Init.zad_DeviousHeavyBondage)
-			Debug.Notification("You can't wash yourself with your hands tied")
+			mzinUtil.LogNotification("You can't wash yourself with your hands tied")
 			Return True
 		ElseIf akTarget.WornHasKeyword(Init.zad_DeviousSuit)
-			Debug.Notification("You can't wash yourself while wearing this suit")
+			mzinUtil.LogNotification("You can't wash yourself while wearing this suit")
 			Return True
 		Else
 			Return False
@@ -370,9 +371,9 @@ Bool Function IsPermitted(Actor akTarget)
 		Int ForbiddenCount = StorageUtil.StringListCount(akTarget, "BiS_ForbiddenString") - 1
 		String ForbiddenString = StorageUtil.StringListGet(akTarget, "BiS_ForbiddenString", ForbiddenCount)
 		If ForbiddenString != ""
-			Debug.Notification(ForbiddenString)
+			mzinUtil.LogNotification(ForbiddenString)
 		Else
-			Debug.Trace("Mzin: IsPermitted: Blank string retrieved for index " + ForbiddenCount + " on actor " + akTarget)
+			mzinUtil.LogTrace("IsPermitted: Blank string retrieved for index " + ForbiddenCount + " on actor " + akTarget)
 		EndIf
 		
 		; Send forbidden bathe attempt modevent
@@ -431,9 +432,9 @@ EndFunction
 
 Function DoShyMessage(Actor akTarget, Actor Gawker)
 	If akTarget == PlayerRef
-		Debug.Notification("No way am I bathing in front of " + Gawker.GetBaseObject().GetName())
+		mzinUtil.LogNotification("No way am I bathing in front of " + Gawker.GetBaseObject().GetName())
 	Else
-		Debug.Notification(akTarget.GetBaseObject().GetName() + ": You're joking right? I'm not bathing in front of " + Gawker.GetBaseObject().GetName())
+		mzinUtil.LogNotification(akTarget.GetBaseObject().GetName() + ": You're joking right? I'm not bathing in front of " + Gawker.GetBaseObject().GetName())
 	EndIf
 EndFunction
 
@@ -471,29 +472,4 @@ Function GetUnsoapy(Actor akActor)
 	ElseIf akActor.HasSpell(SoapyAppearanceAnimatedSpell)
 		akActor.RemoveSpell(SoapyAppearanceAnimatedSpell)
 	EndIf
-EndFunction
-
-Bool Function ExteriorHasKeyWordInList(Location[] ExteriorLocation, FormList KeyWordList)
-	int i = 0
-	while i < ExteriorLocation.Length
-		Int KeyWordListIndex = KeyWordList.GetSize()	
-		While KeyWordListIndex
-			KeyWordListIndex -= 1
-			If ExteriorLocation[i].HasKeyWord(KeyWordList.GetAt(KeyWordListIndex) As KeyWord)
-				Return True
-			EndIf		
-		EndWhile
-		i += 1
-	endWhile
-	Return False
-EndFunction
-Bool Function LocationHasKeyWordInList(Location CurrentLocation, FormList KeyWordList)
-	Int KeyWordListIndex = KeyWordList.GetSize()	
-	While KeyWordListIndex
-		KeyWordListIndex -= 1
-		If CurrentLocation.HasKeyWord(KeyWordList.GetAt(KeyWordListIndex) As KeyWord)
-			Return True
-		EndIf		
-	EndWhile
-	Return False
 EndFunction

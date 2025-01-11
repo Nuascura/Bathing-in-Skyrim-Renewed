@@ -3,7 +3,8 @@ ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 
 ; Modified
 mzinTextureUtility Property TexUtil Auto
-mzinOverlayUtility Property Util Auto
+mzinOverlayUtility Property OlUtil Auto
+mzinUtility Property mzinUtil Auto
 mzinInit Property Init Auto
 Quest Property mzinBatheFollowerDialogQuest Auto
 
@@ -151,7 +152,6 @@ Event OnConfigOpen()
 		Pages[2] = "$BIS_PAGE_ANIMATIONS"
 		Pages[3] = "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
 		Pages[4] = "$BIS_PAGE_TRACKED_ACTORS"
-		
 	endIf
 EndEvent
 Function VersionUpdate()
@@ -256,13 +256,14 @@ EndFunction
 Event OnConfigInit()
 	if CurrentVersion == 0
 		InternalUpdate()
-		Debug.Notification("BISR: Installed Bathing in Skyrim " + GetModVersion())
+		mzinUtil.LogNotification("Installed Bathing in Skyrim " + GetModVersion(), true)
+		mzinUtil.LogTrace("Installed Bathing in Skyrim " + GetModVersion(), true)
 	endIf
 EndEvent
 Event OnVersionUpdate(Int Version)
 	if CurrentVersion != 0
 		InternalUpdate()
-		Debug.Notification("BISR: Updated Bathing in Skyrim " + GetModVersion())
+		mzinUtil.LogNotification("Updated Bathing in Skyrim " + GetModVersion(), true)
 	endIf
 EndEvent
 Event OnPageReset(String Page)
@@ -1655,8 +1656,8 @@ Function EnableBathingInSkyrim()
 
 	BathingInSkyrimEnabled.SetValue(1)
 
-	Debug.Notification("BISR: Enabled Bathing in Skyrim.")
-	Debug.Trace("Mzin: Player enabled Bathing in Skyrim. Mod version: " + GetModVersion() + "; Script version: " + GetVersion())
+	mzinUtil.LogNotification("Enabled Bathing in Skyrim.", true)
+	mzinUtil.LogTrace("Player enabled Bathing in Skyrim. Mod version: " + GetModVersion() + "; Script version: " + GetVersion(), true)
 EndFunction
 Function DisableBathingInSkyrim()
 	PlayerRef.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
@@ -1680,8 +1681,8 @@ Function DisableBathingInSkyrim()
 			
 	BathingInSkyrimEnabled.SetValue(0)
 
-	Debug.Notification("BISR: Disabled Bathing in Skyrim.")
-	Debug.Trace("Mzin: Player disabled Bathing in Skyrim.")
+	mzinUtil.LogNotification("Disabled Bathing in Skyrim.", true)
+	mzinUtil.LogTrace("Player disabled Bathing in Skyrim.", true)
 
 	if IsConfigOpen
 		SetTextOptionValue(ModStateOID_T, "$BIS_TXT_DISABLED", false)
@@ -1734,7 +1735,7 @@ Function DoRemoveAllOverlays(Actor akTarget, bool displayProgress = true)
 	If IsConfigOpen && displayProgress
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_NOTIF_PROCING_{" + akTarget.GetBaseObject().GetName() + "}", false)
 	EndIf
-	Util.ClearDirtGameLoad(akTarget)
+	OlUtil.ClearDirtGameLoad(akTarget)
 EndFunction
 
 Bool Function SavePapyrusSettings()
@@ -1921,9 +1922,9 @@ Bool Function LoadPapyrusSettings()
 EndFunction
 
 Function UpdateAllActors()
-	int Bis_UpdateAllActorsEvent = ModEvent.Create("BiS_UpdateActorsAll")
-    If (Bis_UpdateAllActorsEvent)
-        ModEvent.Send(Bis_UpdateAllActorsEvent)
+	int BiS_UpdateAllActorsEvent = ModEvent.Create("BiS_UpdateActorsAll")
+    If (BiS_UpdateAllActorsEvent)
+        ModEvent.Send(BiS_UpdateAllActorsEvent)
     EndIf
 EndFunction
 

@@ -14,6 +14,7 @@ Primary
 - Change: Starting dialog topic player prompt.
 - Change: Dialogues can now be initiated with non-follower NPCs if they are already being tracked for dirtiness.
 - Change: Dialogues can now be disabled for actors even if target actors are already being tracked for dirtiness.
+- Reorganized internal utility functions based on logical segregation.
 
 Secondary
 - Add: Bathing animation script auto termination.
