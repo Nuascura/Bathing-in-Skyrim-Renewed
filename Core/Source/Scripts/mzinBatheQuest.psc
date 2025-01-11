@@ -177,6 +177,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 		EndIf
 	endIf
 
+	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
 	SexlabInt.SlClearCum(DirtyActor)
 	mzinInterfacePaf.ClearPafDirt(DirtyActor)
 	mzinInterfaceOCum.OCClearCum(DirtyActor)

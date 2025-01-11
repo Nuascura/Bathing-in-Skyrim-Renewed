@@ -1,7 +1,8 @@
 2.3.0
 Primary
+- Add: Decal (blood) cleansing via SPE ObjectRef.
 - Add: Automatic support for Loki's Wade in Water.
-- Improve: Equipment filtering and removal via SPE filter functions.
+- Add: Equipment filtering and removal via SPE filter functions.
 - Fix: Missing "About bathing..." topic on new games until save file or game session is reloaded.
 - Fix: TopicInfo appearing for all followers regardless of global dialogue setting.
 - Fix: OCum interface grabbing incorrectly named quest to access OCumScript.
@@ -9,8 +10,6 @@ Primary
 - Fix: Followers bathe even without a wash prop if invoked via dialogue.
 - Fix: Erroneous Enable call when cancelling BISR disable prompt.
 - Fix: Equipment option toggles bugging out due to inaccurate float value storage.
-- Change: Equipment removal method from slotmask to slot-based selection.
-- Change: Play Animation sequence progression, now relying on animevents rather than hardcoded timings and set function calls.
 - Change: NPCs are no longer automatically tracked if bathed through Automated Follower Bathing function.
 - Change: Starting dialog topic player prompt.
 - Change: Dialogues can now be initiated with non-follower NPCs if they are already being tracked for dirtiness.
@@ -19,7 +18,9 @@ Primary
 Secondary
 - Add: Bathing animation script auto termination.
 - Add: Safeguards against removal of Malignis Bathing Animations mid-game.
-- Fix: Minor MCM error: Invalid text option received for overlay progress display.
+- Fix: Invalid MCM text option received for overlay progress display.
+- Change: Equipment removal method from slotmask to slot-based selection.
+- Change: Play Animation sequence progression, now relying on animevents rather than hardcoded timings and set function calls.
 - Change: Allow reception of WashProp object via WashActor event.
 - Change: Defragment bathe and shower function calls.
 - Change: Annotate animation files with custom animevents.
@@ -28,7 +29,7 @@ Secondary
 - Optimize: Always pluck and unset last wash object to guard against unused cached objects.
 - Optimize: TopicInfo conditions.
 - Optimize: Dirty spell re-application.
-- Regenerate SEQ.
+- Update: Regenerate SEQ.
 - Update: Localization files.
 
 
