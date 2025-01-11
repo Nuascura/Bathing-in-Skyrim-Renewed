@@ -573,9 +573,7 @@ EndFunction
 
 ; OnOptionDefault
 Event OnOptionDefault(Int OptionID)
-	If CurrentPage == "$BIS_PAGE_SYSTEM_OVERVIEW" || CurrentPage == ""
-		HandleOnOptionDefaultSystemOverviewPage(OptionID)
-	ElseIf CurrentPage == "$BIS_PAGE_SETTINGS"
+	If CurrentPage == "$BIS_PAGE_SETTINGS"
 		HandleOnOptionDefaultSettingsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS"
 		HandleOnOptionDefaultAnimationsPage(OptionID)
@@ -712,13 +710,6 @@ Function HandleOnOptionDefaultAnimationsPageFollowers(Int OptionID)
 			EndIf
 		EndIf
 	EndIf	
-EndFunction
-Function HandleOnOptionDefaultSystemOverviewPage(Int OptionID)
-	If OptionID == ModStateOID_T
-		BathingInSkyrimEnabled.SetValue(-1)
-		SetTextOptionValue(OptionID, "$BIS_TXT_DISABLED", false)
-		DisableBathingInSkyrim()
-	endIf
 EndFunction
 Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	; toggles
@@ -1021,11 +1012,12 @@ Function HandleOnOptionSelectAnimationsPageFollowers(Int OptionID)
 EndFunction
 Function HandleOnOptionSelectSystemOverviewPage(Int OptionID)
 	If OptionID == ModStateOID_T
-		If BathingInSkyrimEnabled.GetValue() As Bool && ShowMessage("$BIS_MSG_ASK_DISABLE", True) == True
-			BathingInSkyrimEnabled.SetValue(-1)
-			SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
-			DisableBathingInSkyrim()
-			SetTextOptionValue(OptionID, "$BIS_TXT_DISABLED", false)
+		If BathingInSkyrimEnabled.GetValue() As Bool
+			if ShowMessage("$BIS_MSG_ASK_DISABLE", True) == True
+				BathingInSkyrimEnabled.SetValue(-1)
+				SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
+				DisableBathingInSkyrim()
+			endIf
 		Else
 			BathingInSkyrimEnabled.SetValue(-1)
 			SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
@@ -1690,7 +1682,7 @@ EndFunction
 Function DisableBathingInSkyrim()
 	PlayerRef.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
 	
-	RemoveAllOverlays()
+	RemoveAllOverlays(false)
 	
 	RemoveSpells(PlayerRef, GetDirtyOverTimeSpellList)
 	RemoveSpells(PlayerRef, DirtinessSpellList)
@@ -1723,6 +1715,10 @@ Function DisableBathingInSkyrim()
 	Debug.Notification("BISR: Disabled Bathing in Skyrim.")
 	Debug.Trace("Mzin: Player disabled Bathing in Skyrim.")
 
+	if IsConfigOpen
+		SetTextOptionValue(ModStateOID_T, "$BIS_TXT_DISABLED", false)
+	endIf
+
 	ForcePageReset()
 EndFunction
 Function RemoveSpells(Actor DirtyActor, FormList SpellFormList)
@@ -1739,9 +1735,9 @@ Function UpdateProgressRedetectDirtSets(String CurrentTex)
 	EndIF
 EndFunction
 
-Function RemoveAllOverlays()
+Function RemoveAllOverlays(bool displayProgress = true)
 	; Do player
-	DoRemoveAllOverlays(PlayerRef)
+	DoRemoveAllOverlays(PlayerRef, displayProgress)
 	
 	; Do other Npcs
 	Int i = mzinDirtyActorsList.GetSize()
@@ -1751,13 +1747,13 @@ Function RemoveAllOverlays()
 		CurrentActor = mzinDirtyActorsList.GetAt(i) as Actor
 		DoRemoveAllOverlays(CurrentActor)
 	EndWhile
-	If IsConfigOpen
+	If IsConfigOpen && displayProgress
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_TXT_DONE", false)
 	EndIf
 EndFunction
 
-Function DoRemoveAllOverlays(Actor akTarget)
-	If IsConfigOpen
+Function DoRemoveAllOverlays(Actor akTarget, bool displayProgress = true)
+	If IsConfigOpen && displayProgress
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_NOTIF_PROCING_{" + akTarget.GetBaseObject().GetName() + "}", false)
 	EndIf
 	Util.ClearDirtGameLoad(akTarget)
