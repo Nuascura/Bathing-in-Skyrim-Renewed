@@ -60,7 +60,7 @@ Float Property AnimCustomFSet2FreqFollowers = 0.00 Auto
 Float Property AnimCustomFSet3FreqFollowers = 0.00 Auto
 
 ;  Modified
-Int Property ScriptVersion = 14 AutoReadOnly
+Int Property ScriptVersion = 15 AutoReadOnly
 
 ; references
 Actor Property PlayerRef Auto
@@ -184,8 +184,6 @@ Function VersionUpdate()
 	UndressArmorSlotArrayFollowers = new Bool[32]
 	UndressArmorSlotToggleIDs = new Int[32]
 	UndressArmorSlotToggleIDsFollowers = new Int[32]
-	ArmorSlotArray = new int[32]
-	ArmorSlotArrayFollowers = new int[32]
 
 	; tracked actors array
 	TrackedActorsToggleIDs = new Int[128]
