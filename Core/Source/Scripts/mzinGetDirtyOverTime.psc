@@ -69,7 +69,7 @@ Event OnBiS_UpdateAlpha(Form akTarget)
 EndEvent
 
 Event OnBiS_UpdateActorsAll()
-	ApplyDirtSex()
+	RenewDirtSpell()
 EndEvent
 
 Event OnBiS_SexMethodToggle()
@@ -128,8 +128,7 @@ Event OnAnimationStart(int tid, bool HasPlayer)
 				If LocalDirtinessPercentage > 1.0
 					LocalDirtinessPercentage = 1.0
 				EndIf
-				ApplyDirtSex()
-				;CheckAlpha() ; ApplyDirtSex() runs CheckAlpha anyway
+				RenewDirtSpell()
 				Utility.Wait(Menu.SexInterval)
 			EndWhile
 			If DirtyActor != PlayerRef
@@ -277,6 +276,10 @@ Function ApplyDirt()
 		LocalDirtinessPercentage = 1.0
 	EndIf
 
+	RenewDirtSpell()
+EndFunction
+
+Function RenewDirtSpell()
 	If DirtyActorIsPlayer
 		DirtinessPercentage.SetValue(LocalDirtinessPercentage)
 	Else
@@ -316,60 +319,6 @@ Function ApplyDirt()
 	If Menu.OverlayApplyAt < DirtyThreshold
 		If LocalDirtinessPercentage >= Menu.OverlayApplyAt && LocalDirtinessPercentage < DirtyThreshold
 			DirtyActor.AddSpell(mzinDirtinessTier1p5Spell, false) ; this function sends to mzinDirtyOverlay.psc
-		Else
-			DirtyActor.RemoveSpell(mzinDirtinessTier1p5Spell)
-		EndIf
-		CheckAlpha()
-	EndIf
-	
-	If DirtyActorIsPlayer
-		If ExitMessage
-			ExitMessage.Show()
-		EndIf
-		If EnterMessage
-			EnterMessage.Show()
-		EndIf
-	EndIf
-EndFunction
-
-Function ApplyDirtSex()
-	If DirtyActorIsPlayer
-		DirtinessPercentage.SetValue(LocalDirtinessPercentage)
-	EndIf
-
-	Message EnterMessage = None
-	Message ExitMessage = None
-
-	Int Index = 0
-	While Index < DirtinessSpellList.GetSize() - 1	
-
-		Spell DirtinessSpell = DirtinessSpellList.GetAt(Index) As Spell
-		Spell NextDirtinessSpell = DirtinessSpellList.GetAt(Index + 1) As Spell
-		
-		Float DirtinessThreshold = (DirtinessThresholdList.GetAt(Index) As GlobalVariable).GetValue()
-
-		If DirtyActor.HasSpell(DirtinessSpell) && LocalDirtinessPercentage >= DirtinessThreshold
-
-			RemoveSpells(SoapBonusSpellList)
-
-			DirtyActor.RemoveSpell(DirtinessSpell)
-			DirtyActor.AddSpell(NextDirtinessSpell, False)
-
-			ExitMessage = ExitTierMessageList.GetAt(Index) As Message
-			If EnterMessage == None
-				EnterMessage= EnterTierMessageList.GetAt(Index + 1) As Message
-			EndIf
-
-		EndIf
-		
-		Index += 1
-	
-	EndWhile
-	
-	Float DirtyThreshold = (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
-	If Menu.OverlayApplyAt < DirtyThreshold
-		If LocalDirtinessPercentage >= Menu.OverlayApplyAt && LocalDirtinessPercentage < DirtyThreshold
-			DirtyActor.AddSpell(mzinDirtinessTier1p5Spell, false)
 		Else
 			DirtyActor.RemoveSpell(mzinDirtinessTier1p5Spell)
 		EndIf

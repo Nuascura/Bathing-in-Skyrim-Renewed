@@ -27,6 +27,7 @@ Secondary
 - Change: Start and stop follower dialogue quest with BISR mod state.
 - Optimize: Always pluck and unset last wash object to guard against unused cached objects.
 - Optimize: TopicInfo conditions.
+- Optimize: Dirty spell re-application.
 - Regenerate SEQ.
 - Update: Localization files.
 
