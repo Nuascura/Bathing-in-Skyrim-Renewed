@@ -95,8 +95,6 @@ GlobalVariable Property ShoweringAnimationStyleFollowers Auto
 ; undress settings
 GlobalVariable Property GetDressedAfterBathingEnabled Auto
 GlobalVariable Property GetDressedAfterBathingEnabledFollowers Auto
-GlobalVariable Property BathingIgnoredArmorSlotsMask Auto
-GlobalVariable Property BathingIgnoredArmorSlotsMaskFollowers Auto
 
 ; dirtiness settings
 FormList Property DirtyActors Auto
@@ -117,6 +115,8 @@ String[] BathingAnimationStyleArray
 String[] ShoweringAnimationStyleArray
 String[] GetSoapyStyleArray
 
+Int[] Property ArmorSlotArray Auto
+Int[] Property ArmorSlotArrayFollowers Auto
 Bool[] UndressArmorSlotArray
 Bool[] UndressArmorSlotArrayFollowers
 Bool[] TrackedActorsToggleValuesArray
@@ -151,6 +151,7 @@ Event OnConfigOpen()
 		Pages[2] = "$BIS_PAGE_ANIMATIONS"
 		Pages[3] = "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
 		Pages[4] = "$BIS_PAGE_TRACKED_ACTORS"
+		
 	endIf
 EndEvent
 Function VersionUpdate()
@@ -183,6 +184,8 @@ Function VersionUpdate()
 	UndressArmorSlotArrayFollowers = new Bool[32]
 	UndressArmorSlotToggleIDs = new Int[32]
 	UndressArmorSlotToggleIDsFollowers = new Int[32]
+	ArmorSlotArray = new int[32]
+	ArmorSlotArrayFollowers = new int[32]
 
 	; tracked actors array
 	TrackedActorsToggleIDs = new Int[128]
@@ -198,6 +201,8 @@ Function VersionUpdate()
 	AnimCustomTierCondArray[0] = "$BIS_L_ANIM_TIERCOND_NONE"
 	AnimCustomTierCondArray[1] = "$BIS_L_ANIM_TIERCOND_DIRTINESS"
 	AnimCustomTierCondArray[2] = "$BIS_L_ANIM_TIERCOND_DANGER"
+
+	SetLocalArrays()
 EndFunction
 Function InternalUpdate()
 	VersionUpdate()
@@ -212,6 +217,30 @@ Function SetLocalArrays()
 	AnimCustomFSetFollowers[0] = AnimCustomFSet1FreqFollowers
 	AnimCustomFSetFollowers[1] = AnimCustomFSet2FreqFollowers
 	AnimCustomFSetFollowers[2] = AnimCustomFSet3FreqFollowers
+	UndressArmorSlotArray = RetrieveSlotState(ArmorSlotArray, UndressArmorSlotArray)
+	ArmorSlotArray = RenewSlotState(ArmorSlotArray, UndressArmorSlotArray)
+	UndressArmorSlotArrayFollowers = RetrieveSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
+	ArmorSlotArrayFollowers = RenewSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
+EndFunction
+Bool[] Function RetrieveSlotState(int[] array1, bool[] array2)
+	array2 = Utility.CreateBoolArray(array2.length)
+	int index = array2.length
+	while index
+		index -= 1
+		array2[index] = (array1.Find(index + 30) != -1)
+	endWhile
+	return array2
+EndFunction
+Int[] Function RenewSlotState(int[] array1, bool[] array2)
+	array1 = Utility.CreateIntArray(array2.length)
+	int index = array2.length
+	while index
+		index -= 1
+		if array2[index]
+			array1[index] = index + 30
+		endIf
+	endWhile
+	return array1
 EndFunction
 String Function GetModState()
 	if BathingInSkyrimEnabled.GetValue() == 1
@@ -315,9 +344,7 @@ Function DisplayAnimationsPage()
 	AddHeaderOption("$BIS_HEADER_COND_ANIM")
 	AnimCustomTierCondMenuID = AddMenuOption("$BIS_L_ANIM_TIERCOND", AnimCustomTierCondArray[AnimCustomTierCond], CUSTOM_FREQ_FLAG)
 
-	SetCursorPosition(1)
-
-	UndressArmorSlotArray = GetUnignoredArmorSlots(BathingIgnoredArmorSlotsMask)	
+	SetCursorPosition(1)	
 
 	AddHeaderOption("$BIS_HEADER_GET_DRESSED")
 	GetDressedAfterBathingEnabledToggleID = AddToggleOption("$BIS_L_ENABLED", GetDressedAfterBathingEnabled.GetValue() As Bool)	
@@ -395,8 +422,6 @@ Function DisplayAnimationsPageFollowers()
 	AnimCustomTierCondMenuIDFollowers = AddMenuOption("$BIS_L_ANIM_TIERCOND", AnimCustomTierCondArray[AnimCustomTierCondFollowers], CUSTOM_FREQ_FLAG)
 
 	SetCursorPosition(1)
-
-	UndressArmorSlotArrayFollowers = GetUnignoredArmorSlots(BathingIgnoredArmorSlotsMaskFollowers)	
 
 	AddHeaderOption("$BIS_HEADER_GET_DRESSED")
 	GetDressedAfterBathingEnabledToggleIDFollowers = AddToggleOption("$BIS_L_ENABLED", GetDressedAfterBathingEnabledFollowers.GetValue() As Bool)	
@@ -616,10 +641,10 @@ Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
 		Int UndressArmorSlotIndex = UndressArmorSlotToggleIDs.Find(OptionID)
 		If UndressArmorSlotIndex >= 0
 			If UndressArmorSlotIndex <= 13 ; undress 30-43 by default
-				IgnoreArmorSlot(BathingIgnoredArmorSlotsMask, UndressArmorSlotIndex + 30, False)
+				ArmorSlotArray[UndressArmorSlotIndex] = UndressArmorSlotIndex + 30
 				SetToggleOptionValue(OptionID, True)
 			Else ; ignore 44-62 by default
-				IgnoreArmorSlot(BathingIgnoredArmorSlotsMask, UndressArmorSlotIndex + 30, True)
+				ArmorSlotArray[UndressArmorSlotIndex] = 0
 				SetToggleOptionValue(OptionID, False)
 			EndIf
 		EndIf
@@ -679,10 +704,10 @@ Function HandleOnOptionDefaultAnimationsPageFollowers(Int OptionID)
 		Int UndressArmorSlotIndex = UndressArmorSlotToggleIDsFollowers.Find(OptionID)
 		If UndressArmorSlotIndex >= 0
 			If UndressArmorSlotIndex <= 13 ; undress 30-43 by default
-				IgnoreArmorSlot(BathingIgnoredArmorSlotsMaskFollowers, UndressArmorSlotIndex + 30, False)
+				ArmorSlotArrayFollowers[UndressArmorSlotIndex] = UndressArmorSlotIndex + 30
 				SetToggleOptionValue(OptionID, True)
 			Else ; ignore 44-62 by default
-				IgnoreArmorSlot(BathingIgnoredArmorSlotsMaskFollowers, UndressArmorSlotIndex + 30, True)
+				ArmorSlotArrayFollowers[UndressArmorSlotIndex] = 0
 				SetToggleOptionValue(OptionID, False)
 			EndIf
 		EndIf
@@ -968,7 +993,11 @@ Function HandleOnOptionSelectAnimationsPage(Int OptionID)
 		Int UndressArmorSlotIndex = UndressArmorSlotToggleIDs.Find(OptionID)
 		If UndressArmorSlotIndex >= 0
 			UndressArmorSlotArray[UndressArmorSlotIndex] = !UndressArmorSlotArray[UndressArmorSlotIndex]
-			IgnoreArmorSlot(BathingIgnoredArmorSlotsMask, UndressArmorSlotIndex + 30, !UndressArmorSlotArray[UndressArmorSlotIndex])
+			if UndressArmorSlotArray[UndressArmorSlotIndex]
+				ArmorSlotArray[UndressArmorSlotIndex] = UndressArmorSlotIndex + 30
+			else
+				ArmorSlotArray[UndressArmorSlotIndex] = 0
+			endIf
 			SetToggleOptionValue(OptionID, UndressArmorSlotArray[UndressArmorSlotIndex])
 		EndIf
 	EndIf
@@ -981,7 +1010,11 @@ Function HandleOnOptionSelectAnimationsPageFollowers(Int OptionID)
 		Int UndressArmorSlotIndex = UndressArmorSlotToggleIDsFollowers.Find(OptionID)
 		If UndressArmorSlotIndex >= 0
 			UndressArmorSlotArrayFollowers[UndressArmorSlotIndex] = !UndressArmorSlotArrayFollowers[UndressArmorSlotIndex]
-			IgnoreArmorSlot(BathingIgnoredArmorSlotsMaskFollowers, UndressArmorSlotIndex + 30, !UndressArmorSlotArrayFollowers[UndressArmorSlotIndex])
+			if UndressArmorSlotArrayFollowers[UndressArmorSlotIndex]
+				ArmorSlotArrayFollowers[UndressArmorSlotIndex] = UndressArmorSlotIndex + 30
+			else
+				ArmorSlotArrayFollowers[UndressArmorSlotIndex] = 0
+			endIf
 			SetToggleOptionValue(OptionID, UndressArmorSlotArrayFollowers[UndressArmorSlotIndex])
 		EndIf
 	EndIf
@@ -1700,38 +1733,6 @@ Function RemoveSpells(Actor DirtyActor, FormList SpellFormList)
 	EndWhile
 EndFunction
 
-Bool[] Function GetUnignoredArmorSlots(GlobalVariable IgnoredArmorSlotsMask)
-	Bool[] UnignoredArmorSlots = new Bool[32]
-	
-	Int CurrentBathingIgnoredArmorSlotsMask = IgnoredArmorSlotsMask.GetValue() As Int
-	
-	Int Index = UnignoredArmorSlots.Length
-	While Index
-		Index -= 1
-		Int ArmorSlotMask = Armor.GetMaskForSlot(Index + 30)
-		If Math.LogicalAnd(ArmorSlotMask, CurrentBathingIgnoredArmorSlotsMask) == ArmorSlotMask		
-			UnignoredArmorSlots[Index] = False	
-		Else
-			UnignoredArmorSlots[Index] = True
-		EndIf
-	EndWhile
-	
-	Return UnignoredArmorSlots
-EndFunction
-Function IgnoreArmorSlot(GlobalVariable IgnoredArmorSlotsMask, Int ArmorSlot, Bool Ignore)
-	Int ArmorSlotMask = Armor.GetMaskForSlot(ArmorSlot)
-	Int CurrentBathingIgnoredArmorSlotsMask = IgnoredArmorSlotsMask.GetValue() As Int
-	
-	Int NewBathingIgnoredArmorSlotsMask
-	If Ignore == True
-		NewBathingIgnoredArmorSlotsMask = Math.LogicalOr(ArmorSlotMask, CurrentBathingIgnoredArmorSlotsMask)
-	Else
-		NewBathingIgnoredArmorSlotsMask = Math.LogicalXor(ArmorSlotMask, CurrentBathingIgnoredArmorSlotsMask)
-	EndIf
-	
-	IgnoredArmorSlotsMask.SetValue(NewBathingIgnoredArmorSlotsMask)
-EndFunction
-
 Function UpdateProgressRedetectDirtSets(String CurrentTex)
 	If IsConfigOpen
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_NOTIF_CHECKINGSET_{" + CurrentTex + "}", false)
@@ -1791,8 +1792,8 @@ Bool Function SavePapyrusSettings()
 	
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabled", GetDressedAfterBathingEnabled.GetValueInt())
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabledFollowers", GetDressedAfterBathingEnabledFollowers.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingIgnoredArmorSlotsMask", BathingIgnoredArmorSlotsMask.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingIgnoredArmorSlotsMaskFollowers", BathingIgnoredArmorSlotsMaskFollowers.GetValueInt())
+	JsonUtil.IntListCopy("BathingInSkyrim/Settings.json", "ArmorSlotArray", ArmorSlotArray)
+	JsonUtil.IntListCopy("BathingInSkyrim/Settings.json", "ArmorSlotArrayFollowers", ArmorSlotArrayFollowers)
 	
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessUpdateInterval", DirtinessUpdateInterval.GetValue())
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPercentage", DirtinessPercentage.GetValue())
@@ -1881,8 +1882,9 @@ Bool Function LoadPapyrusSettings()
 	
 	GetDressedAfterBathingEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabled"))
 	GetDressedAfterBathingEnabledFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabledFollowers"))
-	BathingIgnoredArmorSlotsMask.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingIgnoredArmorSlotsMask"))
-	BathingIgnoredArmorSlotsMaskFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingIgnoredArmorSlotsMaskFollowers"))
+
+	ArmorSlotArray = JsonUtil.IntListToArray("BathingInSkyrim/Settings.json", "ArmorSlotArray")
+	ArmorSlotArrayFollowers = JsonUtil.IntListToArray("BathingInSkyrim/Settings.json", "ArmorSlotArrayFollowers")
 	
 	DirtinessUpdateInterval.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessUpdateInterval"))
 	DirtinessPercentage.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPercentage"))
