@@ -1,16 +1,13 @@
 ScriptName mzinGetDirtyOverTimeReactivate Extends ActiveMagicEffect
 
 FormList Property DirtyActors Auto
-
+MagicEffect Property GetDirtyOverTimeEffect Auto
 FormList Property GetDirtyOverTimeSpellList Auto
 FormList Property DirtinessSpellList Auto
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	If DirtyActors.HasForm(Target)
-		If Target.HasSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell) == False \
-		&& Target.HasSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell) == False \
-		&& Target.HasSpell(GetDirtyOverTimeSpellList.GetAt(2) As Spell) == False \
-		&& Target.HasSpell(GetDirtyOverTimeSpellList.GetAt(3) As Spell) == False 
+		If Target.HasMagicEffect(GetDirtyOverTimeEffect)
 			Int Index = DirtinessSpellList.GetSize()
 			While Index
 				Index -= 1

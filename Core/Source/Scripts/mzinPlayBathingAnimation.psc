@@ -32,8 +32,6 @@ GlobalVariable Property ShoweringAnimationStyleFollowers Auto
 
 GlobalVariable Property GetDressedAfterBathingEnabled Auto
 GlobalVariable Property GetDressedAfterBathingEnabledFollowers Auto
-GlobalVariable Property BathingIgnoredArmorSlotsMask Auto
-GlobalVariable Property BathingIgnoredArmorSlotsMaskFollowers Auto
 
 GlobalVariable Property ForceCustomAnimationDuration Auto
 
@@ -69,7 +67,7 @@ Message Property BathingCompleteMessage Auto
 
 Package Property StopMovementPackage Auto
 
-Form[] Clothing
+Armor[] Clothing
 Actor  BathingActor
 Bool   BathingActorIsPlayer
 Int AnimationStyle
@@ -323,13 +321,12 @@ Function GetUnsoapy()
 	EndIf
 EndFunction
 Function GetNaked()
-	Clothing = new Form[33]
-
-	Int CurrentIgnoreArmorSlotMask = 0 
+	Form[] EquippedItems = PO3_SKSEFunctions.AddAllEquippedItemsToArray(BathingActor)
+	EquippedItems = SPE_Utility.FilterFormsByKeyword(EquippedItems, Init.KeywordIgnoreItem, false, true)
 	If BathingActorIsPlayer
-		CurrentIgnoreArmorSlotMask = BathingIgnoredArmorSlotsMask.GetValue() As Int
+		Clothing = SPE_Utility.FilterBySlot(EquippedItems, PapyrusUtil.RemoveInt(Menu.ArmorSlotArray, 0), false)
 	Else
-		CurrentIgnoreArmorSlotMask = BathingIgnoredArmorSlotsMaskFollowers.GetValue() As Int
+		Clothing = SPE_Utility.FilterBySlot(EquippedItems, PapyrusUtil.RemoveInt(Menu.ArmorSlotArrayFollowers, 0), false)
 	EndIf
 
 	BathingActor.SheatheWeapon()
@@ -338,31 +335,10 @@ Function GetNaked()
     endwhile
 	
 	Int Index = Clothing.Length
-	If Init.IsSexlabInstalled
-		While Index
-			Index -= 1
-			Int ArmorSlotMask = Armor.GetMaskForSlot(Index + 30)
-			If Math.LogicalAnd(ArmorSlotMask, CurrentIgnoreArmorSlotMask) != ArmorSlotMask
-				Clothing[Index] = BathingActor.GetWornForm(ArmorSlotMask)
-				If Clothing[Index]
-					If !Clothing[Index].HasKeyword(Init.SexLabNoStrip)
-						BathingActor.UnequipItem(Clothing[Index], False, True)
-					EndIf
-				EndIf
-			EndIf		
-		EndWhile
-	Else
-		While Index
-			Index -= 1
-			Int ArmorSlotMask = Armor.GetMaskForSlot(Index + 30)
-			If Math.LogicalAnd(ArmorSlotMask, CurrentIgnoreArmorSlotMask) != ArmorSlotMask
-				Clothing[Index] = BathingActor.GetWornForm(ArmorSlotMask)
-				If Clothing[Index]
-					BathingActor.UnequipItem(Clothing[Index], False, True)
-				EndIf
-			EndIf		
-		EndWhile
-	EndIf
+	While Index
+		Index -= 1
+		BathingActor.UnequipItem(Clothing[Index], False, True)	
+	EndWhile
 	
 	; weapons
 	BathingActor.UnequipItemEX(BathingActor.GetEquippedWeapon(True),  2, False) ; left hand
@@ -372,23 +348,14 @@ Function GetDressed()
 	If (BathingActorIsPlayer == True  && GetDressedAfterBathingEnabled.GetValue() As Bool) \
 	|| (BathingActorIsPlayer == False && GetDressedAfterBathingEnabledFollowers.GetValue() As Bool)
 		
-		Int ClothingIndex = Clothing.Length
+		Int Index = Clothing.Length
 		
-		If Init.IsSexlabInstalled
-			While ClothingIndex
-				ClothingIndex -= 1
-				If Clothing[ClothingIndex] && !Clothing[ClothingIndex].HasKeyword(Init.SexLabNoStrip)
-					BathingActor.EquipItem(Clothing[ClothingIndex], False, True)
-				EndIf
-			EndWhile
-		Else
-			While ClothingIndex
-				ClothingIndex -= 1
-				If Clothing[ClothingIndex]
-					BathingActor.EquipItem(Clothing[ClothingIndex], False, True)
-				EndIf
-			EndWhile
-		EndIf
+		While Index
+			Index -= 1
+			If Clothing[Index]
+				BathingActor.EquipItem(Clothing[Index], False, True)
+			EndIf
+		EndWhile
 	EndIf
 EndFunction
 Function RinseOn()
