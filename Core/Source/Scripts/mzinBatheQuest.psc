@@ -27,6 +27,7 @@ FormList Property SoapBonusMessageList Auto
 FormList Property GetDirtyOverTimeSpellList Auto
 
 Keyword Property SoapKeyword Auto
+Keyword Property AnimationKeyword Auto
 
 Spell Property PlayBatheAnimationWithSoap Auto
 Spell Property PlayBatheAnimationWithoutSoap Auto
@@ -166,6 +167,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 				EndIf
 			EndIf
 		EndIf
+		StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
 	else
 		If DoSoap
 			GetSoapy(DirtyActor)
@@ -183,8 +185,6 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 	SendCleanDirtEvent(DirtyActor, UsedSoap)
 
 	; ----
-
-	StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
 
 	if !Animate
 		If DoSoap
@@ -339,14 +339,12 @@ Bool Function IsInCommmonRestriction(Actor DirtyActor)
 EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
-	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor))
+	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor) \
+	|| (Init.IsWadeInWaterInstalled && DirtyActor.HasMagicEffect(Game.GetFormFromFile(0x000D62, "WadeInWater.esp") as MagicEffect)))
 EndFunction
 
 Bool Function IsBathing(Actor DirtyActor)
-	return DirtyActor.HasSpell(PlayBatheAnimationWithSoap) \
-	|| DirtyActor.HasSpell(PlayBatheAnimationWithoutSoap) \
-	|| DirtyActor.HasSpell(PlayShowerAnimationWithSoap) \
-	|| DirtyActor.HasSpell(PlayShowerAnimationWithoutSoap)
+	return DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
 EndFunction
 
 Bool Function IsDeviceBlocked(Actor akTarget)
@@ -382,10 +380,6 @@ Bool Function IsPermitted(Actor akTarget)
 			ModEvent.PushForm(ForbiddenBatheAttempt, akTarget)
 			ModEvent.Send(ForbiddenBatheAttempt)
 		EndIf
-		;StartAnimationSequence("mzinBatheA1_S1_Cloth", "mzinBatheA1_S2_Cloth_DONE")
-		Debug.SendAnimationEvent(akTarget, "IdleWarmHandsCrouched")
-		Utility.Wait(2.0)
-		Debug.SendAnimationEvent(akTarget, "IdleStop")
 		Return False
 	Else
 		Return True
