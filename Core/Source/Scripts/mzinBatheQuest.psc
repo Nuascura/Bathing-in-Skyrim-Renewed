@@ -75,18 +75,21 @@ EndEvent
 Event OnKeyDown(Int KeyCode)
 	If Utility.IsInMenuMode()
 		Return
+	else
+		UnregisterForAllKeys()
 	EndIf
 	
 	If KeyCode == CheckStatusKeyCode.GetValueInt()
 		mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
-	ElseIf KeyCode == BatheKeyCode.GetValueInt()
-		TryWashActor(PlayerRef, None, false)
-	ElseIf KeyCode == ShowerKeyCode.GetValueInt()
-		TryWashActor(PlayerRef, None, true)
+	ElseIf (KeyCode == BatheKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, false)) \
+	|| (KeyCode == ShowerKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, true))
+		return
 	Endif
+	RegisterHotKeys()
 EndEvent
 
 Function RegisterHotKeys()
+	UnregisterForAllKeys()
 	If BatheKeyCode.GetValueInt() != 0
 		RegisterForKey(BatheKeyCode.GetValueInt())
 	EndIf
@@ -98,14 +101,7 @@ Function RegisterHotKeys()
 	EndIf
 EndFunction
 
-Function UnRegisterHotKeys()
-	UnregisterForKey(BatheKeyCode.GetValueInt())
-	UnregisterForKey(ShowerKeyCode.GetValueInt())
-	UnregisterForKey(CheckStatusKeyCode.GetValueInt())
-EndFunction
-
 Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = false)
-	UnRegisterHotKeys()
 	If WashProp == None
 		WashProp = TryFindWashProp(DirtyActor)
 	EndIf
@@ -126,17 +122,16 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 			EndIf
 		EndIf
 	EndIf
-	RegisterHotKeys()
 	return false
 EndFunction
 
 Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, Bool FullClean = false, Bool DoSoap = false, Bool DoShower = false)
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
 	Bool UsedSoap = false
-	DirtyActor.ClearExtraArrows()
 	If DirtyActorIsPlayer
-		mzinInterfaceFrostfall.MakeWet(1000.0)
+		UnregisterForAllKeys()
 		PlayerAlias.RunCycleHelper()
+		mzinInterfaceFrostfall.MakeWet(1000.0)
 		OlUtil.SendBathePlayerModEvent()
 	EndIf
 
@@ -178,6 +173,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 		EndIf
 	endIf
 
+	DirtyActor.ClearExtraArrows()
 	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
 	SexlabInt.SlClearCum(DirtyActor)
 	mzinInterfacePaf.ClearPafDirt(DirtyActor)

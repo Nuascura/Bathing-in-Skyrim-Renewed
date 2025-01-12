@@ -2,7 +2,8 @@
 Primary
 - Add: Decal (blood) cleansing via SPE ObjectRef.
 - Add: Automatic support for Loki's Wade in Water.
-- Add: Equipment filtering and removal via SPE filter functions.
+- Improve: Equipment filtering and removal via SPE filter functions.
+- Improve: KeyDown event handling.
 - Fix: Missing "About bathing..." topic on new games until save file or game session is reloaded.
 - Fix: TopicInfo appearing for all followers regardless of global dialogue setting.
 - Fix: OCum interface grabbing incorrectly named quest to access OCumScript.

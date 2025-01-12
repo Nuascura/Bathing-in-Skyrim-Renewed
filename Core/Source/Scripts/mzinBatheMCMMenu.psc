@@ -947,7 +947,6 @@ Event OnOptionKeyMapChange(Int OptionID, Int KeyCode, String ConflictControl, St
 			CheckStatusKeyCode.Value = KeyCode
 		ElseIf OptionID == BatheKeyMapID
 			BatheKeyCode.Value = KeyCode
-			
 		ElseIf OptionID == ShowerKeyMapID
 			ShowerKeyCode.Value = KeyCode
 		EndIf
