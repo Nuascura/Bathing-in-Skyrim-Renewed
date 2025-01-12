@@ -30,6 +30,7 @@ Secondary
 - Optimize: Always pluck and unset last wash object to guard against unused cached objects.
 - Optimize: TopicInfo conditions.
 - Optimize: Dirty spell re-application.
+- Remove: Parasite deprecated quest mzinBatheCheckStatusQuest.
 - Update: Regenerate SEQ.
 - Update: Localization files.
 

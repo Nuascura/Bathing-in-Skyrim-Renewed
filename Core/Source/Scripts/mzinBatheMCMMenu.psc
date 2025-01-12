@@ -79,7 +79,6 @@ GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property GetSoapyStyleFollowers Auto
 
 ; hotkey settings
-mzinBatheCheckStatusQuest Property CheckStatusQuest Auto
 mzinBatheQuest Property BatheQuest Auto
 GlobalVariable Property CheckStatusKeyCode Auto
 GlobalVariable Property BatheKeyCode Auto
