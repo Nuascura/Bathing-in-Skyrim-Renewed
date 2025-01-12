@@ -29,6 +29,7 @@ Secondary
 - Change: Annotate animation files with custom animevents.
 - Change: Rename Tweens' animation files.
 - Change: Start and stop follower dialogue quest with BISR mod state.
+- Change: Wash Prop formlist order to privilege soap selection.
 - Optimize: Always pluck and unset last wash object to guard against unused cached objects.
 - Optimize: TopicInfo conditions.
 - Optimize: Dirty spell re-application.
