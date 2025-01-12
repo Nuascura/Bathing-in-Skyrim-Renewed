@@ -2,6 +2,7 @@
 Primary
 - Add: Decal (blood) cleansing via SPE ObjectRef.
 - Add: Automatic support for Loki's Wade in Water.
+- Add: Optional UBE dirt textures by @normal24yearoldstudent.
 - Improve: Equipment filtering and removal via SPE filter functions.
 - Improve: KeyDown event handling.
 - Fix: Missing "About bathing..." topic on new games until save file or game session is reloaded.
