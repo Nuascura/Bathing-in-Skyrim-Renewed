@@ -73,19 +73,16 @@ Event OnBiS_WashActorFinish(Form akBathingActor, Bool abUsingSoap = false)
 EndEvent
 
 Event OnKeyDown(Int KeyCode)
-	If Utility.IsInMenuMode()
-		Return
-	else
+	If !Utility.IsInMenuMode()
 		UnregisterForAllKeys()
+		If KeyCode == CheckStatusKeyCode.GetValueInt()
+			mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
+		ElseIf (KeyCode == BatheKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, false)) \
+		|| (KeyCode == ShowerKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, true))
+			return
+		Endif
+		RegisterHotKeys()
 	EndIf
-	
-	If KeyCode == CheckStatusKeyCode.GetValueInt()
-		mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
-	ElseIf (KeyCode == BatheKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, false)) \
-	|| (KeyCode == ShowerKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, true))
-		return
-	Endif
-	RegisterHotKeys()
 EndEvent
 
 Function RegisterHotKeys()
