@@ -72,6 +72,7 @@ Armor[] Clothing
 Actor  BathingActor
 Bool   BathingActorIsPlayer
 Int AnimationStyle
+Int ShowerStyle
 Int TieredSetCondition
 Float[] AnimSet
 Int Property DirtinessTier
@@ -153,8 +154,10 @@ Function StartAnimation()
 
 	If BathingActorIsPlayer
 		AnimationStyle = BathingAnimationStyle.GetValue() as int
+		ShowerStyle = ShoweringAnimationStyle.GetValue() as int
 	else
 		AnimationStyle = BathingAnimationStyleFollowers.GetValue() as int
+		ShowerStyle = ShoweringAnimationStyleFollowers.GetValue() as int
 	EndIf
 
 	If AnimationStyle > 0 && !BathingActor.IsSwimming()
@@ -167,9 +170,6 @@ Function StartAnimation()
 			if Menu.AutoPlayerTFC 
 				SetFreeCam(true)
 			endIf
-			if showering
-				AnimationStyle = ShoweringAnimationStyle.GetValue() as int
-			endIf
 			if BathingActor.GetActorBase().GetSex() == 1
 				AnimSet = Menu.AnimCustomFSet
 			else
@@ -179,9 +179,6 @@ Function StartAnimation()
 		else
 			ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)
 			BathingActor.EvaluatePackage()
-			if showering
-				AnimationStyle = ShoweringAnimationStyleFollowers.GetValue() as int
-			endIf
 			if BathingActor.GetActorBase().GetSex() == 1
 				AnimSet = Menu.AnimCustomFSetFollowers
 			else
@@ -191,22 +188,25 @@ Function StartAnimation()
 		EndIf
 		Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
 		if BathingActor.GetActorBase().GetSex() == 1
-			GetAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle), showering, TieredSetCondition)
+			GetAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), showering, TieredSetCondition)
 		else
-			GetAnimationMale(GetPresetSequence(AnimSet, AnimationStyle), showering, TieredSetCondition)
+			GetAnimationMale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), showering, TieredSetCondition)
 		endIf
 	else
 		EffectFinish()
 	EndIf
 EndFunction
-int Function GetPresetSequence(float[] animList, int animStyle)
+int Function GetPresetSequence(float[] animList, int animStyle, int overrideStyle)
+	; Vanilla Animations
 	If animStyle == 1
 		return animStyle
+
+	; Custom Animations
 	elseIf showering
-		if animStyle == 0
-			return 2 ; to-do adjust when more showering styles are available
+		if overrideStyle == 0
+			return animStyle + GetRandomFromNormalization(animList)
 		else
-			return animStyle + GetRandomFromNormalization(animList) ; unused
+			return 2 ; to-do adjust when more showering styles are available
 		endIf
 	else
 		return animStyle + GetRandomFromNormalization(animList)
@@ -337,12 +337,17 @@ Function GetUnsoapy()
 EndFunction
 Function GetNaked()
 	Form[] EquippedItems = PO3_SKSEFunctions.AddAllEquippedItemsToArray(BathingActor)
+	Debug.Trace("mzin GetNaked(): EquippedItems: " + EquippedItems)
 	EquippedItems = SPE_Utility.FilterFormsByKeyword(EquippedItems, Init.KeywordIgnoreItem, false, true)
+	Debug.Trace("mzin GetNaked(): EquippedItems: " + EquippedItems)
 	If BathingActorIsPlayer
+		Debug.Trace("mzin GetNaked(): Menu.ArmorSlotArray: " + Menu.ArmorSlotArray)
+		Debug.Trace("mzin GetNaked(): Menu.ArmorSlotArray trimmed: " + PapyrusUtil.RemoveInt(Menu.ArmorSlotArray, 0))
 		Clothing = SPE_Utility.FilterBySlot(EquippedItems, PapyrusUtil.RemoveInt(Menu.ArmorSlotArray, 0), false)
 	Else
 		Clothing = SPE_Utility.FilterBySlot(EquippedItems, PapyrusUtil.RemoveInt(Menu.ArmorSlotArrayFollowers, 0), false)
 	EndIf
+	Debug.Trace("mzin GetNaked(): Clothing: " + Clothing)
 
 	BathingActor.SheatheWeapon()
     while (BathingActor.IsWeaponDrawn())
@@ -353,6 +358,7 @@ Function GetNaked()
 	While Index
 		Index -= 1
 		BathingActor.UnequipItem(Clothing[Index], False, True)	
+		Debug.Trace("mzin GetNaked(): Clothing[Index]: " + Clothing[Index] + " at index " + Index)
 	EndWhile
 	
 	; weapons
