@@ -12,6 +12,7 @@ Primary
 - Fix: Followers bathe even without a wash prop if invoked via dialogue.
 - Fix: Erroneous Enable call when cancelling BISR disable prompt.
 - Fix: Equipment option toggles bugging out due to inaccurate float value storage.
+- Fix: Showering soft-lock due to missing animation get.
 - Change: NPCs are no longer automatically tracked if bathed through Automated Follower Bathing function.
 - Change: Starting dialog topic player prompt.
 - Change: Dialogues can now be initiated with non-follower NPCs if they are already being tracked for dirtiness.

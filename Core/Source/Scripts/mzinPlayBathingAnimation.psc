@@ -191,46 +191,52 @@ Function StartAnimation()
 		EndIf
 		Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
 		if BathingActor.GetActorBase().GetSex() == 1
-			GetAnimationFemale(AnimationStyle + GetPresetSequence(AnimSet), showering, TieredSetCondition)
+			GetAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle), showering, TieredSetCondition)
 		else
-			GetAnimationMale(AnimationStyle + GetPresetSequence(AnimSet), showering, TieredSetCondition)
+			GetAnimationMale(GetPresetSequence(AnimSet, AnimationStyle), showering, TieredSetCondition)
 		endIf
 	else
 		EffectFinish()
 	EndIf
 EndFunction
-int Function GetPresetSequence(float[] animList)
-	int i = 0
-	float f = Utility.RandomFloat(0, 1)
-	float total = 0
-	float setRange = 0
-	If AnimationStyle == 1
-		return 0
+int Function GetPresetSequence(float[] animList, int animStyle)
+	If animStyle == 1
+		return animStyle
 	elseIf showering
-		return 0 ; to-do
+		if animStyle == 0
+			return 2 ; to-do adjust when more showering styles are available
+		else
+			return animStyle + GetRandomFromNormalization(animList) ; unused
+		endIf
 	else
+		return animStyle + GetRandomFromNormalization(animList)
+	endIf
+EndFunction
+int Function GetRandomFromNormalization(float[] animList)
+	float setTotal = 0
+	float setRange = 0
+	float f = Utility.RandomFloat(0, 1)
+	int i = 0
+	while i < animList.length
+		setTotal += animList[i]
+		i += 1
+	endWhile
+	If setTotal > 0
+		i = 0
 		while i < animList.length
-			total += animList[i]
+			setRange += (animList[i] / setTotal)
+			if f < setRange
+				return i
+			endIf
 			i += 1
 		endWhile
-		If total > 0
-			i = 0
-			while i < animList.length
-				setRange += (animList[i] / total)
-				if f < setRange
-					return i
-				endIf
-				i += 1
-			endWhile
-			return animList.length - 1
-		else
-			return Utility.RandomInt(0, animList.length - 1)
-		endIf
+		return animList.length - 1
+	else
+		return Utility.RandomInt(0, animList.length - 1)
 	endIf
 EndFunction
 Function GetAnimationFemale(int aiPreset, bool abOverride = false, int aiTierCond)
 	int randomStyle = 0
-
 	if aiPreset == 1
 		RinseOn()
 		PresetSequenceDefault()
