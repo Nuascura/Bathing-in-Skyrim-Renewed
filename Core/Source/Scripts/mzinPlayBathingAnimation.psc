@@ -204,35 +204,12 @@ int Function GetPresetSequence(float[] animList, int animStyle, int overrideStyl
 	; Custom Animations
 	elseIf showering
 		if overrideStyle == 0
-			return animStyle + GetRandomFromNormalization(animList)
+			return animStyle + mzinUtil.GetRandomFromNormalization(animList)
 		else
 			return 2 ; to-do adjust when more showering styles are available
 		endIf
 	else
-		return animStyle + GetRandomFromNormalization(animList)
-	endIf
-EndFunction
-int Function GetRandomFromNormalization(float[] animList)
-	float setTotal = 0
-	float setRange = 0
-	float f = Utility.RandomFloat(0, 1)
-	int i = 0
-	while i < animList.length
-		setTotal += animList[i]
-		i += 1
-	endWhile
-	If setTotal > 0
-		i = 0
-		while i < animList.length
-			setRange += (animList[i] / setTotal)
-			if f < setRange
-				return i
-			endIf
-			i += 1
-		endWhile
-		return animList.length - 1
-	else
-		return Utility.RandomInt(0, animList.length - 1)
+		return animStyle + mzinUtil.GetRandomFromNormalization(animList)
 	endIf
 EndFunction
 Function GetAnimationFemale(int aiPreset, bool abOverride = false, int aiTierCond)
@@ -335,19 +312,15 @@ Function GetUnsoapy()
 		BathingActor.RemoveSpell(SoapyAppearanceAnimatedSpell)
 	EndIf
 EndFunction
+
 Function GetNaked()
 	Form[] EquippedItems = PO3_SKSEFunctions.AddAllEquippedItemsToArray(BathingActor)
-	Debug.Trace("mzin GetNaked(): EquippedItems: " + EquippedItems)
 	EquippedItems = SPE_Utility.FilterFormsByKeyword(EquippedItems, Init.KeywordIgnoreItem, false, true)
-	Debug.Trace("mzin GetNaked(): EquippedItems: " + EquippedItems)
 	If BathingActorIsPlayer
-		Debug.Trace("mzin GetNaked(): Menu.ArmorSlotArray: " + Menu.ArmorSlotArray)
-		Debug.Trace("mzin GetNaked(): Menu.ArmorSlotArray trimmed: " + PapyrusUtil.RemoveInt(Menu.ArmorSlotArray, 0))
-		Clothing = SPE_Utility.FilterBySlot(EquippedItems, PapyrusUtil.RemoveInt(Menu.ArmorSlotArray, 0), false)
+		Clothing = SPE_Utility.FilterBySlotMask(EquippedItems, mzinUtil.GetCombinedSlotMask(Menu.ArmorSlotArray), false)
 	Else
-		Clothing = SPE_Utility.FilterBySlot(EquippedItems, PapyrusUtil.RemoveInt(Menu.ArmorSlotArrayFollowers, 0), false)
+		Clothing = SPE_Utility.FilterBySlotMask(EquippedItems, mzinUtil.GetCombinedSlotMask(Menu.ArmorSlotArrayFollowers), false)
 	EndIf
-	Debug.Trace("mzin GetNaked(): Clothing: " + Clothing)
 
 	BathingActor.SheatheWeapon()
     while (BathingActor.IsWeaponDrawn())

@@ -64,3 +64,39 @@ Bool Function LocationHasKeyWordInList(Location CurrentLocation, FormList KeyWor
 	EndWhile
 	Return False
 EndFunction
+
+Int Function GetCombinedSlotMask(int[] slotArray)
+	slotArray = PapyrusUtil.RemoveInt(slotArray, 0)
+
+	int slotMask = 0
+	int index = slotArray.length
+	while index
+		index -= 1
+		slotMask = Math.LogicalOr(slotMask, Armor.GetMaskForSlot(slotArray[index]))
+	endWhile
+	return slotMask
+EndFunction
+
+int Function GetRandomFromNormalization(float[] fList)
+	float setTotal = 0
+	float setRange = 0
+	float f = Utility.RandomFloat(0, 1)
+	int i = 0
+	while i < fList.length
+		setTotal += fList[i]
+		i += 1
+	endWhile
+	If setTotal > 0
+		i = 0
+		while i < fList.length
+			setRange += (fList[i] / setTotal)
+			if f < setRange
+				return i
+			endIf
+			i += 1
+		endWhile
+		return fList.length - 1
+	else
+		return Utility.RandomInt(0, fList.length - 1)
+	endIf
+EndFunction
