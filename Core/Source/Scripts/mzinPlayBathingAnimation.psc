@@ -149,43 +149,64 @@ Function PresetSequenceDebug(Idle anim, Float animDuration)
 EndFunction
 
 ; helpers
+Function LockActor()
+	BathingActor.SetHeadTracking(false)
+	If BathingActorIsPlayer
+		Game.DisablePlayerControls(True, True, True, False, True, True, True, 1)
+		Game.SetPlayerAIDriven(true)
+		if Game.GetCameraState() == 0
+			Game.ForceThirdPerson()
+		endIf
+		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
+		if Menu.AutoPlayerTFC
+			SetFreeCam(true)
+		endIf
+	else
+		ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)
+		BathingActor.EvaluatePackage()
+	EndIf
+EndFunction
+Function UnlockActor()
+	If BathingActorIsPlayer
+		if Menu.AutoPlayerTFC
+			SetFreeCam(false)
+		endIf
+		Game.EnablePlayerControls(abLooking = false)
+		Game.SetPlayerAIDriven(false)
+		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
+		mzinUtil.GameMessage(BathingCompleteMessage)
+	else
+		ActorUtil.RemovePackageOverride(BathingActor, StopMovementPackage)
+		BathingActor.EvaluatePackage()
+	EndIf
+	BathingActor.SetHeadTracking(true)
+EndFUnction
 Function StartAnimation()
 	SetAutoTerminate()
 
 	If BathingActorIsPlayer
 		AnimationStyle = BathingAnimationStyle.GetValue() as int
 		ShowerStyle = ShoweringAnimationStyle.GetValue() as int
+		if BathingActor.GetActorBase().GetSex() == 1
+			AnimSet = Menu.AnimCustomFSet
+		else
+			AnimSet = Menu.AnimCustomMSet
+		endIf
+		TieredSetCondition = Menu.AnimCustomTierCond
 	else
 		AnimationStyle = BathingAnimationStyleFollowers.GetValue() as int
 		ShowerStyle = ShoweringAnimationStyleFollowers.GetValue() as int
+		if BathingActor.GetActorBase().GetSex() == 1
+			AnimSet = Menu.AnimCustomFSetFollowers
+		else
+			AnimSet = Menu.AnimCustomMSetFollowers
+		endIf
+		TieredSetCondition = Menu.AnimCustomTierCondFollowers
 	EndIf
 
 	If AnimationStyle > 0 && !BathingActor.IsSwimming()
-		GetNaked()
-		If BathingActorIsPlayer
-			Game.ForceThirdPerson()
-			BathingActor.SetHeadTracking(false)
-			Game.DisablePlayerControls(True, True, False, False, True, True, True)
-			UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
-			if Menu.AutoPlayerTFC 
-				SetFreeCam(true)
-			endIf
-			if BathingActor.GetActorBase().GetSex() == 1
-				AnimSet = Menu.AnimCustomFSet
-			else
-				AnimSet = Menu.AnimCustomMSet
-			endIf
-			TieredSetCondition = Menu.AnimCustomTierCond
-		else
-			ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)
-			BathingActor.EvaluatePackage()
-			if BathingActor.GetActorBase().GetSex() == 1
-				AnimSet = Menu.AnimCustomFSetFollowers
-			else
-				AnimSet = Menu.AnimCustomMSetFollowers
-			endIf
-			TieredSetCondition = Menu.AnimCustomTierCondFollowers
-		EndIf
+		LockActor()
+		StripActor()
 		Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
 		if BathingActor.GetActorBase().GetSex() == 1
 			GetAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), showering, TieredSetCondition)
@@ -313,7 +334,7 @@ Function GetUnsoapy()
 	EndIf
 EndFunction
 
-Function GetNaked()
+Function StripActor()
 	Form[] EquippedItems = PO3_SKSEFunctions.AddAllEquippedItemsToArray(BathingActor)
 	EquippedItems = SPE_Utility.FilterFormsByKeyword(EquippedItems, Init.KeywordIgnoreItem, false, true)
 	If BathingActorIsPlayer
@@ -330,15 +351,14 @@ Function GetNaked()
 	Int Index = Clothing.Length
 	While Index
 		Index -= 1
-		BathingActor.UnequipItem(Clothing[Index], False, True)	
-		Debug.Trace("mzin GetNaked(): Clothing[Index]: " + Clothing[Index] + " at index " + Index)
+		BathingActor.UnequipItem(Clothing[Index], False, True)
 	EndWhile
 	
 	; weapons
 	BathingActor.UnequipItemEX(BathingActor.GetEquippedWeapon(True),  2, False) ; left hand
 	BathingActor.UnequipItemEX(BathingActor.GetEquippedWeapon(False), 1, False) ; right hand
 EndFunction
-Function GetDressed()
+Function DressActor()
 	If (BathingActorIsPlayer == True  && GetDressedAfterBathingEnabled.GetValue() As Bool) \
 	|| (BathingActorIsPlayer == False && GetDressedAfterBathingEnabledFollowers.GetValue() As Bool)
 		
@@ -385,22 +405,11 @@ Function StopAnimation(bool PlayRinseOff = false)
 	if PlayRinseOff
 		RinseOff()
 		Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
+		Utility.Wait(0.5)
 	EndIf
 
-	GetDressed()
-
-	If BathingActorIsPlayer
-		SetFreeCam(false)
-		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
-		Game.EnablePlayerControls()
-		BathingActor.SetHeadTracking(true)
-		mzinUtil.GameMessage(BathingCompleteMessage)
-	else
-		ActorUtil.RemovePackageOverride(BathingActor, StopMovementPackage)
-		BathingActor.EvaluatePackage()
-	EndIf
-
-	Utility.Wait(0.5)
+	DressActor()
+	UnlockActor()
 
 	EffectFinish()
 EndFunction
@@ -428,7 +437,7 @@ EndFunction
 Function SetFreeCam(bool toggle)
 	if toggle
 		if Game.GetCameraState() != 3
-			MiscUtil.SetFreeCameraState(true)
+			MiscUtil.SetFreeCameraState(true, 5.0)
 		endIf
 	else
 		if Game.GetCameraState() == 3
