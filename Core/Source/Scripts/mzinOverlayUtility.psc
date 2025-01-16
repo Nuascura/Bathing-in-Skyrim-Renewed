@@ -22,17 +22,17 @@ EndEvent
 
 Function BeginOverlay(Actor akTarget, Float Alpha)
 	String TextureToApply
-	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
+	Int Gender = akTarget.GetLeveledActorBase().GetSex()
 	Int i = 0
 	String TexPrefix = 	StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix", "")
 	If TexPrefix == ""
-		TexPrefix = TexUtil.PickRandomDirtSet()
+		TexPrefix = TexUtil.PickRandomDirtSet(Gender)
 		StorageUtil.SetStringValue(akTarget, "mzin_DirtTexturePrefix", TexPrefix)
 	EndIf
 	TextureToApply = TexPrefix + "DirtFX"
 	;StorageUtil.SetStringValue(akTarget, "mzin_DirtTexturePath", TextureToApply)
 	While i < Areas.Length
-		ReadyOverlay(akTarget, Gender, Areas[i], (TextureToApply + AreasTexNames[i] + ".dds"), Alpha)
+		ReadyOverlay(akTarget, Gender as Bool, Areas[i], (TextureToApply + AreasTexNames[i] + ".dds"), Alpha)
 		i += 1
 	EndWhile
 EndFunction
@@ -114,24 +114,28 @@ Int Function GetNumSlots(String Area)
 EndFunction
 
 Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all sets from all overlay slots but takes a long time
-	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
+	int Gender = akTarget.GetLeveledActorBase().GetSex()
 	String TexPath
+	String[] TexPrefixes
 	String Node
-	String TexPrefix
 	Int i = 0
+	if Gender as bool
+		TexPrefixes = TexUtil.TexPathsF
+	else
+		TexPrefixes = TexUtil.TexPathsM
+	endIf
 	While i < Areas.Length
 		Int j = GetNumSlots(Areas[i])
 		While j > 0
 			j -= 1
 			Node = Areas[i] + " [ovl" + j + "]"
-			Int k = TexUtil.DirtSetCount
+			Int k = TexUtil.DirtSetCount[Gender]
 			While k > 0
 				k -= 1
-				TexPrefix = TexUtil.TexPaths[k]
-				TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender, Node, 9, 0)
+				TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender as Bool, Node, 9, 0)
 				;mzinUtil.LogTrace("ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath)
-				If TexPath == (TexPrefix + "DirtFX" + AreasTexNames[i] + ".dds") || TexPath == ""
-					RemoveOverlay(akTarget, Gender, Node)
+				If TexPath == (TexPrefixes[k] + "DirtFX" + AreasTexNames[i] + ".dds") || TexPath == ""
+					RemoveOverlay(akTarget, Gender as Bool, Node)
 					;mzinUtil.LogTrace("Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
 				EndIf
 			EndWhile
