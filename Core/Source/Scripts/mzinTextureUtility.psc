@@ -55,18 +55,19 @@ Int Function InitTexSets(int aiSex)
 	endIf
 	
 	Int i = 0
-	While i <= 4
+	While i < TexPaths.Length
+		i += 1
 		TexCount = 0
-		SetPrefix = "data/Textures/mzin/Bathe/Set" + (i+1) + "/" + SetGender + "/"
+		SetPrefix = "data/Textures/mzin/Bathe/Set" + i + "/" + SetGender + "/"
 		int j = 0
 		While j < TexNames.Length
 			Menu.UpdateProgressRedetectDirtSets((TexPaths[i] + TexNames[j]))
 			mzinUtil.LogTrace("Checking: " + SetPrefix + TexNames[j])
 			If MiscUtil.FileExists(SetPrefix + TexNames[j])
-				mzinUtil.LogTrace("Dirt Set " + (i + 1) + ": Found " + TexNames[j])
+				mzinUtil.LogTrace("Dirt Set " + i + ": Found " + TexNames[j])
 				TexCount += 1
 			Else
-				mzinUtil.LogTrace("Warning: Dirt Set " + (i + 1) + ": DOES NOT EXIST: " + TexNames[j])
+				mzinUtil.LogTrace("Warning: Dirt Set " + i + ": DOES NOT EXIST: " + TexNames[j])
 			EndIf
 			j += 1
 		EndWhile
@@ -80,7 +81,6 @@ Int Function InitTexSets(int aiSex)
 			mzinUtil.LogMessageBox("Error: InitTexSets(): Incomplete texture set detected for set " + i + "(" + SetGender + "). There should be " + TexNames.Length + " texture files per set but Mzin detected only " + TexCount + " files. One or more files are either missing or named incorrectly. You need to fix this first! Check your papyrus log. Search 'mzin'")
 			Return -1
 		EndIf
-		i += 1
 	EndWhile
 	Return SetCount
 EndFunction
