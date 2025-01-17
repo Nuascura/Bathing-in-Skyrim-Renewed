@@ -1,3 +1,10 @@
+2.3.1
+Primary
+- Fix: Unable to undress and redress actor during animation sequence.
+- Change: Rerun init script OnInit() when player enables BISR.
+
+
+
 2.3.0
 Primary
 - Add: Decal (blood) cleansing via SPE ObjectRef.
