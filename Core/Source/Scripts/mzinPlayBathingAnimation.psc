@@ -158,9 +158,6 @@ Function LockActor()
 			Game.ForceThirdPerson()
 		endIf
 		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
-		if Menu.AutoPlayerTFC
-			SetFreeCam(true)
-		endIf
 	else
 		ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)
 		BathingActor.EvaluatePackage()
@@ -168,9 +165,6 @@ Function LockActor()
 EndFunction
 Function UnlockActor()
 	If BathingActorIsPlayer
-		if Menu.AutoPlayerTFC
-			SetFreeCam(false)
-		endIf
 		Game.EnablePlayerControls(abLooking = false)
 		Game.SetPlayerAIDriven(false)
 		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
@@ -208,6 +202,9 @@ Function StartAnimation()
 		LockActor()
 		StripActor()
 		Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
+		if BathingActorIsPlayer
+			SetFreeCam(Menu.AutoPlayerTFC && true)
+		endIf
 		if BathingActor.GetActorBase().GetSex() == 1
 			GetAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), showering, TieredSetCondition)
 		else
@@ -408,6 +405,9 @@ Function StopAnimation(bool PlayRinseOff = false)
 		Utility.Wait(0.5)
 	EndIf
 
+	if BathingActorIsPlayer
+		SetFreeCam(Menu.AutoPlayerTFC && false)
+	endIf
 	DressActor()
 	UnlockActor()
 
