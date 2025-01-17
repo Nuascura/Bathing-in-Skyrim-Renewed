@@ -2,9 +2,11 @@
 Primary
 - Add: Decal (blood) cleansing via SPE ObjectRef.
 - Add: Automatic support for Loki's Wade in Water.
-- Add: Optional UBE dirt textures by @normal24yearoldstudent.
+- Add: Support gender-differentiated texture sets.
+- Add: Selectable 2K textures by oozaki.
 - Improve: Equipment filtering and removal via SPE filter functions.
 - Improve: KeyDown event handling.
+- Improve: Improved Camera compatibility.
 - Fix: Missing "About bathing..." topic on new games until save file or game session is reloaded.
 - Fix: TopicInfo appearing for all followers regardless of global dialogue setting.
 - Fix: OCum interface grabbing incorrectly named quest to access OCumScript.
@@ -13,6 +15,7 @@ Primary
 - Fix: Erroneous Enable call when cancelling BISR disable prompt.
 - Fix: Equipment option toggles bugging out due to inaccurate float value storage.
 - Fix: Showering soft-lock due to missing animation get.
+- Fix: Animation sequences gaps allowed erroneous user input.
 - Change: NPCs are no longer automatically tracked if bathed through Automated Follower Bathing function.
 - Change: Starting dialog topic player prompt.
 - Change: Dialogues can now be initiated with non-follower NPCs if they are already being tracked for dirtiness.
