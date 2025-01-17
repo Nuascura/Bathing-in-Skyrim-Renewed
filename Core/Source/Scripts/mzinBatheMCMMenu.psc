@@ -61,7 +61,7 @@ Float Property AnimCustomFSet2FreqFollowers = 0.00 Auto
 Float Property AnimCustomFSet3FreqFollowers = 0.00 Auto
 
 ;  Modified
-Int Property ScriptVersion = 15 AutoReadOnly
+Int Property ScriptVersion = 16 AutoReadOnly
 
 ; references
 Actor Property PlayerRef Auto
@@ -132,7 +132,7 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.3.0"
+	return "2.3.1"
 EndFunction
 
 Int Function GetVersion()
