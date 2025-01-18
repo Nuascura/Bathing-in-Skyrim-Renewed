@@ -52,10 +52,6 @@ Float LocalDirtinessPercentage
 Float LocalLastUpdateTime
 Float SexDirt
 
-Event OnInit()
-	RegisterForEvents()
-EndEvent
-
 Event OnPlayerLoadGame()
 	RegisterForEvents()
 
@@ -221,8 +217,6 @@ EndEvent
 Event OnEffectFinish(Actor Target, Actor Caster)
 	If DirtyActorIsPlayer == False && DirtyActors.Find(DirtyActor) != -1
 		StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", LocalDirtinessPercentage)
-		RemoveSpells(SoapBonusSpellList)
-		RemoveSpells(GetDirtyOverTimeSpellList)
 	EndIf
 EndEvent
 Event OnUpdateGameTime()
@@ -366,9 +360,6 @@ Function CheckDirt()
 	If DirtyActor.HasMagicEffect(mzinDirtinessTier2Effect) || DirtyActor.HasMagicEffect(mzinDirtinessTier3Effect)
 		mzinUtil.LogTrace("Adding dirt to: " + DirtyActor.GetBaseObject().GetName())
 		OlUtil.ApplyDirt(DirtyActor, Menu.StartingAlpha)
-	;ElseIf DirtyActor.HasMagicEffect(mzinDirtinessTier3Effect)
-	;	mzinUtil.LogTrace("Adding filth to: " + DirtyActor.GetBaseObject().GetName())
-	;	Util.ApplyDirt(DirtyActor, "FilthFX.dds",  1.0)
 	ElseIf DirtyActor.HasMagicEffect(mzinDirtinessTier1p5Effect)
 		OlUtil.ApplyDirt(DirtyActor, Menu.StartingAlpha)
 		mzinUtil.LogTrace("Adding fade in dirt to: " + DirtyActor.GetBaseObject().GetName())
@@ -392,7 +383,6 @@ EndFunction
 Function RegisterForEvents()
 	RegisterForModEvent("BiS_UpdateAlpha", "OnBiS_UpdateAlpha")
 	RegisterForModEvent("BiS_UpdateActorsAll", "OnBiS_UpdateActorsAll")
-	;RegisterForModEvent("Bis_BatheEvent", "OnBis_BatheEvent") ; Not used here...?
 	RegisterForModEvent("BiS_CleanActorDirt", "OnBiS_CleanActorDirt")
 	
 	CheckSexEvents()
