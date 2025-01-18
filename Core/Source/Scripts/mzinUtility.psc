@@ -40,8 +40,11 @@ Int Function GameMessage(Message LogMessage, float afArg1 = 0.0, float afArg2 = 
 EndFunction
 
 Bool Function ExteriorHasKeyWordInList(Location[] ExteriorLocation, FormList KeyWordList)
+	if !ExteriorLocation
+		return false
+	endIf
 	int i = 0
-	while i < ExteriorLocation.Length
+	while i < ExteriorLocation.Length && ExteriorLocation[i]
 		Int KeyWordListIndex = KeyWordList.GetSize()	
 		While KeyWordListIndex
 			KeyWordListIndex -= 1
@@ -55,6 +58,9 @@ Bool Function ExteriorHasKeyWordInList(Location[] ExteriorLocation, FormList Key
 EndFunction
 
 Bool Function LocationHasKeyWordInList(Location CurrentLocation, FormList KeyWordList)
+	if !CurrentLocation
+		return false
+	endIf
 	Int KeyWordListIndex = KeyWordList.GetSize()	
 	While KeyWordListIndex
 		KeyWordListIndex -= 1
