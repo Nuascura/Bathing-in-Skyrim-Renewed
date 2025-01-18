@@ -118,7 +118,6 @@ Int[] Property ArmorSlotArray Auto
 Int[] Property ArmorSlotArrayFollowers Auto
 Bool[] UndressArmorSlotArray
 Bool[] UndressArmorSlotArrayFollowers
-Bool[] TrackedActorsToggleValuesArray
 
 String[] AutomateFollowerBathingArray
 GlobalVariable Property AutomateFollowerBathing Auto
@@ -537,15 +536,15 @@ Function DisplaySettingsPage()
 	
 EndFunction
 Function DisplayTrackedActorsPage()
+	UnloadCustomContent()
+	SetCursorFillMode(TOP_TO_BOTTOM)
+
 	Int TrackedActorsCount = DirtyActors.GetSize()
 	If TrackedActorsCount > 128
 		TrackedActorsCount = 128
 	EndIf
-
-	UnloadCustomContent()
+	TrackedActorsToggleIDs = Utility.CreateIntArray(TrackedActorsCount)
 	
-	SetCursorFillMode(TOP_TO_BOTTOM)
-
 	AddHeaderOption("$BIS_HEADER_TRACKED_ACTORS")
 	Int Index = TrackedActorsCount
 	While Index
@@ -922,9 +921,7 @@ EndFunction
 Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
 	Int Index = TrackedActorsToggleIDs.Find(OptionID)	
 	If Index >= 0
-		If TrackedActorsToggleValuesArray[Index] == False
-			SetInfoText("$BIS_DESC_STOP_TRACKING_ACTOR")
-		EndIf
+		SetInfoText("$BIS_DESC_STOP_TRACKING_ACTOR")
 	EndIf
 EndFunction
 
