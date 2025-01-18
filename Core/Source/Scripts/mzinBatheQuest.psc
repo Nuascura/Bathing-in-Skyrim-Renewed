@@ -151,12 +151,12 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 			if DoShower
 				DirtyActor.AddSpell(PlayShowerAnimationWithoutSoap, False)
 				If DirtyActorIsPlayer
-					mzinUtil.GameMessage(ShoweringWithSoapMessage)
+					mzinUtil.GameMessage(ShoweringWithoutSoapMessage)
 				EndIf
 			else
 				DirtyActor.AddSpell(PlayBatheAnimationWithoutSoap, False)	
 				If DirtyActorIsPlayer
-					mzinUtil.GameMessage(BathingWithSoapMessage)
+					mzinUtil.GameMessage(BathingWithoutSoapMessage)
 				EndIf
 			EndIf
 		EndIf
