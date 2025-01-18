@@ -66,7 +66,6 @@ Int Property ScriptVersion = 16 AutoReadOnly
 ; references
 Actor Property PlayerRef Auto
 
-Spell Property GetDirtyOverTimeReactivatorCloakSpell Auto
 FormList Property GetDirtyOverTimeSpellList Auto
 
 ; toggle values
@@ -132,7 +131,7 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.3.1"
+	return "2.3.2"
 EndFunction
 
 Int Function GetVersion()
@@ -1647,7 +1646,6 @@ Function EnableBathingInSkyrim()
 	VersionUpdate()
 
 	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
-	PlayerRef.AddSpell(GetDirtyOverTimeReactivatorCloakSpell, False)
 
 	BatheQuest.Start()
 	BatheQuest.RegisterHotKeys()
@@ -1660,8 +1658,6 @@ Function EnableBathingInSkyrim()
 	mzinUtil.LogTrace("Player enabled Bathing in Skyrim. Mod version: " + GetModVersion() + "; Script version: " + GetVersion(), true)
 EndFunction
 Function DisableBathingInSkyrim()
-	PlayerRef.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
-	
 	RemoveAllOverlays(false)
 	
 	UntrackActor(PlayerRef)

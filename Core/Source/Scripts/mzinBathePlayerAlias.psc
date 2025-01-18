@@ -1,7 +1,6 @@
 ScriptName mzinBathePlayerAlias Extends ReferenceAlias
 
 mzinBatheQuest Property BatheQuest Auto
-Spell Property GetDirtyOverTimeReactivatorCloakSpell Auto
 FormList Property DirtyActors Auto
 GlobalVariable Property AutomateFollowerBathing Auto
 
@@ -10,13 +9,6 @@ Actor Property PlayerRef Auto
 Bool Reapplying
 
 Event OnLocationChange(Location akOldLoc, Location akNewLoc)
-	If Reapplying == False
-		Reapplying = True
-		PlayerRef.RemoveSpell(GetDirtyOverTimeReactivatorCloakSpell)
-		Utility.Wait(1)
-		PlayerRef.AddSpell(GetDirtyOverTimeReactivatorCloakSpell, False)
-		Reapplying = False
-	EndIf
 EndEvent
 
 Event OnPlayerLoadGame() ; run only when mod is "enabled"
