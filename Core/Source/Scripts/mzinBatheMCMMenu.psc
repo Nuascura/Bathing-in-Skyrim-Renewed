@@ -1064,6 +1064,7 @@ Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
 	If Index >= 0
 		If ShowMessage("$BIS_MSG_ASK_STOP_TRACK", True) == True
 			Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
+			DoRemoveOverlays(DirtyActor, false)
 			UntrackActor(DirtyActor)
 			DirtyActors.RemoveAddedForm(DirtyActor)
 			ForcePageReset()
@@ -1709,7 +1710,7 @@ EndFunction
 
 Function RemoveAllOverlays(bool displayProgress = true)
 	; Do player
-	DoRemoveAllOverlays(PlayerRef, displayProgress)
+	DoRemoveOverlays(PlayerRef, displayProgress)
 	
 	; Do other Npcs
 	Int i = mzinDirtyActorsList.GetSize()
@@ -1717,14 +1718,14 @@ Function RemoveAllOverlays(bool displayProgress = true)
 	While i > 0
 		i -= 1
 		CurrentActor = mzinDirtyActorsList.GetAt(i) as Actor
-		DoRemoveAllOverlays(CurrentActor)
+		DoRemoveOverlays(CurrentActor, displayProgress)
 	EndWhile
 	If IsConfigOpen && displayProgress
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_TXT_DONE", false)
 	EndIf
 EndFunction
 
-Function DoRemoveAllOverlays(Actor akTarget, bool displayProgress = true)
+Function DoRemoveOverlays(Actor akTarget, bool displayProgress = true)
 	If IsConfigOpen && displayProgress
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_NOTIF_PROCING_{" + akTarget.GetBaseObject().GetName() + "}", false)
 	EndIf
