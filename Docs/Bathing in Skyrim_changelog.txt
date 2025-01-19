@@ -1,3 +1,17 @@
+2.3.2
+Primary
+- Remove: Cloak reactivation effect.
+- Remove: "No Death Dispel" flag from dirtiness tier spells.
+- Remove: Additional unused forms.
+- Fix: GetDirtyOverTime effect occasionally lost on Followers after load screens.
+- Fix: None errors under utility location functions.
+- Fix: Log spam due to unused Boolean array under MCM script.
+- Fix: Incorrect bathe/shower game message sent with wash rag.
+- Fix: Untracking individual actors in the MCM does not remove their dirt overlays, unlike when disabling BISR entirely.
+- Change: Dialogue lines, prompts, conditions, and priorities.
+
+
+
 2.3.1
 Primary
 - Fix: Unable to undress and redress actor during animation sequence.
