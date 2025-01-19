@@ -216,18 +216,16 @@ Function StartAnimation()
 EndFunction
 int Function GetPresetSequence(float[] animList, int animStyle, int overrideStyle)
 	; Vanilla Animations
-	If animStyle == 1
-		return animStyle
+	If animStyle == 1 || (showering && overrideStyle == 1)
+		return 1
 
 	; Custom Animations
-	elseIf showering
-		if overrideStyle == 0
+	else
+		if !(showering && overrideStyle)
 			return animStyle + mzinUtil.GetRandomFromNormalization(animList)
 		else
-			return 2 ; to-do adjust when more showering styles are available
+			return overrideStyle ; to-do adjust when more showering styles are available
 		endIf
-	else
-		return animStyle + mzinUtil.GetRandomFromNormalization(animList)
 	endIf
 EndFunction
 Function GetAnimationFemale(int aiPreset, bool abOverride = false, int aiTierCond)
