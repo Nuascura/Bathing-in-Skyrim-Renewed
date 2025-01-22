@@ -1,6 +1,7 @@
 Scriptname mzinInit extends Quest  
 
 Bool Property IsSexlabInstalled = false Auto Hidden
+Bool Property IsSexlabArousedInstalled = false Auto Hidden
 Bool Property IsDdsInstalled = false Auto Hidden
 Bool Property IsZazInstalled = false Auto Hidden
 Bool Property IsWadeInWaterInstalled = false Auto Hidden
@@ -10,6 +11,9 @@ Keyword Property zad_DeviousHeavyBondage Auto Hidden
 Keyword Property zad_DeviousSuit Auto Hidden
 
 Faction Property ZazSlaveFaction Auto Hidden
+Faction Property SLAExhibitionistFaction Auto Hidden
+
+MagicEffect Property LokiWaterSlowdownEffect Auto Hidden
 
 Keyword[] Property KeywordIgnoreItem Auto
 
@@ -22,6 +26,12 @@ Function DoSoftCheck()
 	IsSexlabInstalled = false
 	If Game.GetModByName("SexLab.esm") != 255
 		IsSexlabInstalled = true
+	EndIf
+
+	IsSexlabArousedInstalled = false
+	If Game.GetModByName("SexLabAroused.esm") != 255
+		SLAExhibitionistFaction = Game.GetFormFromFile(0x0713DA, "SexLabAroused.esm") as Faction
+		IsSexlabArousedInstalled = true
 	EndIf
 
 	IsDdsInstalled = false
@@ -39,6 +49,7 @@ Function DoSoftCheck()
 
 	IsWadeInWaterInstalled = false
 	If Game.GetModByName("WadeInWater.esp") != 255
+		LokiWaterSlowdownEffect = Game.GetFormFromFile(0x000D62, "WadeInWater.esp") as MagicEffect
 		IsWadeInWaterInstalled = true
 	EndIf
 
