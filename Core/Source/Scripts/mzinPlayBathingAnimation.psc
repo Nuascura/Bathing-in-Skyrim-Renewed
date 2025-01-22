@@ -69,6 +69,7 @@ Message Property BathingCompleteMessage Auto
 Package Property StopMovementPackage Auto
 
 Armor[] Clothing
+Form[] Objects
 Actor  BathingActor
 Bool   BathingActorIsPlayer
 Int AnimationStyle
@@ -152,13 +153,14 @@ EndFunction
 Function LockActor()
 	BathingActor.SetHeadTracking(false)
 	If BathingActorIsPlayer
-		Game.DisablePlayerControls(True, True, True, False, True, True, True, 1)
+		Game.DisablePlayerControls(True, True, True, False, True, True, True, 0)
 		Game.SetPlayerAIDriven(true)
 		if Game.GetCameraState() == 0
 			Game.ForceThirdPerson()
 		endIf
 		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
 	else
+		BathingActor.AllowPCDialogue(false)
 		ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)
 		BathingActor.EvaluatePackage()
 	EndIf
@@ -170,6 +172,7 @@ Function UnlockActor()
 		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
 		mzinUtil.GameMessage(BathingCompleteMessage)
 	else
+		BathingActor.AllowPCDialogue(true)
 		ActorUtil.RemovePackageOverride(BathingActor, StopMovementPackage)
 		BathingActor.EvaluatePackage()
 	EndIf
@@ -201,18 +204,22 @@ Function StartAnimation()
 	If AnimationStyle > 0 && !BathingActor.IsSwimming()
 		LockActor()
 		StripActor()
-		Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
-		if BathingActorIsPlayer
-			SetFreeCam(Menu.AutoPlayerTFC && true)
-		endIf
-		if BathingActor.GetActorBase().GetSex() == 1
-			GetAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), showering, TieredSetCondition)
-		else
-			GetAnimationMale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), showering, TieredSetCondition)
-		endIf
+		StartAnimation_Sub()
 	else
 		EffectFinish()
 	EndIf
+EndFunction
+Function StartAnimation_Sub()
+	Debug.SendAnimationEvent(BathingActor, "IdleStop_Loose")
+	if BathingActorIsPlayer
+		SetFreeCam(Menu.AutoPlayerTFC && true)
+		Game.DisablePlayerControls(false, True, True, False, True, True, True, 0)
+	endIf
+	if BathingActor.GetActorBase().GetSex() == 1
+		GetAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), showering, TieredSetCondition)
+	else
+		GetAnimationMale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), showering, TieredSetCondition)
+	endIf
 EndFunction
 int Function GetPresetSequence(float[] animList, int animStyle, int overrideStyle)
 	; Vanilla Animations
@@ -337,21 +344,34 @@ Function StripActor()
 	Else
 		Clothing = SPE_Utility.FilterBySlotMask(EquippedItems, mzinUtil.GetCombinedSlotMask(Menu.ArmorSlotArrayFollowers), false)
 	EndIf
-
-	BathingActor.SheatheWeapon()
-    while (BathingActor.IsWeaponDrawn())
-        Utility.wait(0.1)
-    endwhile
 	
 	Int Index = Clothing.Length
 	While Index
 		Index -= 1
 		BathingActor.UnequipItem(Clothing[Index], False, True)
 	EndWhile
+
+	if BathingActor.IsWeaponDrawn()
+		while BathingActor.IsWeaponDrawn()
+			BathingActor.SheatheWeapon()
+			Utility.Wait(0.25)
+		endWhile
+	endIf
 	
 	; weapons
-	BathingActor.UnequipItemEX(BathingActor.GetEquippedWeapon(True),  2, False) ; left hand
-	BathingActor.UnequipItemEX(BathingActor.GetEquippedWeapon(False), 1, False) ; right hand
+	Objects = new Form[3]
+	Objects[0] = BathingActor.GetEquippedObject(0) ; left hand
+	if Objects[0]
+		BathingActor.UnequipItemEX(Objects[0], 2, False) ; left hand
+	endIf
+	Objects[1] = BathingActor.GetEquippedObject(1) ; right hand
+	if Objects[1]
+		BathingActor.UnequipItemEX(Objects[1], 1, False) ; right hand
+	endIf
+	Objects[2] = PO3_SKSEFunctions.GetEquippedAmmo(BathingActor) ; Ammo
+	if Objects[2]
+		BathingActor.UnequipItemEX(Objects[2], 0, False) ; Ammo
+	endIf
 EndFunction
 Function DressActor()
 	If (BathingActorIsPlayer == True  && GetDressedAfterBathingEnabled.GetValue() As Bool) \
@@ -366,13 +386,31 @@ Function DressActor()
 			EndIf
 		EndWhile
 	EndIf
+
+	if Objects[0]
+		if Objects[0] as spell
+			BathingActor.EquipSpell(Objects[0] as spell, 0)
+		else
+			BathingActor.EquipItem(Objects[0], False, True) ; left hand
+		endIf
+	endIf
+	if Objects[1]
+		if Objects[1] as spell
+			BathingActor.EquipSpell(Objects[1] as spell, 1)
+		else
+			BathingActor.EquipItem(Objects[1], False, True) ; right hand
+		endIf
+	endIf
+	if Objects[2]
+		BathingActor.EquipItem(Objects[2], False, True) ; Ammo
+	endIf
 EndFunction
 Function RinseOn()
 	if !Showering
 		Debug.SendAnimationEvent(BathingActor, "IdleSearchingChest")
 		Utility.Wait(3)
 		Debug.SendAnimationEvent(BathingActor, "IdleStop")
-		Utility.Wait(0.5)
+		Utility.Wait(1.0)
 	endIf
 EndFunction
 Function RinseOff()

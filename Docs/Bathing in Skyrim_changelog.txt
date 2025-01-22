@@ -1,14 +1,20 @@
 2.3.2
 Primary
+- Add: Arrow / Ammo removal when bathing.
+- Add: Weapon / Spell caching to re-equip object after bathing. 
 - Remove: Cloak reactivation effect.
 - Remove: "No Death Dispel" flag from dirtiness tier spells.
 - Remove: Additional unused forms.
+- Fix: Freecam state partially enables controls, which may cause a soft-lock after the animation sequence ends.
+- Fix: Potential soft-lock while sheathing weapon.
 - Fix: GetDirtyOverTime effect occasionally lost on Followers after load screens.
 - Fix: None errors under utility location functions.
 - Fix: Log spam due to unused Boolean array under MCM script.
 - Fix: Incorrect bathe/shower game message sent with wash rag.
 - Fix: Untracking individual actors in the MCM does not remove their dirt overlays, unlike when disabling BISR entirely.
 - Fix: Vanilla showering does not correctly override if primary animation style is custom.
+- Fix: New water detection logic missing from some script parts.
+- Fix: Wash props apply incorrect soap bonus.
 - Change: Dialogue lines, prompts, conditions, and priorities.
 
 
