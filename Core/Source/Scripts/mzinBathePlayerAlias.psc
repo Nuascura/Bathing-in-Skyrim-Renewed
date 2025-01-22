@@ -8,9 +8,6 @@ Actor Property PlayerRef Auto
 
 Bool Reapplying
 
-Event OnLocationChange(Location akOldLoc, Location akNewLoc)
-EndEvent
-
 Event OnPlayerLoadGame() ; run only when mod is "enabled"
 	BatheQuest.RegisterHotKeys()
 	BatheQuest.RegForEvents()
@@ -34,7 +31,7 @@ Function CycleFollowers()
 		if DirtyActors.Find(PlayerFollowers[i]) != -1 || AutomateFollowerBathing.GetValue() == 2
 			MiscObject WashProp = BatheQuest.TryFindWashProp(PlayerFollowers[i])
 			if WashProp && !BatheQuest.IsInCommmonRestriction(PlayerFollowers[i])
-				if PO3_SKSEfunctions.IsActorInWater(PlayerFollowers[i])
+				if BatheQuest.IsInWater(PlayerFollowers[i])
 					BatheQuest.WashActor(PlayerFollowers[i], WashProp, DoShower = false)
 				ElseIf BatheQuest.IsUnderWaterfall(PlayerFollowers[i])
 					BatheQuest.WashActor(PlayerFollowers[i], WashProp, DoShower = true)

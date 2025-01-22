@@ -234,10 +234,10 @@ Function RunDirtCycleUpdate()
 EndFunction
 Event OnObjectEquipped(Form WashProp, ObjectReference WashPropReference)
 	If WashProp.HasKeyWord(WashPropKeyword) && !BatheQuest.IsInCommmonRestriction(DirtyActor)
-		if !(BatheQuest.WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor)
+		if BatheQuest.IsInWater(DirtyActor)
 			CloseInventory()
 			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, DoShower = false)
-		elseIf !(BatheQuest.WaterRestrictionEnabled.GetValue() As Bool) || BatheQuest.IsUnderWaterfall(DirtyActor)
+		elseIf BatheQuest.IsUnderWaterfall(DirtyActor)
 			CloseInventory()
 			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, DoShower = true)
 		endIf

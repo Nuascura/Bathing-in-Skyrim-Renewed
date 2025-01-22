@@ -55,10 +55,10 @@ Function RegForEvents()
 	RegisterForModEvent("BiS_WashActorFinish", "OnBiS_WashActorFinish")
 EndFunction
 
-Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool Animate = false, Bool FullClean = false, Bool DoSoap = false, Bool Shower)
+Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool abDoShower, Bool abDoAnimate = false, Bool abFullClean = false, Bool abDoSoap = false)
 	;mzinUtil.LogMessageBox("Receive event")
 	If akDirtyActor as Actor
-		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, Animate, FullClean, DoSoap, Shower)
+		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, abDoShower, abDoAnimate, abFullClean, abDoSoap)
 	Else
 		mzinUtil.LogTrace("OnBiS_WashActor(): Received invalid actor: " + akDirtyActor)
 	EndIf
@@ -104,7 +104,7 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 	EndIf
 	If WashProp && !IsInCommmonRestriction(DirtyActor)
 		If Shower
-			If (!(WaterRestrictionEnabled.GetValue() As Bool) || IsUnderWaterfall(DirtyActor))
+			If IsUnderWaterfall(DirtyActor)
 				WashActor(DirtyActor, WashProp, DoShower = true)
 				return true
 			Else
@@ -122,7 +122,7 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 	return false
 EndFunction
 
-Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, Bool FullClean = false, Bool DoSoap = false, Bool DoShower = false)
+Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false, Bool DoAnimate = true, Bool DoFullClean = false, Bool DoSoap = false)
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
 	Bool UsedSoap = false
 	If DirtyActorIsPlayer
@@ -132,7 +132,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 		OlUtil.SendBathePlayerModEvent()
 	EndIf
 
-	if Animate
+	if DoAnimate
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
 			UsedSoap = true
 			DirtyActor.RemoveItem(WashProp, 1, True, None)
@@ -165,7 +165,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 		If DoSoap
 			GetSoapy(DirtyActor)
 		EndIf
-		If FullClean
+		If DoFullClean
 			UsedSoap = true
 		EndIf
 	endIf
@@ -181,7 +181,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool Animate = true, B
 
 	; ----
 
-	if !Animate
+	if !DoAnimate
 		If DoSoap
 			GetUnsoapy(DirtyActor)
 		EndIf
@@ -268,20 +268,12 @@ Int Function GetWashPropIndex(MiscObject Soap)
 EndFunction
 
 Bool Function IsUnderWaterfall(Actor DirtyActor)
-	; If Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 128.0)				; Hazarduss
-		; Return True																					; Hazarduss
-	; EndIf																								; Hazarduss
-	
-	; ===================================== HAZARDUSS - Start edit ==============================================
-; HAZARDUSS - 2021/09: Extending the range of waterfall detection.  
-; This is necessary because the shower code does not always trigger when standing at the bottom of a waterfall.
-; This is likely because certain water static objects in 'WaterfallList' do not extend across the full height of the actual waterfall.
-; So we need to make sure that if the character is standing at any height (Z position) at or below the water static object, they should be able to shower.
+	If !(WaterRestrictionEnabled.GetValue() As Bool)
+		Return True
+	EndIf
 
-	; ObjectReference closestWaterfall = Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 12800.0)	
 	ObjectReference closestWaterfall = Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 3000.0)	
 	
-	; If Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 1280.0)	
 	If closestWaterfall
 
 		mzinUtil.LogTrace("player_Z() = " + DirtyActor.GetPositionZ() + "     Waterfall_Z = " + closestWaterfall.GetPositionZ() + "  diff_Z = " + (DirtyActor.GetPositionZ() - closestWaterfall.GetPositionZ()) as float)
@@ -297,23 +289,17 @@ Bool Function IsUnderWaterfall(Actor DirtyActor)
 		&& (math.abs(DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) <= 256.0) \
 		&& (math.abs(DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) <= 256.0)
 			mzinUtil.LogTrace("IsUnderWaterfall = true")
-			; mzinUtil.LogNotification("IsUnderWaterfall = true")
+			;mzinUtil.LogNotification("IsUnderWaterfall = true")
 		Return True
 		else
-			mzinUtil.LogNotification("A waterfall detected nearby")
-			mzinUtil.LogTrace("A waterfall detected nearby")
+			mzinUtil.LogNotification("There is a waterfall nearby")
+			mzinUtil.LogTrace("There is a waterfall nearby")
 			
 		EndIf
 	Else
 		mzinUtil.LogNotification("There is no waterfall to shower under")
 		mzinUtil.LogTrace("There is no waterfall to shower under")
 	EndIf
-	; 
-	; ===================================== HAZARDUSS - End edit ==============================================
-
-	; mzinUtil.LogNotification("IsUnderWaterfall = False")
-	; mzinUtil.LogTrace("IsUnderWaterfall = False")
-	; mzinUtil.LogMessageBox("IsUnderWaterfall = False")
 
 	Return False
 EndFunction
@@ -335,7 +321,7 @@ EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
 	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor) \
-	|| (Init.IsWadeInWaterInstalled && DirtyActor.HasMagicEffect(Game.GetFormFromFile(0x000D62, "WadeInWater.esp") as MagicEffect)))
+	|| (Init.IsWadeInWaterInstalled && DirtyActor.HasMagicEffect(Init.LokiWaterSlowdownEffect)))
 EndFunction
 
 Bool Function IsBathing(Actor DirtyActor)
@@ -383,44 +369,37 @@ EndFunction
 
 Bool Function IsTooShy(Actor akTarget)
 	If Menu.Shyness
-		If Game.GetModByName("SexLabAroused.esm") != 255
-			Faction ExhibitionistFact = Game.GetFormFromFile(0x0713DA, "SexLabAroused.esm") as Faction
-			If ExhibitionistFact != None
-				If akTarget.GetFactionRank(ExhibitionistFact) >= 0
-					Return False
-				EndIf
-			EndIf
+		If Init.IsSexlabArousedInstalled && akTarget.GetFactionRank(Init.SLAExhibitionistFaction) >= 0
+			Return False
 		EndIf
 		
 		mzinGawkers.Stop()
-		mzinGawkers.Start()
-		Utility.Wait(0.1)
-
-		Actor Gawker
-		Int i = 0 
-		While i < mzinGawkers.GetNumAliases()
-			Gawker = (mzinGawkers.GetNthAlias(i) as ReferenceAlias).GetReference() as Actor
-			If Gawker != None && Gawker != akTarget
-				If !IsGawkerSlave(Gawker)
-					If Gawker.HasLOS(PlayerRef)
-						DoShyMessage(akTarget, Gawker)
-						Return True
-					EndIf
-					If !akTarget.IsInInterior()
-						If akTarget.GetDistance(Gawker) < Menu.ShyDistance
+		if mzinGawkers.Start()
+			Int i = 0 
+			While i < mzinGawkers.GetNumAliases()
+				Actor Gawker = (mzinGawkers.GetNthAlias(i) as ReferenceAlias).GetReference() as Actor
+				If Gawker && Gawker != akTarget
+					If !IsGawkerSlave(Gawker)
+						If Gawker.HasLOS(PlayerRef)
 							DoShyMessage(akTarget, Gawker)
+							mzinGawkers.Stop()
 							Return True
+						EndIf
+						If !akTarget.IsInInterior()
+							If akTarget.GetDistance(Gawker) < Menu.ShyDistance
+								DoShyMessage(akTarget, Gawker)
+								mzinGawkers.Stop()
+								Return True
+							EndIf
 						EndIf
 					EndIf
 				EndIf
-			EndIf
-			i += 1
-		EndWhile
-		Return False
-	
-	Else
-		Return False
+				i += 1
+			EndWhile
+		EndIf
+		mzinGawkers.Stop()
 	EndIf
+	Return False
 EndFunction
 
 Function DoShyMessage(Actor akTarget, Actor Gawker)
