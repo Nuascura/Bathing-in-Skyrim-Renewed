@@ -1,8 +1,9 @@
 Scriptname mzinInterfaceOCum
 
-Function OCClearCum(Actor akTarget) Global
-    if Game.GetModByName("OCum.esp") != 255
-        OCumScript kOCumScript = Quest.GetQuest("OCumQuest") as OCumScript
-        kOCumScript.OnAnimationEvent(akTarget, "SoundPlay.FSTSwimSwim")
+Function OCClearCum(OCumScript OCA_API, Actor akTarget, Bool abAllow) Global
+    if !abAllow
+       return
     endIf
+    
+    OCA_API.OnAnimationEvent(akTarget, "SoundPlay.FSTSwimSwim")
 EndFunction

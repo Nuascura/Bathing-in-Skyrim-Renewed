@@ -56,7 +56,6 @@ Function RegForEvents()
 EndFunction
 
 Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool abDoShower, Bool abDoAnimate = false, Bool abFullClean = false, Bool abDoSoap = false)
-	;mzinUtil.LogMessageBox("Receive event")
 	If akDirtyActor as Actor
 		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, abDoShower, abDoAnimate, abFullClean, abDoSoap)
 	Else
@@ -102,7 +101,7 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 	If WashProp == None
 		WashProp = TryFindWashProp(DirtyActor)
 	EndIf
-	If WashProp && !IsInCommmonRestriction(DirtyActor)
+	If !IsInCommmonRestriction(DirtyActor)
 		If Shower
 			If IsUnderWaterfall(DirtyActor)
 				WashActor(DirtyActor, WashProp, DoShower = true)
@@ -128,7 +127,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	If DirtyActorIsPlayer
 		UnregisterForAllKeys()
 		PlayerAlias.RunCycleHelper()
-		mzinInterfaceFrostfall.MakeWet(1000.0)
+		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0, Init.IsFrostFallInstalled)
 		OlUtil.SendBathePlayerModEvent()
 	EndIf
 
@@ -147,6 +146,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 					mzinUtil.GameMessage(BathingWithSoapMessage)
 				EndIf
 			EndIf
+			StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
 		Else
 			if DoShower
 				DirtyActor.AddSpell(PlayShowerAnimationWithoutSoap, False)
@@ -160,7 +160,6 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 				EndIf
 			EndIf
 		EndIf
-		StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
 	else
 		If DoSoap
 			GetSoapy(DirtyActor)
@@ -173,9 +172,9 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	DirtyActor.ClearExtraArrows()
 	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
 	SexlabInt.SlClearCum(DirtyActor)
-	mzinInterfacePaf.ClearPafDirt(DirtyActor)
-	mzinInterfaceOCum.OCClearCum(DirtyActor)
-	mzinInterfaceFadeTats.FadeTats(DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
+	mzinInterfacePaf.ClearPafDirt(Init.PAF_API, DirtyActor, Init.IsPAFInstalled)
+	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor, Init.IsOCumInstalled)
+	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult, Init.IsFadeTattoosInstalled)
 	
 	SendCleanDirtEvent(DirtyActor, UsedSoap)
 

@@ -1,7 +1,7 @@
 Scriptname mzinInterfacePaf
 
-Function ClearPafDirt(Actor DirtyActor) Global
-    if Game.GetModByName("PeeAndFart.esp") != 255
-        PAF_MainQuestScript.GetApi().Bathe(DirtyActor)
+Function ClearPafDirt(PAF_MainQuestScript PAF_API, Actor DirtyActor, Bool abAllow) Global
+    if abAllow
+        PAF_API.Bathe(DirtyActor)
     endIf
 EndFunction

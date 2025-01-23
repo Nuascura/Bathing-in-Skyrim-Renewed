@@ -14,7 +14,14 @@ Formlist Property mzinDirtyActorsList Auto
 
 Event OnPlayerLoadGame() ; run whenever possible
 	mzinUtil.LogTrace("PlayerLoadGame ============================")
-	Init.DoSoftCheck()
+	if !Init.DoHardCheck()
+		mzinUtil.LogNotification("Crucial dependencies are missing. Check Auxiliary when initialized.", true)
+	endIf
+	int iSoftCheck = Init.DoSoftCheck()
+	if mzinUtil.Menu.cachedSoftCheck != iSoftCheck
+		Init.SetInternalVariables()
+		mzinUtil.Menu.cachedSoftCheck = iSoftCheck
+	endIf
 	
 	RegisterForModEvent("BiS_ForbidBathing", "OnBiS_ForbidBathing")
 	RegisterForModEvent("BiS_PermitBathing", "OnBiS_PermitBathing")
@@ -23,7 +30,6 @@ Event OnPlayerLoadGame() ; run whenever possible
 EndEvent
 
 Event OnBiS_ForbidBathing(Form Sender, Form ForbiddenActor, String ForbiddenString)
-	;mzinUtil.LogMessagebox("Forbidding")
 	If StorageUtil.FormListFind(ForbiddenActor, "BiS_ForbiddenSenders", Sender) == -1
 		StorageUtil.FormListAdd(none, "BiS_ForbiddenActors", ForbiddenActor, allowDuplicate = false)
 		StorageUtil.FormListAdd(ForbiddenActor, "BiS_ForbiddenSenders", Sender, allowDuplicate = false)
@@ -57,24 +63,7 @@ Function CheckDirt(Actor akTarget)
 	If akTarget.HasMagicEffect(mzinDirtinessTier2Effect) || akTarget.HasMagicEffect(mzinDirtinessTier3Effect)
 		mzinUtil.LogTrace("Adding dirt to: " + akTarget.GetBaseObject().GetName())
 		OlUtil.ApplyDirt(akTarget, StorageUtil.GetFloatValue(akTarget, "Mzin_ActorDirtiness", 1.0))
-	;ElseIf akTarget.HasMagicEffect(mzinDirtinessTier3Effect)
-	;	mzinUtil.LogTrace("Adding filth to: " + akTarget.GetBaseObject().GetName())
-	;	OlUtil.ApplyDirt(akTarget, "FilthFX.dds",  StorageUtil.GetFloatValue(akTarget, "Mzin_ActorDirtiness", 1.0))
 	Else
 		mzinUtil.LogTrace("Actor is clean: " + akTarget.GetBaseObject().GetName())
 	EndIf
 EndFunction
-;/
-Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
-	If akBaseObject == Game.GetFormFromFile(0x1d4ec, "Skyrim.esm")
-		
-		 int handle = ModEvent.Create("BiS_ForbidBathing")
-		if (handle)
-			ModEvent.PushForm(handle, self.GetOwningQuest())
-			ModEvent.PushForm(handle, Game.GetPlayer())
-			ModEvent.PushString(handle, "Unh-unh-uh, you didn't say the magic word")
-			ModEvent.Send(handle)
-		endIf
-	EndIf
-EndEvent
-/;
