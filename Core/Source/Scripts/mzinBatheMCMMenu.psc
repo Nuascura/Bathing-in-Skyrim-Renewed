@@ -125,6 +125,8 @@ String[] AnimCustomTierCondArray
 Int Property AnimCustomTierCond = 1 Auto
 Int Property AnimCustomTierCondFollowers = 1 Auto
 
+Int Property cachedSoftCheck = 0 Auto Hidden
+
 ; constants
 String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
@@ -143,12 +145,14 @@ Event OnConfigOpen()
 		Pages = new String[1]
 		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
 	elseIf (BathingInSkyrimEnabled.GetValue() as bool)
-		Pages = new String[5]
+		Pages = new String[7]
 		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
 		Pages[1] = "$BIS_PAGE_SETTINGS"
 		Pages[2] = "$BIS_PAGE_ANIMATIONS"
 		Pages[3] = "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
 		Pages[4] = "$BIS_PAGE_TRACKED_ACTORS"
+		Pages[5] = "$BIS_PAGE_INTEGRATIONS"
+		Pages[6] = "$BIS_PAGE_AUXILIARY"
 	endIf
 EndEvent
 Function VersionUpdate()
@@ -264,6 +268,8 @@ Event OnVersionUpdate(Int Version)
 	endIf
 EndEvent
 Event OnPageReset(String Page)
+	UnloadCustomContent()
+	SetCursorFillMode(TOP_TO_BOTTOM)
 	If !(BathingInSkyrimEnabled.GetValue() as bool) || (Page == "$BIS_PAGE_SYSTEM_OVERVIEW")
 		DisplaySystemOverviewPage()
 	ELseIf Page == ""
@@ -276,6 +282,10 @@ Event OnPageReset(String Page)
 		DisplayAnimationsPageFollowers()
 	ElseIf Page == "$BIS_PAGE_TRACKED_ACTORS"
 		DisplayTrackedActorsPage()
+	ElseIf Page == "$BIS_PAGE_INTEGRATIONS"
+		DisplayIntegrationsPage()
+	ElseIf Page == "$BIS_PAGE_AUXILIARY"
+		DisplayAuxiliaryPage()
 	EndIf		
 EndEvent
 Event OnConfigClose()
@@ -284,12 +294,9 @@ EndEvent
 
 ; display pages
 Function DisplaySplashPage()
-	UnloadCustomContent()
 	LoadCustomContent("Bathing in Skyrim.dds", 56, 63)
 EndFunction
 Function DisplaySystemOverviewPage()
-	UnloadCustomContent()
-	SetCursorFillMode(TOP_TO_BOTTOM)
 	AddHeaderOption("$BIS_HEADER_SETUP")
 	ModStateOID_T = AddTextOption("$BIS_L_MODSTATE", GetModState())
 	AddEmptyOption()
@@ -300,12 +307,13 @@ Function DisplaySystemOverviewPage()
 	AddHeaderOption("")
 	AddTextOption("$BIS_L_MODVERSION", GetModVersion(), OPTION_FLAG_DISABLED)
 	AddTextOption("$BIS_L_VERSION", GetVersion(), OPTION_FLAG_DISABLED)
+	if init.DoHardCheck()
+		AddTextOption("$BIS_L_DEPENDENCY_CHECK", "$BIS_TXT_SAFE", OPTION_FLAG_DISABLED)
+	else
+		AddTextOption("$BIS_L_DEPENDENCY_CHECK", "$BIS_TXT_FAILED", OPTION_FLAG_DISABLED)
+	endIf
 EndFunction
 Function DisplayAnimationsPage()
-	UnloadCustomContent()
-	
-	SetCursorFillMode(TOP_TO_BOTTOM)
-		
 	AddHeaderOption("$BIS_HEADER_PLAYER_SETTINGS")
 	BathingAnimationStyleMenuID = AddMenuOption("$BIS_L_ANIM_STYLE", BathingAnimationStyleArray[BathingAnimationStyle.GetValue() As Int])
 	ShoweringAnimationStyleMenuID = AddMenuOption("$BIS_L_SHOWER_OVERRIDE", ShoweringAnimationStyleArray[ShoweringAnimationStyle.GetValue() As Int], (!(BathingAnimationStyle.GetValue() as bool)) as int)
@@ -380,10 +388,6 @@ Function DisplayAnimationsPage()
 	UndressArmorSlotToggleIDs[31] = AddToggleOption("$BIS_L_SLOT_61", UndressArmorSlotArray[31])
 EndFunction
 Function DisplayAnimationsPageFollowers()
-	UnloadCustomContent()
-	
-	SetCursorFillMode(TOP_TO_BOTTOM)
-		
 	AddHeaderOption("$BIS_HEADER_FOLLOWER_SETTINGS")
 	BathingAnimationStyleMenuIDFollowers = AddMenuOption("$BIS_L_ANIM_STYLE", BathingAnimationStyleArray[BathingAnimationStyleFollowers.GetValue() As Int])
 	ShoweringAnimationStyleMenuIDFollowers = AddMenuOption("$BIS_L_SHOWER_OVERRIDE", ShoweringAnimationStyleArray[ShoweringAnimationStyleFollowers.GetValue() As Int], (!(BathingAnimationStyleFollowers.GetValue() as bool)) as int)
@@ -458,11 +462,6 @@ Function DisplayAnimationsPageFollowers()
 EndFunction
 
 Function DisplaySettingsPage()
-
-	UnloadCustomContent()
-	
-	SetCursorFillMode(TOP_TO_BOTTOM)
-	
 	AddHeaderOption("$BIS_HEADER_GENERAL")
 
 	DialogTopicEnableToggleID = AddToggleOption("$BIS_L_ENABLED_DIALOG_TOPIC", DialogTopicEnabled.GetValue() As Bool)
@@ -473,24 +472,11 @@ Function DisplaySettingsPage()
 	CheckStatusKeyMapID = AddKeyMapOption("$BIS_L_STATUS_HOTKEY", CheckStatusKeyCode.GetValue() As Int)
 	BatheKeyMapID = AddKeyMapOption("$BIS_L_BATHE_HOTKEY", BatheKeyCode.GetValue() As Int)
 	ShowerKeyMapID = AddKeyMapOption("$BIS_L_SHOWER_HOTKEY", ShowerKeyCode.GetValue() As Int)
-
-	If Game.GetModByName("FadeTattoos.esp") != 255
-		AddHeaderOption("$BIS_HEADER_FADE_TATTOOS")
-		FadeTatsFadeTimeOID_S = AddSliderOption("$BIS_L_FADETATSADVANCE", FadeTatsFadeTime, DisplayFormatDecimal)
-		FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DisplayFormatDecimal)
-	EndIf
-	
-	If FadeDirtSex
-		SetCursorPosition(36)
-		AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
-		AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "")
-		AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "")
-		AddTextOption("$BIS_L_FADEDIRT_CREATURENV_{" + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "}", "")
-		AddTextOption("$BIS_L_FADEDIRT_CREATUREV_{" + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "}", "")
-	EndIf
+	AddHeaderOption("$BIS_HEADER_MISC")
+	ShynessToggleID = AddToggleOption("$BIS_L_SHYNESSTOGGLE", Shyness)
+	ShyDistanceOID_S = AddSliderOption("$BIS_L_SHYDISTANCE", ShyDistance, DisplayFormatDecimal)
 	
 	SetCursorPosition(1)
-
 	AddHeaderOption("$BIS_HEADER_DIRT_RATE")
 	DirtinessPerHourPlayerHouseSliderID = AddSliderOption("$BIS_L_IN_PLAYERHOUSE", DirtinessPerHourPlayerHouse.GetValue() * 100, DisplayFormatPercentage)
 	DirtinessPerHourSettlementSliderID = AddSliderOption("$BIS_L_IN_SETTLEMENTS", DirtinessPerHourSettlement.GetValue() * 100, DisplayFormatPercentage)
@@ -500,8 +486,6 @@ Function DisplaySettingsPage()
 	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	
-	SetCursorPosition(19)
 	AddHeaderOption("$BIS_HEADER_OVERLAYS")
 	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY_{}")
 	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DisplayFormatPercentage)
@@ -511,34 +495,32 @@ Function DisplaySettingsPage()
 	RedetectDirtSetsOID_T = AddTextOption("$BIS_L_OVERLAYREDETECT", "")
 	RemoveAllOverlaysOID_T = AddTextOption("$BIS_L_OVERLAYREMOVEALL", "")
 	OverlayProgressOID_T = AddTextOption("", "$BIS_L_INACTIVE")
-	
+EndFunction
+Function DisplayIntegrationsPage()
 	If Init.IsSexlabInstalled
 		AddHeaderOption("$BIS_HEADER_SEX")
 		DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
 		VictimMultOID_S = AddSliderOption("$BIS_L_VICTIMMULT", VictimMult, DisplayFormatDecimal)
 		FadeDirtSexToggleID = AddToggleOption("$BIS_L_FADEDIRTSEX", FadeDirtSex)
-		
-		If FadeDirtSex
-			SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DisplayFormatDecimal)
-			SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DisplayFormatDecimal)
-		Else
-			SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DisplayFormatDecimal, OPTION_FLAG_DISABLED)
-			SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DisplayFormatDecimal, OPTION_FLAG_DISABLED)
-		EndIf
+		SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DisplayFormatDecimal, (!FadeDirtSex) as int)
+		SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DisplayFormatDecimal, (!FadeDirtSex) as int)
+	EndIf
+	If Init.IsFadeTattoosInstalled
+		AddHeaderOption("$BIS_HEADER_FADE_TATTOOS")
+		FadeTatsFadeTimeOID_S = AddSliderOption("$BIS_L_FADETATSADVANCE", FadeTatsFadeTime, DisplayFormatDecimal)
+		FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DisplayFormatDecimal)
 	EndIf
 
-	AddHeaderOption("$BIS_HEADER_MISC")
-	ShynessToggleID = AddToggleOption("$BIS_L_SHYNESSTOGGLE", Shyness)
-	ShyDistanceOID_S = AddSliderOption("$BIS_L_SHYDISTANCE", ShyDistance, DisplayFormatDecimal)
-	
-	AddHeaderOption("$BIS_HEADER_DEBUG")
-	UnForbidOID_T = AddTextOption("$BIS_L_UNFORBID", "")
-	
+	If Init.IsSexlabInstalled && FadeDirtSex
+		SetCursorPosition(1)
+		AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
+		AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+		AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+		AddTextOption("$BIS_L_FADEDIRT_CREATURENV_{" + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+		AddTextOption("$BIS_L_FADEDIRT_CREATUREV_{" + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+	EndIf
 EndFunction
 Function DisplayTrackedActorsPage()
-	UnloadCustomContent()
-	SetCursorFillMode(TOP_TO_BOTTOM)
-
 	Int TrackedActorsCount = DirtyActors.GetSize()
 	If TrackedActorsCount > 128
 		TrackedActorsCount = 128
@@ -565,6 +547,49 @@ Function DisplayTrackedActorsPage()
 		TrackedActorsToggleIDs[Index] = AddTextOption(DirtyActor.GetActorBase().GetName(), DirtinessString, OPTION_FLAG_NONE)
 	EndWhile
 EndFunction
+Function DisplayAuxiliaryPage()
+	AddHeaderOption("$BIS_HEADER_DEBUG")
+	UnForbidOID_T = AddTextOption("$BIS_L_UNFORBID", "")
+	
+	SetCursorPosition(1)
+
+	AddHeaderOption("$BIS_HEADER_HARD_DEPENDENCIES")
+	AddTextOption("$BIS_L_PAPYUTIL", init.PAPYUTILstate)
+	AddTextOption("$BIS_L_PO3PE", init.PO3PEstate)
+	AddTextOption("$BIS_L_SKEE64", init.SKEE64state)
+	AddTextOption("$BIS_L_SPE", init.SPEstate)
+	if cachedSoftCheck
+		AddEmptyOption()
+		AddHeaderOption("$BIS_HEADER_AVAILABLE_INTEGRATIONS")
+		if init.IsDdsInstalled
+			AddTextOption("$BIS_L_Dds", "")
+		endIf
+		if init.IsFadeTattoosInstalled
+			AddTextOption("$BIS_L_FadeTattoos", "")
+		endIf
+		if init.IsFrostFallInstalled
+			AddTextOption("$BIS_L_FrostFall", "")
+		endIf
+		if init.IsOCumInstalled
+			AddTextOption("$BIS_L_OCum", "")
+		endIf
+		if init.IsPAFInstalled
+			AddTextOption("$BIS_L_PAF", "")
+		endIf
+		if init.IsSexlabInstalled
+			AddTextOption("$BIS_L_Sexlab", "")
+		endIf
+		if init.IsSexlabArousedInstalled
+			AddTextOption("$BIS_L_SexlabAroused", "")
+		endIf
+		if init.IsWadeInWaterInstalled
+			AddTextOption("$BIS_L_WadeInWater", "")
+		endIf
+		if init.IsZazInstalled
+			AddTextOption("$BIS_L_Zaz", "")
+		endIf
+	endIf
+EndFunction
 
 ; OnOptionDefault
 Event OnOptionDefault(Int OptionID)
@@ -576,6 +601,10 @@ Event OnOptionDefault(Int OptionID)
 		HandleOnOptionDefaultAnimationsPageFollowers(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_TRACKED_ACTORS"
 		HandleOnOptionDefaultTrackedActorsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_INTEGRATIONS"
+		HandleOnOptionDefaultIntegrationsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_AUXILIARY"
+		HandleOnOptionDefaultAuxiliaryPage(OptionID)
 	EndIf
 EndEvent
 Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
@@ -714,9 +743,6 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == WaterRestrictionEnableToggleID
 		WaterRestrictionEnabled.SetValue(1)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
-	ElseIf OptionID == FadeDirtSexToggleID
-		FadeDirtSex = true
-		SetToggleOptionValue(OptionID, FadeDirtSex)
 	ElseIf OptionID == ShynessToggleID
 		Shyness = true
 		SetToggleOptionValue(OptionID, Shyness)
@@ -745,12 +771,7 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(0.98)
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)	
-	ElseIf OptionID == SexIntervalDirtOID_S
-		SexIntervalDirt = 35.0
-		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)
-	ElseIf OptionID == SexIntervalOID_S
-		SexIntervalDirt = 1.0
-		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)	
+	
 	; menus
 	ElseIf OptionID == AutomateFollowerBathingMenuID
 		AutomateFollowerBathing.SetValue(1)
@@ -758,6 +779,20 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultTrackedActorsPage(Int OptionID)
+EndFunction
+Function HandleOnOptionDefaultIntegrationsPage(Int OptionID)
+	If OptionID == FadeDirtSexToggleID
+		FadeDirtSex = true
+		SetToggleOptionValue(OptionID, FadeDirtSex)
+	ElseIf OptionID == SexIntervalDirtOID_S
+		SexIntervalDirt = 35.0
+		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)
+	ElseIf OptionID == SexIntervalOID_S
+		SexIntervalDirt = 1.0
+		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)
+	EndIf
+EndFunction
+Function HandleOnOptionDefaultAuxiliaryPage(Int OptionID)
 EndFunction
 
 ; OnOptionHighlight
@@ -772,6 +807,10 @@ Event OnOptionHighlight(Int OptionID)
 		HandleOnOptionHighlightAnimationsPageFollowers(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_TRACKED_ACTORS"
 		HandleOnOptionHighlightTrackedActorsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_INTEGRATIONS"
+		HandleOnOptionHighlightIntegrationsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_AUXILIARY"
+		HandleOnOptionHighlightAuxiliaryPage(OptionID)
 	EndIf	
 EndEvent
 Function HandleOnOptionHighlightAnimationsPage(Int OptionID)
@@ -882,10 +921,8 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_OVERLAYAPPLY")
 	ElseIf OptionId == StartingAlphaOID_S
 		SetInfoText("$BIS_DESC_OVERLAYALPHA")
-	ElseIf OptionId == DirtinessPerSexOID_S
-		SetInfoText("$BIS_DESC_DIRTPERSEX")
-	ElseIf OptionId == VictimMultOID_S
-		SetInfoText("$BIS_DESC_VICTIMMULT")
+	
+		
 	ElseIf OptionId == TexSetCountOID_T
 		SetInfoText("$BIS_DESC_OVERLAYTEXSETCOUNT")
 	ElseIf OptionId == RedetectDirtSetsOID_T
@@ -896,16 +933,7 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_PAPSETSAVE")
 	ElseIf OptionId == PapSetLoadOID_T
 		SetInfoText("$BIS_DESC_PAPSETLOAD")
-	ElseIf OptionId == FadeTatsFadeTimeOID_S
-		SetInfoText("$BIS_DESC_FADETATSADVANCE")
-	ElseIf OptionId == FadeTatsSoapMultOID_S
-		SetInfoText("$BIS_DESC_FADETATSMULT")
-	ElseIf OptionId == FadeDirtSexToggleID
-		SetInfoText("$BIS_DESC_FADEDIRTSEX")
-	ElseIf OptionId == SexIntervalDirtOID_S
-		SetInfoText("$BIS_DESC_SEXINTERVALDIRT")
-	ElseIf OptionId == SexIntervalOID_S
-		SetInfoText("$BIS_DESC_SEXINTERVAL")
+	
 	ElseIf OptionId == TimeToCleanOID_S
 		SetInfoText("$BIS_DESC_TIMETOCLEAN")
 	ElseIf OptionId == TimeToCleanIntervalOID_S
@@ -914,8 +942,24 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_SHYNESSTOGGLE")
 	ElseIf OptionId == ShyDistanceOID_S
 		SetInfoText("$BIS_DESC_SHYDISTANCE")
-	ElseIf OptionId == UnForbidOID_T
-		SetInfoText("$BIS_DESC_UNFORBID")
+	EndIf
+EndFunction
+Function HandleOnOptionHighlightIntegrationsPage(int OptionID)
+	If OptionId == DirtinessPerSexOID_S
+		SetInfoText("$BIS_DESC_DIRTPERSEX")
+	ElseIf OptionId == VictimMultOID_S
+		SetInfoText("$BIS_DESC_VICTIMMULT")
+	ElseIf OptionId == FadeDirtSexToggleID
+		SetInfoText("$BIS_DESC_FADEDIRTSEX")
+	ElseIf OptionId == SexIntervalDirtOID_S
+		SetInfoText("$BIS_DESC_SEXINTERVALDIRT")
+	ElseIf OptionId == SexIntervalOID_S
+		SetInfoText("$BIS_DESC_SEXINTERVAL")
+
+	ElseIf OptionId == FadeTatsFadeTimeOID_S
+		SetInfoText("$BIS_DESC_FADETATSADVANCE")
+	ElseIf OptionId == FadeTatsSoapMultOID_S
+		SetInfoText("$BIS_DESC_FADETATSMULT")
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
@@ -923,6 +967,11 @@ Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
 	If Index >= 0
 		SetInfoText("$BIS_DESC_STOP_TRACKING_ACTOR")
 	EndIf
+EndFunction
+Function HandleOnOptionHighlightAuxiliaryPage(Int OptionID)
+	If OptionId == UnForbidOID_T
+		SetInfoText("$BIS_DESC_UNFORBID")
+	endIf
 EndFunction
 
 ; OnOptionKeyMapChange
@@ -963,6 +1012,10 @@ Event OnOptionSelect(Int OptionID)
 		HandleOnOptionSelectAnimationsPageFollowers(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_TRACKED_ACTORS"
 		HandleOnOptionSelectTrackedActorsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_INTEGRATIONS"
+		HandleOnOptionSelectIntegrationsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_AUXILIARY"
+		HandleOnOptionSelectAuxiliaryPage(OptionID)
 	EndIf	
 EndEvent
 Function HandleOnOptionSelectAnimationsPage(Int OptionID)
@@ -1046,18 +1099,17 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 		ForcePageReset()
 	ElseIf OptionID == RemoveAllOverlaysOID_T
 		RemoveAllOverlays()
-	ElseIf OptionID == FadeDirtSexToggleID
-		FadeDirtSex = !FadeDirtSex
-		SetToggleOptionValue(OptionID, FadeDirtSex)
-		ForcePageReset() 
 	ElseIf OptionID == ShynessToggleID
 		Shyness = !Shyness
 		SetToggleOptionValue(OptionID, Shyness)
-	ElseIf OptionID == UnForbidOID_T
-		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_WORKING", false)
-		UnForbidAllActor()
-		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_DONE", false)
 	EndIf	
+EndFunction
+Function HandleOnOptionSelectIntegrationsPage(Int OptionID)
+	If OptionID == FadeDirtSexToggleID
+		FadeDirtSex = !FadeDirtSex
+		SetToggleOptionValue(OptionID, FadeDirtSex)
+		ForcePageReset() 
+	EndIf
 EndFunction
 Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
 	Int Index = TrackedActorsToggleIDs.Find(OptionID)
@@ -1070,6 +1122,13 @@ Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
 			ForcePageReset()
 		EndIf
 	EndIf
+EndFunction
+Function HandleOnOptionSelectAuxiliaryPage(Int OptionID)
+	If OptionID == UnForbidOID_T
+		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_WORKING", false)
+		UnForbidAllActor()
+		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_DONE", false)
+	endif
 EndFunction
 
 ; OnOptionMenuAccept
@@ -1205,6 +1264,8 @@ Event OnOptionSliderAccept(Int OptionID, Float OptionValue)
 		HandleOnOptionSliderAcceptAnimationsPage(OptionID, OptionValue)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
 		HandleOnOptionSliderAcceptAnimationsPageFollowers(OptionID, OptionValue)
+	ElseIf CurrentPage == "$BIS_PAGE_INTEGRATIONS"
+		HandleOnOptionSliderAcceptIntegrationsPage(OptionID, OptionValue)
 	EndIf	
 EndEvent
 Function HandleOnOptionSliderAcceptAnimationsPage(Int OptionID, Float OptionValue)
@@ -1337,7 +1398,27 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		SliderValue = OptionValue
 		StartingAlpha = SliderValue / 100.0
 		UpdateAllActors()
-	ElseIf OptionID == DirtinessPerSexOID_S
+	ElseIf OptionID == TimeToCleanOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		TimeToClean = SliderValue
+	ElseIf OptionID == TimeToCleanIntervalOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		TimeToCleanInterval = SliderValue
+	ElseIf OptionID == ShyDistanceOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		ShyDistance = SliderValue as Int
+	EndIf
+	
+	SetSliderOptionValue(OptionID, OptionValue, DisplayFormat)
+EndFunction
+Function HandleOnOptionSliderAcceptIntegrationsPage(Int OptionID, Float OptionValue)
+	Float SliderValue = OptionValue
+	String DisplayFormat = DisplayFormatPercentage
+
+	If OptionID == DirtinessPerSexOID_S
 		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue
 		DirtinessPerSexActor = SliderValue / 100.0
@@ -1356,18 +1437,7 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		DisplayFormat = DisplayFormatDecimal
 		SliderValue = OptionValue
 		SexInterval = SliderValue
-	ElseIf OptionID == TimeToCleanOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SliderValue = OptionValue
-		TimeToClean = SliderValue
-	ElseIf OptionID == TimeToCleanIntervalOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SliderValue = OptionValue
-		TimeToCleanInterval = SliderValue
-	ElseIf OptionID == ShyDistanceOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SliderValue = OptionValue
-		ShyDistance = SliderValue as Int
+
 	ElseIf OptionID == FadeTatsFadeTimeOID_S
 		DisplayFormat = DisplayFormatDecimal
 		SliderValue = OptionValue
@@ -1377,7 +1447,7 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		SliderValue = OptionValue
 		FadeTatsSoapMult = SliderValue
 	EndIf
-	
+
 	SetSliderOptionValue(OptionID, OptionValue, DisplayFormat)
 EndFunction
 
@@ -1389,6 +1459,8 @@ Event OnOptionSliderOpen(Int OptionID)
 		HandleOnOptionSliderOpenAnimationsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
 		HandleOnOptionSliderOpenAnimationsPageFollowers(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_INTEGRATIONS"
+		HandleOnOptionSliderOpenIntegrationsPage(OptionID)
 	EndIf		
 EndEvent
 Function HandleOnOptionSliderOpenAnimationsPage(Int OptionID)
@@ -1562,7 +1634,6 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(98.0)
 		SliderValue = ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0)
-	
 	ElseIf OptionID == OverlayApplyAtOID_S
 		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
 		SetSliderDialogDefaultValue(40.0)
@@ -1575,7 +1646,35 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SliderValue = StartingAlpha * 100.0
-	ElseIf OptionID == DirtinessPerSexOID_S
+	ElseIf OptionID == TimeToCleanOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(10.0)
+		SetSliderDialogRange(0.0, 30.0)
+		SetSliderDialogInterval(0.5)
+		SliderValue = TimeToClean
+	ElseIf OptionID == TimeToCleanIntervalOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(0.25)
+		SetSliderDialogRange(0.01, 5.0)
+		SetSliderDialogInterval(0.01)
+		SliderValue = TimeToCleanInterval
+	ElseIf OptionID == ShyDistanceOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(2000.0)
+		SetSliderDialogRange(0.0, 6000.0)
+		SetSliderDialogInterval(200.0)
+		SliderValue = ShyDistance
+	EndIf
+	
+	; set slider value
+	SetSliderDialogStartValue(SliderValue)
+	SetSliderOptionValue(OptionID, SliderValue, DisplayFormat)
+EndFunction
+Function HandleOnOptionSliderOpenIntegrationsPage(int OptionID)
+	Float SliderValue = 0.0
+	String DisplayFormat = DisplayFormatPercentage
+
+	If OptionID == DirtinessPerSexOID_S
 		DisplayFormat = DisplayFormatPercentage
 		SetSliderDialogDefaultValue(4.0)
 		SetSliderDialogRange(0.0, 100.0)
@@ -1599,24 +1698,7 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogRange(0.5, 10.0)
 		SetSliderDialogInterval(0.5)
 		SliderValue = SexInterval
-	ElseIf OptionID == TimeToCleanOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SetSliderDialogDefaultValue(10.0)
-		SetSliderDialogRange(0.0, 30.0)
-		SetSliderDialogInterval(0.5)
-		SliderValue = TimeToClean
-	ElseIf OptionID == TimeToCleanIntervalOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SetSliderDialogDefaultValue(0.25)
-		SetSliderDialogRange(0.01, 5.0)
-		SetSliderDialogInterval(0.01)
-		SliderValue = TimeToCleanInterval
-	ElseIf OptionID == ShyDistanceOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SetSliderDialogDefaultValue(2000.0)
-		SetSliderDialogRange(0.0, 6000.0)
-		SetSliderDialogInterval(200.0)
-		SliderValue = ShyDistance
+
 	ElseIf OptionID == FadeTatsFadeTimeOID_S
 		DisplayFormat = DisplayFormatDecimal
 		SetSliderDialogDefaultValue(8.0)
@@ -1630,7 +1712,7 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogInterval(0.1)
 		SliderValue = FadeTatsSoapMult
 	EndIf
-	
+
 	; set slider value
 	SetSliderDialogStartValue(SliderValue)
 	SetSliderOptionValue(OptionID, SliderValue, DisplayFormat)
@@ -1639,7 +1721,9 @@ EndFunction
 ; helper functions
 Function EnableBathingInSkyrim()
 	Utility.Wait(1.0)
-	Init.OnInit()
+	Init.DoHardCheck()
+	cachedSoftCheck = Init.DoSoftCheck()
+	Init.SetInternalVariables()
 	TexUtil.UtilInit()
 	VersionUpdate()
 
