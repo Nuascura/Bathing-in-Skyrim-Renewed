@@ -132,7 +132,7 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.3.2"
+	return "2.3.3"
 EndFunction
 
 Int Function GetVersion()

@@ -1,9 +1,9 @@
 Scriptname mzinInterfaceOCum
 
-Function OCClearCum(OCumScript OCA_API, Actor akTarget, Bool abAllow) Global
+Function OCClearCum(Quest kOCumScript, Actor akTarget, Bool abAllow) Global
     if !abAllow
        return
     endIf
     
-    OCA_API.OnAnimationEvent(akTarget, "SoundPlay.FSTSwimSwim")
+    (kOCumScript as OCumScript).OnAnimationEvent(akTarget, "SoundPlay.FSTSwimSwim")
 EndFunction

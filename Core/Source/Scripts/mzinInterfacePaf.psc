@@ -1,7 +1,7 @@
 Scriptname mzinInterfacePaf
 
-Function ClearPafDirt(PAF_MainQuestScript PAF_API, Actor DirtyActor, Bool abAllow) Global
+Function ClearPafDirt(Quest kPAF_MainQuestScript, Actor DirtyActor, Bool abAllow) Global
     if abAllow
-        PAF_API.Bathe(DirtyActor)
+        (kPAF_MainQuestScript as PAF_MainQuestScript).Bathe(DirtyActor)
     endIf
 EndFunction

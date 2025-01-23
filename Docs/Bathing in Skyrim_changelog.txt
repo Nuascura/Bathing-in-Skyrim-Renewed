@@ -1,3 +1,10 @@
+2.3.3
+Primary
+- Fix: Excessive log errors when missing optional dependencies.
+- Remove: mzinAwardSoapBonus deprecated activemagiceffect script.
+
+
+
 2.3.2
 Primary
 - Add: Arrow / Ammo removal when bathing.

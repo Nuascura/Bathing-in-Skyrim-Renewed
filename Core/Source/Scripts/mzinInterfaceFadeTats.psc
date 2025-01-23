@@ -1,6 +1,6 @@
 Scriptname mzinInterfaceFadeTats
 
-Function FadeTats(FadeTattoos FadeTats_API, Actor Target, Bool UsedSoap, Float FadeTatsFadeTime, Float FadeTatsSoapMult, Bool abAllow) Global
+Function FadeTats(Quest kFadeTattoos, Actor Target, Bool UsedSoap, Float FadeTatsFadeTime, Float FadeTatsSoapMult, Bool abAllow) Global
     if !abAllow
         return
     endIf
@@ -56,7 +56,7 @@ Function FadeTats(FadeTattoos FadeTats_API, Actor Target, Bool UsedSoap, Float F
             
             i -= 1
         EndWhile
-        FadeTats_API.updateForTarget(Target, appliedMap)
+        (kFadeTattoos as fadeTattoos).updateForTarget(Target, appliedMap)
         
     EndIf
     JValue.release(appliedTattoos)

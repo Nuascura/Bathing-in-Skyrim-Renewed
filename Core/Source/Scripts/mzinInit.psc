@@ -24,9 +24,9 @@ Faction Property SLAExhibitionistFaction Auto Hidden
 
 MagicEffect Property LokiWaterSlowdownEffect Auto Hidden
 
-PAF_MainQuestScript Property PAF_API Auto Hidden
-OCumScript Property OCA_API Auto Hidden
-FadeTattoos Property FadeTats_API Auto Hidden
+Quest Property PAF_API Auto Hidden
+Quest Property OCA_API Auto Hidden
+Quest Property FadeTats_API Auto Hidden
 
 GlobalVariable Property FrostfallRunning_var Auto Hidden
 
@@ -160,13 +160,13 @@ Function SetInternalVariables()
 		zad_DeviousSuit = Game.GetFormFromFile(0x0002AFA3, "Devious Devices - Assets.esm") as Keyword
 	EndIf
 	If IsPAFInstalled
-		PAF_API = PAF_MainQuestScript.GetApi()
+		PAF_API = Quest.GetQuest("PAF_MainQuest") ;0x000012C8
 	EndIf
 	If IsOCumInstalled
-		OCA_API = Quest.GetQuest("OCumQuest") as OCumScript
+		OCA_API = Quest.GetQuest("OCumQuest")
 	EndIf
 	If IsFadeTattoosInstalled
-		FadeTats_API = Game.GetFormFromFile(0x000D62, "FadeTattoos.esp") as FadeTattoos
+		FadeTats_API = Quest.GetQuest("FadeTattoos_main") ;0x000D62
 	EndIf
 	If IsFrostFallInstalled
 		FrostfallRunning_var = Game.GetFormFromFile(0x06DCFB, "Frostfall.esp") as GlobalVariable

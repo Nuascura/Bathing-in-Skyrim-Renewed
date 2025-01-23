@@ -172,9 +172,9 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	DirtyActor.ClearExtraArrows()
 	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
 	SexlabInt.SlClearCum(DirtyActor)
-	mzinInterfacePaf.ClearPafDirt(Init.PAF_API, DirtyActor, Init.IsPAFInstalled)
+	mzinInterfacePaf.ClearPafDirt(Init.PAF_API as PAF_MainQuestScript, DirtyActor, Init.IsPAFInstalled)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor, Init.IsOCumInstalled)
-	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult, Init.IsFadeTattoosInstalled)
+	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API as fadeTattoos, DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult, Init.IsFadeTattoosInstalled)
 	
 	SendCleanDirtEvent(DirtyActor, UsedSoap)
 
