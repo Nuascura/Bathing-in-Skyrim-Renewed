@@ -497,6 +497,10 @@ Function DisplaySettingsPage()
 	OverlayProgressOID_T = AddTextOption("", "$BIS_L_INACTIVE")
 EndFunction
 Function DisplayIntegrationsPage()
+	if !Init.IsSexlabInstalled && !Init.IsFadeTattoosInstalled
+		AddTextOption("$BIS_TXT_EMPTY", "", OPTION_FLAG_DISABLED)
+	endIf
+
 	If Init.IsSexlabInstalled
 		AddHeaderOption("$BIS_HEADER_SEX")
 		DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
@@ -511,8 +515,8 @@ Function DisplayIntegrationsPage()
 		FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DisplayFormatDecimal)
 	EndIf
 
+	SetCursorPosition(1)
 	If Init.IsSexlabInstalled && FadeDirtSex
-		SetCursorPosition(1)
 		AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
 		AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
 		AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
