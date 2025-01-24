@@ -85,8 +85,16 @@ Int Function InitTexSets(int aiSex)
 	Return SetCount
 EndFunction
 
-String Function PickRandomDirtSet(int aiSex)
-	Return "\\mzin\\Bathe\\Set" + Utility.RandomInt(1, DirtSetCount[aiSex]) + "\\" + GetStringFromSex(aiSex) + "\\"
+String Function PickRandomDirtSet(int aiSex, bool abPlayer)
+	int iDefault = (1 + ((Menu.TexSetOverride && abPlayer) as int))
+	if DirtSetCount[aiSex] >= iDefault
+		if Menu.TexSetOverride && abPlayer
+			Return "\\mzin\\Bathe\\Set1\\" + GetStringFromSex(aiSex) + "\\"
+		endIf
+		return "\\mzin\\Bathe\\Set" + Utility.RandomInt(iDefault, DirtSetCount[aiSex]) + "\\" + GetStringFromSex(aiSex) + "\\"
+	else
+		return ""
+	endIf 
 EndFunction
 
 String Function GetStringFromSex(int aiSex)

@@ -7,29 +7,7 @@ mzinOverlayUtility Property OlUtil Auto
 mzinUtility Property mzinUtil Auto
 mzinInit Property Init Auto
 Quest Property mzinBatheFollowerDialogQuest Auto
-
 Formlist Property mzinDirtyActorsList Auto
-
-Int OverlayApplyAtOID_S
-Int StartingAlphaOID_S
-Int TexSetCountOID_T
-Int RedetectDirtSetsOID_T
-Int OverlayProgressOID_T
-Int DirtinessPerSexOID_S
-Int VictimMultOID_S
-Int RemoveAllOverlaysOID_T
-Int PapSetSaveOID_T
-Int PapSetLoadOID_T
-Int FadeTatsFadeTimeOID_S
-Int FadeTatsSoapMultOID_S
-Int SexIntervalDirtOID_S
-Int SexIntervalOID_S
-Int FadeDirtSexToggleID
-Int TimeToCleanOID_S
-Int TimeToCleanIntervalOID_S
-Int ShynessToggleID
-Int ShyDistanceOID_S
-Int UnForbidOID_T
 
 Bool IsConfigOpen = false
 Float Property FadeTatsFadeTime = 8.0 Auto Hidden
@@ -46,6 +24,7 @@ Float Property TimeToCleanInterval = 0.25 Auto Hidden
 Bool Property Shyness = True Auto Hidden
 Int Property ShyDistance = 2800 Auto Hidden
 Bool Property AutoPlayerTFC = False Auto Hidden
+Bool Property TexSetOverride = False Auto Hidden
 
 Float[] Property AnimCustomMSet Auto
 Float Property AnimCustomMSet1Freq = 0.00 Auto
@@ -205,7 +184,7 @@ Function VersionUpdate()
 EndFunction
 Function InternalUpdate()
 	VersionUpdate()
-	IntegrationUpdate()
+	CorrectInvalidSettings()
 EndFunction
 Function SetLocalArrays()
 	AnimCustomMSet[0] = AnimCustomMSet1Freq
@@ -491,6 +470,7 @@ Function DisplaySettingsPage()
 	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DisplayFormatPercentage)
 	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DisplayFormatDecimal)
 	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DisplayFormatDecimal)
+	TexSetOverrideID = AddTextOption("$BIS_L_OVERLAYTEXSETOVERRIDE", TexSetOverride)
 	TexSetCountOID_T = AddTextOption("$BIS_L_OVERLAYTEXSETCOUNT_{" + TexUtil.DirtSetCount[0] + "}{" + TexUtil.DirtSetCount[1] + "}", "")
 	RedetectDirtSetsOID_T = AddTextOption("$BIS_L_OVERLAYREDETECT", "")
 	RemoveAllOverlaysOID_T = AddTextOption("$BIS_L_OVERLAYREMOVEALL", "")
@@ -775,7 +755,10 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(0.98)
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)	
-	
+	; text
+	ElseIf OptionID == TexSetOverrideID
+		TexSetOverride = false
+		SetTextOptionValue(OptionID, TexSetOverride)
 	; menus
 	ElseIf OptionID == AutomateFollowerBathingMenuID
 		AutomateFollowerBathing.SetValue(1)
@@ -925,7 +908,8 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_OVERLAYAPPLY")
 	ElseIf OptionId == StartingAlphaOID_S
 		SetInfoText("$BIS_DESC_OVERLAYALPHA")
-	
+	ElseIf OptionID == TexSetOverrideID
+		SetInfoText("$BIS_DESC_TEXSETOVERRIDE")
 		
 	ElseIf OptionId == TexSetCountOID_T
 		SetInfoText("$BIS_DESC_OVERLAYTEXSETCOUNT")
@@ -1106,6 +1090,14 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 	ElseIf OptionID == ShynessToggleID
 		Shyness = !Shyness
 		SetToggleOptionValue(OptionID, Shyness)
+	ElseIf OptionID == TexSetOverrideID
+		if !TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
+			TexSetOverride = false
+			ShowMessage("$BIS_MSG_TEXSETOVERRIDE_WARN", false)
+		else
+			TexSetOverride = !TexSetOverride
+		endIf
+		SetTextOptionValue(OptionID, TexSetOverride)
 	EndIf	
 EndFunction
 Function HandleOnOptionSelectIntegrationsPage(Int OptionID)
@@ -1899,6 +1891,7 @@ Bool Function SavePapyrusSettings()
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex", FadeDirtSex as Int)
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "Shyness", Shyness as Int)
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AutoPlayerTFC", AutoPlayerTFC as Int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "TexSetOverride", TexSetOverride as Int)
 
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime", FadeTatsFadeTime)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult", FadeTatsSoapMult)
@@ -1990,6 +1983,7 @@ Bool Function LoadPapyrusSettings()
 	FadeDirtSex = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex")
 	Shyness = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "Shyness")
 	AutoPlayerTFC = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AutoPlayerTFC")
+	TexSetOverride = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "TexSetOverride")
 
 	FadeTatsFadeTime = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime")
 	FadeTatsSoapMult = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult")
@@ -1997,7 +1991,7 @@ Bool Function LoadPapyrusSettings()
 	SetLocalArrays()
 	BatheQuest.RegisterHotKeys()
 
-	IntegrationUpdate()
+	CorrectInvalidSettings()
 	
 	ShowMessage("$BIS_MSG_COMPLETED_LOAD", False)
 	return true
@@ -2022,7 +2016,7 @@ Function UnForbidAllActor()
 	StorageUtil.FormListClear(none, "BiS_ForbiddenActors")
 EndFunction
 
-Function IntegrationUpdate()
+Function CorrectInvalidSettings()
 	float fDefault = 0.0
 	if !Init.IsMalignisAnimInstalled
 		AnimCustomFSet3Freq = fDefault
@@ -2030,9 +2024,16 @@ Function IntegrationUpdate()
 		AnimCustomFSet[2] = fDefault
 		AnimCustomFSetFollowers[2] = fDefault
 	endIf
+	if TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
+		TexSetOverride = false
+	endIf
 EndFunction
 
 ; ---------- MCM Internal Variables ----------
+
+; menu - System Overview
+Int PapSetSaveOID_T
+Int PapSetLoadOID_T
 
 ; menu - Settings
 Int ModStateOID_T
@@ -2050,6 +2051,17 @@ Int DirtinessThresholdTier3SliderID
 Int CheckStatusKeyMapID
 Int BatheKeyMapID
 Int ShowerKeyMapID
+Int OverlayApplyAtOID_S
+Int StartingAlphaOID_S
+Int TexSetCountOID_T
+Int RedetectDirtSetsOID_T
+Int OverlayProgressOID_T
+Int RemoveAllOverlaysOID_T
+Int TexSetOverrideID
+Int ShynessToggleID
+Int ShyDistanceOID_S
+Int TimeToCleanOID_S
+Int TimeToCleanIntervalOID_S
 
 ; menu - Animations - Left
 Int BathingAnimationStyleMenuID
@@ -2090,5 +2102,17 @@ Int[] UndressArmorSlotToggleIDsFollowers
 
 ; menu - Tracked NPCs
 Int[] TrackedActorsToggleIDs
+
+; menu - Integrations
+Int FadeTatsFadeTimeOID_S
+Int FadeTatsSoapMultOID_S
+Int DirtinessPerSexOID_S
+Int VictimMultOID_S
+Int SexIntervalDirtOID_S
+Int SexIntervalOID_S
+Int FadeDirtSexToggleID
+
+; menu - Auxiliary
+Int UnForbidOID_T
 
 ; --------------------------------------------
