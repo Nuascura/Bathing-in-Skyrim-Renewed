@@ -100,7 +100,7 @@ Int Function DoSoftCheck()
 	EndIf
 
 	IsWadeInWaterInstalled = false
-	If Game.GetModByName("WadeInWater.esp") != 255
+	If Game.GetModByName("WadeInWater.esp") != 255 || Game.GetModByName("SinkOrSwim.esp") != 255
 		IsWadeInWaterInstalled = true
 		i += 1
 	EndIf
@@ -147,7 +147,11 @@ Function SetInternalVariables()
 	KeywordIgnoreItem[4] = Keyword.GetKeyword("SexLabNoStrip")
 
 	If IsWadeInWaterInstalled
-		LokiWaterSlowdownEffect = Game.GetFormFromFile(0x000D62, "WadeInWater.esp") as MagicEffect
+		If Game.GetModByName("WadeInWater.esp") != 255
+			LokiWaterSlowdownEffect = Game.GetFormFromFile(0x000D62, "WadeInWater.esp") as MagicEffect
+		ElseIf Game.GetModByName("SinkOrSwim.esp") != 255
+			LokiWaterSlowdownEffect = Game.GetFormFromFile(0x000D62, "SinkOrSwim.esp") as MagicEffect
+		EndIf
 	EndIf
 	If IsZazInstalled
 		ZazSlaveFaction = Game.GetFormFromFile(0x000096AE, "ZaZAnimationPack.esm") as Faction
@@ -160,10 +164,10 @@ Function SetInternalVariables()
 		zad_DeviousSuit = Game.GetFormFromFile(0x0002AFA3, "Devious Devices - Assets.esm") as Keyword
 	EndIf
 	If IsPAFInstalled
-		PAF_API = Quest.GetQuest("PAF_MainQuest") ;0x000012C8
+		PAF_API = Quest.GetQuest("PAF_MainQuest") ;0x0012C8
 	EndIf
 	If IsOCumInstalled
-		OCA_API = Quest.GetQuest("OCumQuest")
+		OCA_API = Quest.GetQuest("OCumQuest") ;0x001800
 	EndIf
 	If IsFadeTattoosInstalled
 		FadeTats_API = Quest.GetQuest("FadeTattoos_main") ;0x000D62

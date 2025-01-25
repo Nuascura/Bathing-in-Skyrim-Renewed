@@ -324,7 +324,7 @@ Bool Function IsInWater(Actor DirtyActor)
 EndFunction
 
 Bool Function IsInInvalidCondition(Actor DirtyActor)
-	return DirtyActor.IsSwimming() || DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
+	return DirtyActor.IsSwimming() || DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor)
 EndFunction
 
 Bool Function IsDeviceBlocked(Actor akTarget)
