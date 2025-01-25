@@ -315,7 +315,7 @@ Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
 EndFunction
 
 Bool Function IsInCommmonRestriction(Actor DirtyActor)
-	return (IsDeviceBlocked(DirtyActor) || !IsPermitted(DirtyActor) || IsTooShy(DirtyActor) || DirtyActor.IsSwimming() || IsBathing(DirtyActor))
+	return (IsDeviceBlocked(DirtyActor) || !IsPermitted(DirtyActor) || IsTooShy(DirtyActor) || IsInInvalidCondition(DirtyActor))
 EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
@@ -323,24 +323,25 @@ Bool Function IsInWater(Actor DirtyActor)
 	|| (Init.IsWadeInWaterInstalled && DirtyActor.HasMagicEffect(Init.LokiWaterSlowdownEffect)))
 EndFunction
 
-Bool Function IsBathing(Actor DirtyActor)
-	return DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
+Bool Function IsInInvalidCondition(Actor DirtyActor)
+	return DirtyActor.IsSwimming() || DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
 EndFunction
 
 Bool Function IsDeviceBlocked(Actor akTarget)
 	If Init.IsDdsInstalled
 		If akTarget.WornHasKeyword(Init.zad_DeviousHeavyBondage)
-			mzinUtil.LogNotification("You can't wash yourself with your hands tied")
+			if akTarget == PlayerRef
+				mzinUtil.LogNotification("You can't wash yourself with your hands tied")
+			endIf
 			Return True
 		ElseIf akTarget.WornHasKeyword(Init.zad_DeviousSuit)
-			mzinUtil.LogNotification("You can't wash yourself while wearing this suit")
+			if akTarget == PlayerRef
+				mzinUtil.LogNotification("You can't wash yourself while wearing this suit")
+			endIf
 			Return True
-		Else
-			Return False
 		EndIf
-	Else
-		Return False
 	EndIf
+	Return False
 EndFunction
 
 Bool Function IsPermitted(Actor akTarget)

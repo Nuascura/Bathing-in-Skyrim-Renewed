@@ -1,6 +1,9 @@
 ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 { this script displays the MCM menu for mod configuration }
 
+Bool IsConfigOpen = false
+Int Property ScriptVersion = 16 AutoReadOnly
+
 ; Modified
 mzinTextureUtility Property TexUtil Auto
 mzinOverlayUtility Property OlUtil Auto
@@ -8,8 +11,8 @@ mzinUtility Property mzinUtil Auto
 mzinInit Property Init Auto
 Quest Property mzinBatheFollowerDialogQuest Auto
 Formlist Property mzinDirtyActorsList Auto
+FormList Property GetDirtyOverTimeSpellList Auto
 
-Bool IsConfigOpen = false
 Float Property FadeTatsFadeTime = 8.0 Auto Hidden
 Float Property FadeTatsSoapMult = 2.0 Auto Hidden
 Float Property DirtinessPerSexActor = 0.04 Auto Hidden
@@ -25,6 +28,9 @@ Bool Property Shyness = True Auto Hidden
 Int Property ShyDistance = 2800 Auto Hidden
 Bool Property AutoPlayerTFC = False Auto Hidden
 Bool Property TexSetOverride = False Auto Hidden
+Bool Property GameMessage = True Auto Hidden
+Bool Property LogNotification = True Auto Hidden
+Bool Property LogTrace = False Auto Hidden
 
 Float[] Property AnimCustomMSet Auto
 Float Property AnimCustomMSet1Freq = 0.00 Auto
@@ -39,13 +45,8 @@ Float Property AnimCustomFSet1FreqFollowers = 0.00 Auto
 Float Property AnimCustomFSet2FreqFollowers = 0.00 Auto
 Float Property AnimCustomFSet3FreqFollowers = 0.00 Auto
 
-;  Modified
-Int Property ScriptVersion = 16 AutoReadOnly
-
 ; references
 Actor Property PlayerRef Auto
-
-FormList Property GetDirtyOverTimeSpellList Auto
 
 ; toggle values
 GlobalVariable Property BathingInSkyrimEnabled Auto
@@ -195,30 +196,10 @@ Function SetLocalArrays()
 	AnimCustomFSetFollowers[0] = AnimCustomFSet1FreqFollowers
 	AnimCustomFSetFollowers[1] = AnimCustomFSet2FreqFollowers
 	AnimCustomFSetFollowers[2] = AnimCustomFSet3FreqFollowers
-	UndressArmorSlotArray = RetrieveSlotState(ArmorSlotArray, UndressArmorSlotArray)
-	ArmorSlotArray = RenewSlotState(ArmorSlotArray, UndressArmorSlotArray)
-	UndressArmorSlotArrayFollowers = RetrieveSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
-	ArmorSlotArrayFollowers = RenewSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
-EndFunction
-Bool[] Function RetrieveSlotState(int[] array1, bool[] array2)
-	array2 = Utility.CreateBoolArray(array2.length)
-	int index = array2.length
-	while index
-		index -= 1
-		array2[index] = (array1.Find(index + 30) != -1)
-	endWhile
-	return array2
-EndFunction
-Int[] Function RenewSlotState(int[] array1, bool[] array2)
-	array1 = Utility.CreateIntArray(array2.length)
-	int index = array2.length
-	while index
-		index -= 1
-		if array2[index]
-			array1[index] = index + 30
-		endIf
-	endWhile
-	return array1
+	UndressArmorSlotArray = mzinUtil.RetrieveSlotState(ArmorSlotArray, UndressArmorSlotArray)
+	ArmorSlotArray = mzinUtil.RenewSlotState(ArmorSlotArray, UndressArmorSlotArray)
+	UndressArmorSlotArrayFollowers = mzinUtil.RetrieveSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
+	ArmorSlotArrayFollowers = mzinUtil.RenewSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
 EndFunction
 String Function GetModState()
 	if BathingInSkyrimEnabled.GetValue() == 1
@@ -471,6 +452,7 @@ Function DisplaySettingsPage()
 	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DisplayFormatDecimal)
 	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DisplayFormatDecimal)
 	TexSetOverrideID = AddTextOption("$BIS_L_OVERLAYTEXSETOVERRIDE", TexSetOverride)
+	AddEmptyOption()
 	TexSetCountOID_T = AddTextOption("$BIS_L_OVERLAYTEXSETCOUNT_{" + TexUtil.DirtSetCount[0] + "}{" + TexUtil.DirtSetCount[1] + "}", "")
 	RedetectDirtSetsOID_T = AddTextOption("$BIS_L_OVERLAYREDETECT", "")
 	RemoveAllOverlaysOID_T = AddTextOption("$BIS_L_OVERLAYREMOVEALL", "")
@@ -479,61 +461,70 @@ EndFunction
 Function DisplayIntegrationsPage()
 	if !Init.IsSexlabInstalled && !Init.IsFadeTattoosInstalled
 		AddTextOption("$BIS_TXT_EMPTY", "", OPTION_FLAG_DISABLED)
+	else
+		If Init.IsSexlabInstalled
+			AddHeaderOption("$BIS_HEADER_SEX")
+			DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
+			VictimMultOID_S = AddSliderOption("$BIS_L_VICTIMMULT", VictimMult, DisplayFormatDecimal)
+			FadeDirtSexToggleID = AddToggleOption("$BIS_L_FADEDIRTSEX", FadeDirtSex)
+			SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DisplayFormatDecimal, (!FadeDirtSex) as int)
+			SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DisplayFormatDecimal, (!FadeDirtSex) as int)
+		EndIf
+		If Init.IsFadeTattoosInstalled
+			AddHeaderOption("$BIS_HEADER_FADE_TATTOOS")
+			FadeTatsFadeTimeOID_S = AddSliderOption("$BIS_L_FADETATSADVANCE", FadeTatsFadeTime, DisplayFormatDecimal)
+			FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DisplayFormatDecimal)
+		EndIf
+	
+		SetCursorPosition(1)
+		If Init.IsSexlabInstalled && FadeDirtSex
+			AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
+			AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+			AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+			AddTextOption("$BIS_L_FADEDIRT_CREATURENV_{" + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+			AddTextOption("$BIS_L_FADEDIRT_CREATUREV_{" + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+		EndIf
 	endIf
-
-	If Init.IsSexlabInstalled
-		AddHeaderOption("$BIS_HEADER_SEX")
-		DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
-		VictimMultOID_S = AddSliderOption("$BIS_L_VICTIMMULT", VictimMult, DisplayFormatDecimal)
-		FadeDirtSexToggleID = AddToggleOption("$BIS_L_FADEDIRTSEX", FadeDirtSex)
-		SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DisplayFormatDecimal, (!FadeDirtSex) as int)
-		SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DisplayFormatDecimal, (!FadeDirtSex) as int)
-	EndIf
-	If Init.IsFadeTattoosInstalled
-		AddHeaderOption("$BIS_HEADER_FADE_TATTOOS")
-		FadeTatsFadeTimeOID_S = AddSliderOption("$BIS_L_FADETATSADVANCE", FadeTatsFadeTime, DisplayFormatDecimal)
-		FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DisplayFormatDecimal)
-	EndIf
-
-	SetCursorPosition(1)
-	If Init.IsSexlabInstalled && FadeDirtSex
-		AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
-		AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
-		AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
-		AddTextOption("$BIS_L_FADEDIRT_CREATURENV_{" + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
-		AddTextOption("$BIS_L_FADEDIRT_CREATUREV_{" + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
-	EndIf
 EndFunction
 Function DisplayTrackedActorsPage()
 	Int TrackedActorsCount = DirtyActors.GetSize()
-	If TrackedActorsCount > 128
-		TrackedActorsCount = 128
-	EndIf
-	TrackedActorsToggleIDs = Utility.CreateIntArray(TrackedActorsCount)
-	
-	AddHeaderOption("$BIS_HEADER_TRACKED_ACTORS")
-	Int Index = TrackedActorsCount
-	While Index
-		Index -= 1
-		Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
-		String DirtinessString = ""
-		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell)
-			DirtinessString = "$BIS_TXT_CLEAN"
-		ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(1) As Spell)
-			DirtinessString = "$BIS_TXT_NOTDIRTY"
-		ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(2) As Spell)
-			DirtinessString = "$BIS_TXT_DIRTY"
-		ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(3) As Spell)
-			DirtinessString = "$BIS_TXT_FILTHY"
-		Else
-			DirtinessString = "$BIS_TXT_MISSINGSPELL"
+	If !TrackedActorsCount
+		AddTextOption("$BIS_TXT_EMPTY", "", OPTION_FLAG_DISABLED)
+	Else
+		If TrackedActorsCount > 128
+			TrackedActorsCount = 128
 		EndIf
-		TrackedActorsToggleIDs[Index] = AddTextOption(DirtyActor.GetActorBase().GetName(), DirtinessString, OPTION_FLAG_NONE)
-	EndWhile
+		TrackedActorsToggleIDs = Utility.CreateIntArray(TrackedActorsCount)
+		
+		AddHeaderOption("$BIS_HEADER_TRACKED_ACTORS")
+		Int Index = TrackedActorsCount
+		While Index
+			Index -= 1
+			Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
+			String DirtinessString = ""
+			If DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell)
+				DirtinessString = "$BIS_TXT_CLEAN"
+			ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(1) As Spell)
+				DirtinessString = "$BIS_TXT_NOTDIRTY"
+			ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(2) As Spell)
+				DirtinessString = "$BIS_TXT_DIRTY"
+			ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(3) As Spell)
+				DirtinessString = "$BIS_TXT_FILTHY"
+			Else
+				DirtinessString = "$BIS_TXT_MISSINGSPELL"
+			EndIf
+			TrackedActorsToggleIDs[Index] = AddTextOption(DirtyActor.GetActorBase().GetName(), DirtinessString, OPTION_FLAG_NONE)
+		EndWhile
+	EndIf
 EndFunction
 Function DisplayAuxiliaryPage()
 	AddHeaderOption("$BIS_HEADER_DEBUG")
 	UnForbidOID_T = AddTextOption("$BIS_L_UNFORBID", "")
+	AddEmptyOption()
+	AddHeaderOption("$BIS_HEADER_ADVANCED_SETTINGS")
+	GameMessageID_T = AddToggleOption("$BIS_L_GAMEMESSAGE", GameMessage)
+	LogNotificationID_T = AddToggleOption("$BIS_L_LOGNOTIFICATION", LogNotification)
+	LogTraceID_T = AddToggleOption("$BIS_L_LOGTRACE", LogTrace)
 	
 	SetCursorPosition(1)
 
@@ -763,6 +754,19 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == AutomateFollowerBathingMenuID
 		AutomateFollowerBathing.SetValue(1)
 		SetMenuOptionValue(OptionID, AutomateFollowerBathingArray[AutomateFollowerBathing.GetValue() As Int])
+	; hotkeys
+	ElseIf OptionID == CheckStatusKeyMapID
+		CheckStatusKeyCode.Value = 0
+		BatheQuest.RegisterHotKeys()
+		SetKeymapOptionValue(OptionID, CheckStatusKeyCode.Value as int)
+	ElseIf OptionID == BatheKeyMapID
+		BatheKeyCode.Value = 0
+		BatheQuest.RegisterHotKeys()
+		SetKeymapOptionValue(OptionID, BatheKeyCode.Value as int)
+	ElseIf OptionID == ShowerKeyMapID
+		ShowerKeyCode.Value = 0
+		BatheQuest.RegisterHotKeys()
+		SetKeymapOptionValue(OptionID, ShowerKeyCode.Value as int)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultTrackedActorsPage(Int OptionID)
@@ -780,6 +784,16 @@ Function HandleOnOptionDefaultIntegrationsPage(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultAuxiliaryPage(Int OptionID)
+	If OptionID == GameMessageID_T
+		GameMessage = true
+		SetToggleOptionValue(OptionID, GameMessage)
+	ElseIf OptionID == LogNotificationID_T
+		LogNotification = true
+		SetToggleOptionValue(OptionID, LogNotification)
+	ElseIf OptionID == LogTraceID_T
+		LogTrace = false
+		SetToggleOptionValue(OptionID, LogTrace)
+	Endif
 EndFunction
 
 ; OnOptionHighlight
@@ -975,15 +989,18 @@ Event OnOptionKeyMapChange(Int OptionID, Int KeyCode, String ConflictControl, St
 		Continue = ShowMessage("$BIS_MSG_KEYMAPCONFLICT_{" + ConflictControl + "}{" + ConflictName + "}", True)		
 	EndIf
 	
-	If Continue == True
+	If Continue
 		If OptionID == CheckStatusKeyMapID
+			BatheQuest.UnregisterForKey(CheckStatusKeyCode.Value as int)
 			CheckStatusKeyCode.Value = KeyCode
 		ElseIf OptionID == BatheKeyMapID
+			BatheQuest.UnregisterForKey(BatheKeyCode.Value as int)
 			BatheKeyCode.Value = KeyCode
 		ElseIf OptionID == ShowerKeyMapID
+			BatheQuest.UnregisterForKey(ShowerKeyCode.Value as int)
 			ShowerKeyCode.Value = KeyCode
 		EndIf
-		BatheQuest.RegisterHotKeys()
+		BatheQuest.RegisterForKey(KeyCode)
 		SetKeymapOptionValue(OptionID, KeyCode)
 	EndIf
 EndEvent
@@ -1092,7 +1109,6 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 		SetToggleOptionValue(OptionID, Shyness)
 	ElseIf OptionID == TexSetOverrideID
 		if !TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
-			TexSetOverride = false
 			ShowMessage("$BIS_MSG_TEXSETOVERRIDE_WARN", false)
 		else
 			TexSetOverride = !TexSetOverride
@@ -1123,8 +1139,17 @@ Function HandleOnOptionSelectAuxiliaryPage(Int OptionID)
 	If OptionID == UnForbidOID_T
 		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_WORKING", false)
 		UnForbidAllActor()
-		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_DONE", false)
-	endif
+		SetTextOptionValue(OptionID, "$BIS_TXT_DONE", false)
+	ElseIf OptionID == GameMessageID_T
+		GameMessage = !GameMessage
+		SetToggleOptionValue(OptionID, GameMessage)
+	ElseIf OptionID == LogNotificationID_T
+		LogNotification = !LogNotification
+		SetToggleOptionValue(OptionID, LogNotification)
+	ElseIf OptionID == LogTraceID_T
+		LogTrace = !LogTrace
+		SetToggleOptionValue(OptionID, LogTrace)
+	Endif
 EndFunction
 
 ; OnOptionMenuAccept
@@ -1888,13 +1913,17 @@ Bool Function SavePapyrusSettings()
 
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShyDistance", ShyDistance)
 	
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex", FadeDirtSex as Int)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "Shyness", Shyness as Int)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AutoPlayerTFC", AutoPlayerTFC as Int)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "TexSetOverride", TexSetOverride as Int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex", FadeDirtSex as int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "Shyness", Shyness as int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AutoPlayerTFC", AutoPlayerTFC as int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "TexSetOverride", TexSetOverride as int)
 
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime", FadeTatsFadeTime)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult", FadeTatsSoapMult)
+
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GameMessage", GameMessage as int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "LogNotification", LogNotification as int)
+	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "LogTrace", LogTrace as int)
 	
 	JsonUtil.Save("BathingInSkyrim/Settings.json")
 
@@ -1987,6 +2016,10 @@ Bool Function LoadPapyrusSettings()
 
 	FadeTatsFadeTime = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime")
 	FadeTatsSoapMult = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult")
+
+	GameMessage = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GameMessage")
+	LogNotification = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "LogNotification")
+	LogTrace = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "LogTrace")
 	
 	SetLocalArrays()
 	BatheQuest.RegisterHotKeys()
@@ -2114,5 +2147,8 @@ Int FadeDirtSexToggleID
 
 ; menu - Auxiliary
 Int UnForbidOID_T
+Int GameMessageID_T
+Int LogNotificationID_T
+Int LogTraceID_T
 
 ; --------------------------------------------

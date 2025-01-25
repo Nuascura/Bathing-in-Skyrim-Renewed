@@ -8,7 +8,7 @@ EndFunction
 
 Function LogTrace(String LogMessage, Bool Force = False)
     if LogMessage
-        if Force || true ;to-do: Menu.LogTrace
+        if Force || Menu.LogTrace
 	        Debug.Trace("Mzin: " + LogMessage)
         endIf
     endIf
@@ -18,7 +18,7 @@ Function LogNotification(String LogMessage, Bool Force = False)
     if LogMessage
         if Force
             Debug.Notification("BISR: " + LogMessage)
-        elseIf true ;to-do: Menu.LogNotification
+        elseIf Menu.LogNotification
             Debug.Notification(LogMessage)
         endIf
     endIf
@@ -32,7 +32,7 @@ EndFunction
 
 Int Function GameMessage(Message LogMessage, float afArg1 = 0.0, float afArg2 = 0.0, float afArg3 = 0.0, float afArg4 = 0.0, float afArg5 = 0.0, float afArg6 = 0.0, float afArg7 = 0.0, float afArg8 = 0.0, float afArg9 = 0.0)
     if LogMessage
-        if true ;to-do: Menu.GameMessage
+        if Menu.GameMessage
             return LogMessage.Show(afArg1, afArg2, afArg3, afArg4, afArg5, afArg6, afArg7, afArg8, afArg9)
         endIf
     endIf
@@ -105,4 +105,26 @@ int Function GetRandomFromNormalization(float[] fList)
 	else
 		return Utility.RandomInt(0, fList.length - 1)
 	endIf
+EndFunction
+
+Bool[] Function RetrieveSlotState(int[] array1, bool[] array2)
+	array2 = Utility.CreateBoolArray(array2.length)
+	int index = array2.length
+	while index
+		index -= 1
+		array2[index] = (array1.Find(index + 30) != -1)
+	endWhile
+	return array2
+EndFunction
+
+Int[] Function RenewSlotState(int[] array1, bool[] array2)
+	array1 = Utility.CreateIntArray(array2.length)
+	int index = array2.length
+	while index
+		index -= 1
+		if array2[index]
+			array1[index] = index + 30
+		endIf
+	endWhile
+	return array1
 EndFunction
