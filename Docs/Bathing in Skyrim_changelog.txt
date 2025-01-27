@@ -1,9 +1,16 @@
+2.3.4
+Primary
+- Fix: Incorrect soap bonus messages post-bath.
+
+
+
 2.3.3
 Primary
+- Add: Sink or Swim support.
 - Add: Hotkey reset functionality.
 - Add: Function for player-only texture set via overridden Set 1 folder.
 - Add: MCM options, toggle Debug Traces, Debug Notifications, and Game Messages.
-- Improve: Error safeguards invalid texture set directories during gameplay.
+- Improve: Error safeguards for invalid texture set directories during gameplay.
 - Fix: Excessive log errors when missing optional dependencies.
 - Fix: Broken translation token $BIS_TXT_EMPTY.
 - Remove: mzinAwardSoapBonus deprecated activemagiceffect script.
