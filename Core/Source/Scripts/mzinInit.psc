@@ -21,6 +21,7 @@ Keyword Property zad_DeviousSuit Auto Hidden
 
 Faction Property ZazSlaveFaction Auto Hidden
 Faction Property SLAExhibitionistFaction Auto Hidden
+Faction Property SexLabForbiddenActors Auto Hidden
 
 MagicEffect Property LokiWaterSlowdownEffect Auto Hidden
 
@@ -155,6 +156,9 @@ Function SetInternalVariables()
 	EndIf
 	If IsZazInstalled
 		ZazSlaveFaction = Game.GetFormFromFile(0x000096AE, "ZaZAnimationPack.esm") as Faction
+	EndIf
+	If IsSexlabInstalled
+		SexLabForbiddenActors  = Game.GetFormFromFile(0x049068, "SexLab.esm") as Faction
 	EndIf
 	If IsSexlabArousedInstalled
 		SLAExhibitionistFaction = Game.GetFormFromFile(0x0713DA, "SexLabAroused.esm") as Faction
