@@ -86,9 +86,6 @@ GlobalVariable Property DirtinessPerHourSettlement Auto
 GlobalVariable Property DirtinessPerHourDungeon Auto
 GlobalVariable Property DirtinessPerHourWilderness Auto
 
-; soap lists
-FormList Property SoapBonusSpellList Auto
-
 ; local variables
 String[] BathingAnimationStyleArray
 String[] ShoweringAnimationStyleArray
@@ -1128,9 +1125,7 @@ Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
 	If Index >= 0
 		If ShowMessage("$BIS_MSG_ASK_STOP_TRACK", True) == True
 			Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
-			DoRemoveOverlays(DirtyActor, false)
-			UntrackActor(DirtyActor)
-			DirtyActors.RemoveAddedForm(DirtyActor)
+			BatheQuest.UntrackActor(DirtyActor)
 			ForcePageReset()
 		EndIf
 	EndIf
@@ -1763,14 +1758,14 @@ EndFunction
 Function DisableBathingInSkyrim()
 	RemoveAllOverlays(false)
 	
-	UntrackActor(PlayerRef)
+	BatheQuest.UntrackActor(PlayerRef, false)
 
 	Int DirtyActorIndex = DirtyActors.Getsize()
 	If DirtyActorIndex > 0
 		While DirtyActorIndex
 			DirtyActorIndex -= 1
 			Actor DirtyActor = DirtyActors.GetAt(DirtyActorIndex) As Actor
-			UntrackActor(DirtyActor)
+			BatheQuest.UntrackActor(DirtyActor, false)
 		EndWhile
 		DirtyActors.Revert()
 	EndIf
@@ -1788,16 +1783,6 @@ Function DisableBathingInSkyrim()
 	endIf
 
 	ForcePageReset()
-EndFunction
-Function UntrackActor(Actor DirtyActor)
-	RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-	RemoveSpells(DirtyActor, DirtinessSpellList)
-	RemoveSpells(DirtyActor, SoapBonusSpellList)
-	
-	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
-	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
-	StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-	StorageUtil.UnSetStringValue(DirtyActor, "mzin_LastWashProp")
 EndFunction
 Function RemoveSpells(Actor DirtyActor, FormList SpellFormList)
 	Int SpellListIndex = SpellFormList.GetSize()

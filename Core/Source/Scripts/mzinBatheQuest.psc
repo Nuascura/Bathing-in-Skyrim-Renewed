@@ -445,3 +445,20 @@ Function GetUnsoapy(Actor akActor)
 		akActor.RemoveSpell(SoapyAppearanceAnimatedSpell)
 	EndIf
 EndFunction
+
+Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
+	if abRemoveOverlays
+		OlUtil.ClearDirtGameLoad(DirtyActor)
+	endIf
+
+	RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
+	RemoveSpells(DirtyActor, DirtinessSpellList)
+	RemoveSpells(DirtyActor, SoapBonusSpellList)
+
+	DirtyActors.RemoveAddedForm(DirtyActor)
+
+	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
+	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
+	StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+	StorageUtil.UnSetStringValue(DirtyActor, "mzin_LastWashProp")
+EndFunction
