@@ -1,16 +1,7 @@
 Scriptname mzinUtilityPlayerAlias extends ReferenceAlias
 
-mzinTextureUtility Property TexUtil Auto
-mzinOverlayUtility Property OlUtil Auto
 mzinInit Property Init Auto
 mzinUtility Property mzinUtil Auto
-
-Actor Property PlayerRef Auto
-
-MagicEffect Property mzinDirtinessTier2Effect Auto
-MagicEffect Property mzinDirtinessTier3Effect Auto
-
-Formlist Property mzinDirtyActorsList Auto
 
 Event OnPlayerLoadGame() ; run whenever possible
 	mzinUtil.LogTrace("PlayerLoadGame ============================")
@@ -57,13 +48,3 @@ Event OnBiS_PermitBathing(Form Sender, Form ForbiddenActor)
 		mzinUtil.LogTrace("PermitBathing event received for " + ForbiddenActor + " but sender " +  Sender + " was not found in the list")
 	EndIf
 EndEvent
-
-Function CheckDirt(Actor akTarget)
-	OlUtil.ClearDirtGameLoad(akTarget)
-	If akTarget.HasMagicEffect(mzinDirtinessTier2Effect) || akTarget.HasMagicEffect(mzinDirtinessTier3Effect)
-		mzinUtil.LogTrace("Adding dirt to: " + akTarget.GetBaseObject().GetName())
-		OlUtil.ApplyDirt(akTarget, StorageUtil.GetFloatValue(akTarget, "Mzin_ActorDirtiness", 1.0))
-	Else
-		mzinUtil.LogTrace("Actor is clean: " + akTarget.GetBaseObject().GetName())
-	EndIf
-EndFunction
