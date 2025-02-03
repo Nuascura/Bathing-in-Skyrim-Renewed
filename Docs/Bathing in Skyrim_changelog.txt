@@ -1,5 +1,13 @@
 2.3.4
 Primary
+- Improve: Dead actor handling via OnDeath() event.
+- Improve: Rescue bathing actor from hits via OnHit() event.
+- Improve: Rescue bathing actor from swimming via anim event.
+- Improve: On load game maintenance function calls.
+- Regress: Remove No Death Dispel flag on GetDirty tracker MGEFs.
+- Change: Consolidate UntrackActor() functions under mzinBatheQuest.
+- Change: Reduce bathe animation auto termination from 3 minutes to 75 seconds.
+- Change: Store SexLabForbiddenActors faction under Init script.
 - Fix: Incorrect soap bonus messages post-bath.
 
 
