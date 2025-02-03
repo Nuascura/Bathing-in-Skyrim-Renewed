@@ -54,9 +54,7 @@ Float SexDirt
 
 Event OnPlayerLoadGame()
 	RegisterForEvents()
-
-	CheckDirt()
-	CheckAlpha()
+	UpdateAllActors()
 EndEvent
 
 Event OnBiS_UpdateAlpha(Form akTarget)
@@ -66,7 +64,15 @@ Event OnBiS_UpdateAlpha(Form akTarget)
 EndEvent
 
 Event OnBiS_UpdateActorsAll()
-	RenewDirtSpell()
+	Utility.Wait(0.5)
+	If DirtyActor.IsDead()
+		OnDeath(none)
+	ElseIf (DirtyActor.Is3DLoaded() || DirtyActor.IsNearPlayer())
+		mzinUtil.LogTrace("OnBiS_UpdateActorsAll: " + DirtyActor.GetBaseObject().GetName())
+		CheckDirt()
+		CheckAlpha()
+		RenewDirtSpell()
+	EndIf
 EndEvent
 
 Event OnBiS_SexMethodToggle()
@@ -356,13 +362,12 @@ Function RemoveSpells(FormList SpellFormList)
 EndFunction
 
 Function CheckDirt()
+	Debug.Trace("mzin_ " + DirtyActor.GetBaseObject().GetName() + " CheckDirt()") ; aztemp
 	OlUtil.ClearDirtGameLoad(DirtyActor)
-	If DirtyActor.HasMagicEffect(mzinDirtinessTier2Effect) || DirtyActor.HasMagicEffect(mzinDirtinessTier3Effect)
+	If DirtyActor.HasMagicEffect(mzinDirtinessTier2Effect) || DirtyActor.HasMagicEffect(mzinDirtinessTier3Effect) \
+	|| DirtyActor.HasMagicEffect(mzinDirtinessTier1p5Effect)
 		mzinUtil.LogTrace("Adding dirt to: " + DirtyActor.GetBaseObject().GetName())
 		OlUtil.ApplyDirt(DirtyActor, Menu.StartingAlpha)
-	ElseIf DirtyActor.HasMagicEffect(mzinDirtinessTier1p5Effect)
-		OlUtil.ApplyDirt(DirtyActor, Menu.StartingAlpha)
-		mzinUtil.LogTrace("Adding fade in dirt to: " + DirtyActor.GetBaseObject().GetName())
 	Else
 		mzinUtil.LogTrace("Actor is clean: " + DirtyActor.GetBaseObject().GetName())
 	EndIf
@@ -374,7 +379,7 @@ Function CheckAlpha()
 		If Alpha > 1.0
 			Alpha = 1.0
 		EndIf
-		if !StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") == ""
+		if !(StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") == "")
 			OlUtil.UpdateAlpha(DirtyActor, Alpha)
 		endIf
 	EndIf
@@ -393,4 +398,15 @@ Function CheckSexEvents()
 		RegisterForModEvent("HookAnimationStart", "OnAnimationStart")
 		RegisterForModEvent("HookAnimationEnd", "OnAnimationEnd")
 	EndIf
+EndFunction
+
+Event OnDeath(actor akKiller)
+	BatheQuest.UntrackActor(DirtyActor)
+EndEvent
+
+Function UpdateAllActors()
+	int BiS_UpdateAllActorsEvent = ModEvent.Create("BiS_UpdateActorsAll")
+    If (BiS_UpdateAllActorsEvent)
+        ModEvent.Send(BiS_UpdateAllActorsEvent)
+    EndIf
 EndFunction
