@@ -63,9 +63,9 @@ Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool abDoShower, Bool 
 	EndIf
 EndEvent
 
-Event OnBiS_WashActorFinish(Form akBathingActor, Bool abUsingSoap = false)
+Event OnBiS_WashActorFinish(Form akBathingActor, Form akWashProp, Bool abUsingSoap = false)
 	If akBathingActor as Actor
-		WashActorFinish(akBathingActor as Actor, UsedSoap = abUsingSoap)
+		WashActorFinish(akBathingActor as Actor, akWashProp as MiscObject, abUsingSoap)
 	Else
 		mzinUtil.LogTrace("OnBiS_WashActorFinish(): Received invalid actor: " + akBathingActor)
 	EndIf
@@ -191,28 +191,19 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 EndFunction
 
 Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool UsedSoap = false)
-	if StorageUtil.HasFormValue(DirtyActor, "mzin_LastWashProp")
-		WashProp = StorageUtil.PluckFormValue(DirtyActor, "mzin_LastWashProp") as MiscObject
-	endIf
-
 	if (DirtyActor == PlayerRef || DirtyActors.Find(DirtyActor) != -1) \
-	&& (UsedSoap || !DirtyActor.HasSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell))
+	&& (UsedSoap || !DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell))
 		RemoveSpells(DirtyActor, SoapBonusSpellList)
 		RemoveSpells(DirtyActor, DirtinessSpellList)
 		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
 		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", Utility.GetCurrentGameTime())
-		
 		If WashProp
+			UpdateActorDirtPercent(DirtyActor, 0.0)
 			ApplySoapBonus(DirtyActor, WashProp)
 			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
-			If DirtyActor != PlayerRef
-				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", 0.0)
-			EndIf
 		Else
+			UpdateActorDirtPercent(DirtyActor, (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
 			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
-			If DirtyActor != PlayerRef
-				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
-			EndIf
 		EndIf
 	endIf
 
@@ -461,4 +452,12 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
 	StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 	StorageUtil.UnSetStringValue(DirtyActor, "mzin_LastWashProp")
+EndFunction
+
+Function UpdateActorDirtPercent(Actor akActor, float afNewValue)
+	If akActor == PlayerRef
+		DirtinessPercentage.SetValue(afNewValue)
+	elseIf DirtyActors.Find(akActor) != -1
+		StorageUtil.SetFloatValue(akActor, "BiS_Dirtiness", afNewValue)
+	EndIf
 EndFunction
