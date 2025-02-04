@@ -119,7 +119,7 @@ Function EffectFinish()
 	DressActor()
 	UnlockActor()
 	ForbidSex(BathingActor, Forbid = false)
-	SendWashActorFinishModEvent(BathingActor, UsingSoap)
+	SendWashActorFinishModEvent(BathingActor, StorageUtil.PluckFormValue(BathingActor, "mzin_LastWashProp"), UsingSoap)
 	Self.Dispel()
 EndFunction
 Event OnEffectFinish(Actor Target, Actor Caster)
@@ -459,10 +459,11 @@ Function ForbidSex(Actor akTarget, Bool Forbid)
 	EndIf
 EndFunction
 
-Function SendWashActorFinishModEvent(Form akBathingActor, Bool abUsingSoap)
+Function SendWashActorFinishModEvent(Form akBathingActor, Form akWashProp, Bool abUsingSoap)
     int BiS_WashActorFinishModEvent = ModEvent.Create("BiS_WashActorFinish")
     If (BiS_WashActorFinishModEvent)
         ModEvent.PushForm(BiS_WashActorFinishModEvent, akBathingActor)
+		ModEvent.PushForm(BiS_WashActorFinishModEvent, akWashProp)
 		ModEvent.PushBool(BiS_WashActorFinishModEvent, abUsingSoap)
         ModEvent.Send(BiS_WashActorFinishModEvent)
     EndIf
