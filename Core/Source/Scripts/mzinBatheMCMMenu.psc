@@ -1743,12 +1743,12 @@ Function EnableBathingInSkyrim()
 	TexUtil.UtilInit()
 	VersionUpdate()
 
-	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
-
 	BatheQuest.Start()
 	BatheQuest.RegisterHotKeys()
 	BatheQuest.RegForEvents()
 	mzinBatheFollowerDialogQuest.Start()
+
+	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
 
 	BathingInSkyrimEnabled.SetValue(1)
 
@@ -1759,6 +1759,7 @@ Function DisableBathingInSkyrim()
 	RemoveAllOverlays(false)
 	
 	BatheQuest.UntrackActor(PlayerRef, false)
+	BatheQuest.UpdateActorDirtPercent(PlayerRef, 0.0)
 
 	Int DirtyActorIndex = DirtyActors.Getsize()
 	If DirtyActorIndex > 0
