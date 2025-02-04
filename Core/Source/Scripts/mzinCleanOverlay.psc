@@ -1,9 +1,10 @@
 Scriptname mzinCleanOverlay extends ActiveMagicEffect  
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-	OlUtil.ClearDirt(akTarget)
-	If akTarget.HasMagicEffect(mzinDirtinessTier1p5Effect)
-		OlUtil.BeginOverlay(akTarget, Menu.StartingAlpha)
+	If StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix", "") != "" && !akTarget.HasMagicEffect(mzinDirtinessTier1p5Effect)
+		OlUtil.ClearDirt(akTarget)
+	ElseIf akTarget.HasMagicEffect(mzinDirtinessTier1p5Effect)
+		OlUtil.SendAlphaUpdateEvent(akTarget)
 	EndIf
 EndEvent
 

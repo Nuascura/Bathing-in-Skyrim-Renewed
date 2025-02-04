@@ -14,7 +14,6 @@ FormList Property PlayerHouseLocationList Auto
 FormList Property DungeonLocationList Auto
 FormList Property SettlementLocationList Auto
 FormList Property mzinAnimationInProcList Auto 
-FormList Property GetDirtyOverTimeSpellList Auto
 FormList Property SoapBonusSpellList Auto
 FormList Property DirtinessSpellList Auto
 FormList Property DirtinessThresholdList Auto
@@ -35,10 +34,9 @@ GlobalVariable Property DirtinessPerHourDungeon Auto
 GlobalVariable Property DirtinessPerHourSettlement Auto
 GlobalVariable Property DirtinessPerHourWilderness Auto
 
-GlobalVariable Property TimeScale Auto
-
 Keyword Property WashPropKeyword Auto
 Keyword Property ActorTypeCreature Auto
+Keyword Property DirtinessTierKeyword Auto
 
 Faction Property CreatureFaction Auto
 
@@ -178,28 +176,32 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	DirtyActorIsPlayer = (Target == PlayerRef)
 
 	Int InitialDirtinessTier = (Self.GetMagnitude() As Int) - 1
-	DirtyActor.RemoveSpell(mzinDirtinessTier1p5Spell)
-	If InitialDirtinessTier >= 0 && InitialDirtinessTier < DirtinessThresholdList.GetSize()
-		LocalDirtinessPercentage = (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue()
-		If LocalDirtinessPercentage >= Menu.OverlayApplyAt && LocalDirtinessPercentage < (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
-			DirtyActor.AddSpell(mzinDirtinessTier1p5Spell)
-		EndIf
-		DirtyActor.AddSpell(DirtinessSpellList.GetAt(InitialDirtinessTier + 1) As Spell, False)
-	Else
-		LocalDirtinessPercentage = 0.0
-		DirtyActor.AddSpell(DirtinessSpellList.GetAt(0) As Spell, False)
-	EndIf
-
 	If DirtyActorIsPlayer
-		DirtinessPercentage.SetValue(LocalDirtinessPercentage)
-	ElseIf DirtyActors.Find(DirtyActor) == -1
-		DirtyActors.AddForm(DirtyActor)
-	EndIf
-	
-	If !DirtyActorIsPlayer
+		LocalDirtinessPercentage = DirtinessPercentage.GetValue()
+		if !(LocalDirtinessPercentage as int)
+			LocalDirtinessPercentage = (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue()
+		endIf
+	Else
+		If DirtyActors.Find(DirtyActor) == -1
+			DirtyActors.AddForm(DirtyActor)
+		EndIf
 		LocalDirtinessPercentage = StorageUtil.GetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue())
 	EndIf
 
+	If !DirtyActor.HasMagicEffectWithKeyword(DirtinessTierKeyword)
+		DirtyActor.RemoveSpell(mzinDirtinessTier1p5Spell)
+		If InitialDirtinessTier >= 0 && InitialDirtinessTier < DirtinessThresholdList.GetSize()
+			If LocalDirtinessPercentage >= Menu.OverlayApplyAt && LocalDirtinessPercentage < (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
+				DirtyActor.AddSpell(mzinDirtinessTier1p5Spell)
+			EndIf
+			DirtyActor.AddSpell(DirtinessSpellList.GetAt(InitialDirtinessTier + 1) As Spell, False)
+		Else
+			LocalDirtinessPercentage = 0.0
+			DirtyActor.AddSpell(DirtinessSpellList.GetAt(0) As Spell, False)
+		EndIf
+	EndIf
+
+	BatheQuest.UpdateActorDirtPercent(Target, LocalDirtinessPercentage)
 	CheckAlpha()
 	
 	Float LastUpdate = StorageUtil.GetFloatValue(DirtyActor, "BiS_LastUpdate", -100.0)
@@ -217,12 +219,6 @@ Event OnEffectStart(Actor Target, Actor Caster)
 			mzinUtil.LogTrace("Running update in " + (UpdateIntervalInGameTime - (Utility.GetCurrentGameTime() - LocalLastUpdateTime)) + " on " + DirtyActor.GetBaseObject().GetName())
 			RegisterForSingleUpdateGameTime(UpdateIntervalInGameTime - (Utility.GetCurrentGameTime() - LocalLastUpdateTime))
 		EndIf
-	EndIf
-EndEvent
-
-Event OnEffectFinish(Actor Target, Actor Caster)
-	If DirtyActorIsPlayer == False && DirtyActors.Find(DirtyActor) != -1
-		StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", LocalDirtinessPercentage)
 	EndIf
 EndEvent
 Event OnUpdateGameTime()
@@ -277,59 +273,51 @@ Function ApplyDirt()
 		LocalDirtinessPercentage = 1.0
 	EndIf
 
+	CheckAlpha()
 	RenewDirtSpell()
 EndFunction
 
-Function RenewDirtSpell()
-	If DirtyActorIsPlayer
-		DirtinessPercentage.SetValue(LocalDirtinessPercentage)
-	Else
-		StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", LocalDirtinessPercentage)
-	EndIf
-
-	Message EnterMessage = None
-	Message ExitMessage = None
-
-	Int Index = 0
-	While Index < DirtinessSpellList.GetSize() - 1	
-
-		Spell DirtinessSpell = DirtinessSpellList.GetAt(Index) As Spell
-		Spell NextDirtinessSpell = DirtinessSpellList.GetAt(Index + 1) As Spell
-		
-		Float DirtinessThreshold = (DirtinessThresholdList.GetAt(Index) As GlobalVariable).GetValue()
-
-		If DirtyActor.HasSpell(DirtinessSpell) && LocalDirtinessPercentage >= DirtinessThreshold
-
-			RemoveSpells(SoapBonusSpellList)
-
-			DirtyActor.RemoveSpell(DirtinessSpell)
-			DirtyActor.AddSpell(NextDirtinessSpell, False)
-
-			ExitMessage = ExitTierMessageList.GetAt(Index) As Message
-			If EnterMessage == None
-				EnterMessage = EnterTierMessageList.GetAt(Index + 1) As Message
-			EndIf
-
+Int Function ApplyDirtSpell()
+	Int Index = DirtinessSpellList.GetSize()
+	While Index > 0
+		Index -= 1
+		If LocalDirtinessPercentage >= (DirtinessThresholdList.GetAt(Index - 1) As GlobalVariable).GetValue()
+			if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
+				return 0
+			else
+				RemoveSpells(SoapBonusSpellList)
+				RemoveSpells(DirtinessSpellList)
+				DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
+				Return Index
+			endIf
 		EndIf
-		
-		Index += 1
-	
 	EndWhile
-	
-	Float DirtyThreshold = (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
-	If Menu.OverlayApplyAt < DirtyThreshold
-		If LocalDirtinessPercentage >= Menu.OverlayApplyAt && LocalDirtinessPercentage < DirtyThreshold
-			DirtyActor.AddSpell(mzinDirtinessTier1p5Spell, false) ; this function sends to mzinDirtyOverlay.psc
+	Return -1
+EndFunction
+Function ApplyDirtLeadInSpell()
+	Float DirtinessThreshold = (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
+	If Menu.OverlayApplyAt < DirtinessThreshold
+		If LocalDirtinessPercentage >= Menu.OverlayApplyAt && LocalDirtinessPercentage < DirtinessThreshold
+			DirtyActor.AddSpell(mzinDirtinessTier1p5Spell, false)
 		Else
 			DirtyActor.RemoveSpell(mzinDirtinessTier1p5Spell)
 		EndIf
-		CheckAlpha()
 	EndIf
+EndFunction
+
+Function RenewDirtSpell()
+	BatheQuest.UpdateActorDirtPercent(DirtyActor, LocalDirtinessPercentage)
+
+	Int DirtinessTier = ApplyDirtSpell()
+	ApplyDirtLeadInSpell()
 	
-	If DirtyActorIsPlayer
+	If DirtyActorIsPlayer && DirtinessTier > 0
+		Debug.Trace("mzin_ DirtinessTier: " + DirtinessTier)
+		Message ExitMessage = ExitTierMessageList.GetAt(DirtinessTier - 1) As Message
 		If ExitMessage
 			mzinUtil.GameMessage(ExitMessage)
 		EndIf
+		Message EnterMessage = EnterTierMessageList.GetAt(DirtinessTier) As Message
 		If EnterMessage
 			mzinUtil.GameMessage(EnterMessage)
 		EndIf
@@ -362,7 +350,6 @@ Function RemoveSpells(FormList SpellFormList)
 EndFunction
 
 Function CheckDirt()
-	Debug.Trace("mzin_ " + DirtyActor.GetBaseObject().GetName() + " CheckDirt()") ; aztemp
 	OlUtil.ClearDirtGameLoad(DirtyActor)
 	If DirtyActor.HasMagicEffect(mzinDirtinessTier2Effect) || DirtyActor.HasMagicEffect(mzinDirtinessTier3Effect) \
 	|| DirtyActor.HasMagicEffect(mzinDirtinessTier1p5Effect)
