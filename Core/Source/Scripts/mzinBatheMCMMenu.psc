@@ -3,6 +3,7 @@ ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 
 Bool IsConfigOpen = false
 Int Property ScriptVersion = 16 AutoReadOnly
+String Property ModVersion = "2.4.0" AutoReadOnly
 
 ; Modified
 mzinTextureUtility Property TexUtil Auto
@@ -109,7 +110,7 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.3.4"
+	return ModVersion
 EndFunction
 
 Int Function GetVersion()

@@ -1,14 +1,21 @@
-2.3.4
+2.4.0
 Primary
+- Fix: Missing dirt on game load.
+- Fix: Incorrect soap bonus messages post-bath.
+- Fix: Incorrect effect name: Damage Resist Disease.
+- Fix: NPC dirtiness percentage sometimes resets, or are assigned incorrect values, after load screens.
+
+Secondary
 - Improve: Dead actor handling via OnDeath() event.
 - Improve: Rescue bathing actor from hits via OnHit() event.
 - Improve: Rescue bathing actor from swimming via anim event.
 - Improve: On load game maintenance function calls.
+- Improve: Dirt apply and removal handling.
 - Regress: Remove No Death Dispel flag on GetDirty tracker MGEFs.
 - Change: Consolidate UntrackActor() functions under mzinBatheQuest.
 - Change: Reduce bathe animation auto termination from 3 minutes to 75 seconds.
 - Change: Store SexLabForbiddenActors faction under Init script.
-- Fix: Incorrect soap bonus messages post-bath.
+- Change: Expand BiS_WashActorFinish accepted parameters to include Washprop form object.
 
 
 
