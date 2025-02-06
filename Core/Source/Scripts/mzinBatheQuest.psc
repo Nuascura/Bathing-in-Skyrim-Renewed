@@ -278,17 +278,10 @@ Bool Function IsUnderWaterfall(Actor DirtyActor)
 		if (DirtyActor.GetPositionZ() <= closestWaterfall.GetPositionZ() + 1280.0) \
 		&& (math.abs(DirtyActor.GetPositionX() - closestWaterfall.GetPositionX()) <= 256.0) \
 		&& (math.abs(DirtyActor.GetPositionY() - closestWaterfall.GetPositionY()) <= 256.0)
-			mzinUtil.LogTrace("IsUnderWaterfall = true")
-			;mzinUtil.LogNotification("IsUnderWaterfall = true")
-		Return True
+			Return True
 		else
-			mzinUtil.LogNotification("There is a waterfall nearby")
-			mzinUtil.LogTrace("There is a waterfall nearby")
-			
+			mzinUtil.LogTrace("There is a waterfall nearby, but the player isn't under it.")
 		EndIf
-	Else
-		mzinUtil.LogNotification("There is no waterfall to shower under")
-		mzinUtil.LogTrace("There is no waterfall to shower under")
 	EndIf
 
 	Return False

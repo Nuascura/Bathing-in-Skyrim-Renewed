@@ -4,6 +4,7 @@ Primary
 - Fix: Incorrect soap bonus messages post-bath.
 - Fix: Incorrect effect name: Damage Resist Disease.
 - Fix: NPC dirtiness percentage sometimes resets, or are assigned incorrect values, after load screens.
+- Fix: Notification contextual display.
 
 Secondary
 - Improve: Dead actor handling via OnDeath() event.
