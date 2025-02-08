@@ -30,10 +30,7 @@ FormList Property GetDirtyOverTimeSpellList Auto
 Keyword Property SoapKeyword Auto
 Keyword Property AnimationKeyword Auto
 
-Spell Property PlayBatheAnimationWithSoap Auto
-Spell Property PlayBatheAnimationWithoutSoap Auto
-Spell Property PlayShowerAnimationWithSoap Auto
-Spell Property PlayShowerAnimationWithoutSoap Auto
+Spell Property PlayBathingAnimation Auto
 Spell Property SoapyAppearanceSpell Auto
 Spell Property SoapyAppearanceAnimatedSpell Auto
 
@@ -134,32 +131,25 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	if DoAnimate
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
 			UsedSoap = true
-			DirtyActor.RemoveItem(WashProp, 1, True, None)
-			if DoShower
-				DirtyActor.AddSpell(PlayShowerAnimationWithSoap, False)
-				If DirtyActorIsPlayer
+		EndIf
+		if DirtyActorIsPlayer
+			If DoShower
+				if UsedSoap
 					mzinUtil.GameMessage(ShoweringWithSoapMessage)
-				EndIf
-			else
-				DirtyActor.AddSpell(PlayBatheAnimationWithSoap, False)
-				If DirtyActorIsPlayer
-					mzinUtil.GameMessage(BathingWithSoapMessage)
-				EndIf
-			EndIf
-			StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
-		Else
-			if DoShower
-				DirtyActor.AddSpell(PlayShowerAnimationWithoutSoap, False)
-				If DirtyActorIsPlayer
+				else
 					mzinUtil.GameMessage(ShoweringWithoutSoapMessage)
-				EndIf
+				endIf
 			else
-				DirtyActor.AddSpell(PlayBatheAnimationWithoutSoap, False)	
-				If DirtyActorIsPlayer
+				if UsedSoap
+					mzinUtil.GameMessage(BathingWithSoapMessage)
+				else
 					mzinUtil.GameMessage(BathingWithoutSoapMessage)
-				EndIf
+				endIf
 			EndIf
 		EndIf
+		StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
+		StorageUtil.SetIntValue(DirtyActor, "mzin_LastWashState", DoShower as int)
+		DirtyActor.AddSpell(PlayBathingAnimation, False)
 	else
 		If DoSoap
 			GetSoapy(DirtyActor)
@@ -445,6 +435,7 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
 	StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 	StorageUtil.UnSetStringValue(DirtyActor, "mzin_LastWashProp")
+	StorageUtil.UnSetIntValue(DirtyActor, "mzin_LastWashState")
 EndFunction
 
 Function UpdateActorDirtPercent(Actor akActor, float afNewValue)

@@ -9,8 +9,7 @@ Primary
 
 Secondary
 - Improve: Dead actor handling via OnDeath() event.
-- Improve: Rescue bathing actor from hits via OnHit() event.
-- Improve: Rescue bathing actor from swimming via anim event.
+- Improve: Rescue bathing actor via Animation Actor Guard effect.
 - Improve: On load game maintenance function calls.
 - Improve: Dirt apply and removal handling.
 - Regress: Remove No Death Dispel flag on GetDirty tracker MGEFs.
