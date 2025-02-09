@@ -7,6 +7,7 @@ Primary
 - Fix: Notification contextual display.
 - Change: Check valid actor via GetPlayerTeammate rather than GetInFaction(CurrentFollowerFaction).
 - Change: Disable FootIK for animations.
+- Update: Recompile scripts under trimmed SDK.
 
 Secondary
 - Improve: Dead actor handling via OnDeath() event.

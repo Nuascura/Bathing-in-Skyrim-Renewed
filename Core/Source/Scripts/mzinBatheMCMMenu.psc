@@ -2,8 +2,6 @@ ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 { this script displays the MCM menu for mod configuration }
 
 Bool IsConfigOpen = false
-Int Property ScriptVersion = 16 AutoReadOnly
-String Property ModVersion = "2.4.0" AutoReadOnly
 
 ; Modified
 mzinTextureUtility Property TexUtil Auto
@@ -110,11 +108,11 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return ModVersion
+	return "2.4.0"
 EndFunction
 
 Int Function GetVersion()
-	Return ScriptVersion
+	Return 16
 EndFunction
 
 Event OnConfigOpen()
