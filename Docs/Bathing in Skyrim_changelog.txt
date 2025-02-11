@@ -1,6 +1,7 @@
 2.4.2
 Primary
 - Fix: Minor regression in handling of player teammate bathing via player-follower dialogue.
+- Fix: Missing NPC dialogue due to erroneous conditions added in 2.4.1.
 
 
 
