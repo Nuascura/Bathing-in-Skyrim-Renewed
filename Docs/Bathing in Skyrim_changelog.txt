@@ -1,3 +1,24 @@
+2.4.1
+Primary
+- Add: Keyword mzinPotentialBatherActor: Whitelists NPCs for Bathing dialogue.
+- Add: BiS_WashActor event parameter 4: abDoPlayerTeammates.
+- Add: Bathing Token addon, thanks for Sidfu.
+- Change: Check valid gawker via GetPlayerTeammate rather than GetInFaction(CurrentFollowerFaction).
+- Change: Shyness conditions are now strictly player-centric in exchange for a higher performance accuracy/efficacy.
+- Change: Requesting a follower to bathe together via dialogue will no longer bathe other proximity followers, regardless of your settings.
+
+Secondary
+- Change: Move Gawker ref alias validation conditions to CK for faster native processing.
+- Change: Topic response for follower dirt track start.
+- Remove: Zaz Animation Pack integration.
+- Update: Localization files.
+- Fix: WashActor function passes redundant object types to interfacing scripts.
+- Fix: Shower sequence fails to select an overriding animation style.
+- Fix: Bathing with soap does not consume soap inventory object.
+- Fix: Untracking an actor does not properly unset their LastWashProp form object, if it still exists.
+
+
+
 2.4.0
 Primary
 - Fix: Missing dirt on game load.
