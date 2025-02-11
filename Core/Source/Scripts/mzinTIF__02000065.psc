@@ -10,7 +10,7 @@ if UI.IsMenuOpen("Dialogue Menu")
     UI.InvokeString("Dialogue Menu", "_global.skse.CloseMenu", "Dialogue Menu")
 endIf
 
-if BatheQuest.TryWashActor(BatheQuest.PlayerRef, None)
+if BatheQuest.TryWashActor(BatheQuest.PlayerRef, None, PlayerTeammates = false)
     BatheQuest.TryWashActor(akSpeaker, None)
 endIf
 ;END CODE

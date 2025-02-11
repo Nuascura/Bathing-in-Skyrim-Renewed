@@ -22,13 +22,10 @@ Function RunCycleHelper()
 EndFunction
 
 Function CycleFollowers()
-	if AutomateFollowerBathing.GetValue() < 1
-		return
-	endIf
 	Actor[] PlayerFollowers = PO3_SKSEfunctions.GetPlayerFollowers()
 	int i = 0
 	while i < PlayerFollowers.Length
-		if DirtyActors.Find(PlayerFollowers[i]) != -1 || AutomateFollowerBathing.GetValue() == 2
+		if DirtyActors.Find(PlayerFollowers[i]) != -1 || AutomateFollowerBathing.GetValue() > 1
 			MiscObject WashProp = BatheQuest.TryFindWashProp(PlayerFollowers[i])
 			if WashProp && !BatheQuest.IsInCommmonRestriction(PlayerFollowers[i])
 				if BatheQuest.IsInWater(PlayerFollowers[i])

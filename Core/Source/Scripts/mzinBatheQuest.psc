@@ -73,8 +73,8 @@ Event OnKeyDown(Int KeyCode)
 		UnregisterForAllKeys()
 		If KeyCode == CheckStatusKeyCode.GetValueInt()
 			mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
-		ElseIf (KeyCode == BatheKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, false)) \
-		|| (KeyCode == ShowerKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, true))
+		ElseIf (KeyCode == BatheKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, false, true)) \
+		|| (KeyCode == ShowerKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, true, true))
 			return
 		Endif
 		RegisterHotKeys()
@@ -94,21 +94,21 @@ Function RegisterHotKeys()
 	EndIf
 EndFunction
 
-Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = false)
+Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = false, Bool PlayerTeammates = false)
 	If WashProp == None
 		WashProp = TryFindWashProp(DirtyActor)
 	EndIf
 	If !IsRestricted(DirtyActor)
 		If Shower
 			If IsUnderWaterfall(DirtyActor)
-				WashActor(DirtyActor, WashProp, true, (DirtyActor == PlayerRef))
+				WashActor(DirtyActor, WashProp, true, PlayerTeammates && Menu.AutomateFollowerBathing.GetValue() > 0)
 				return true
 			Else
 				mzinUtil.GameMessage(ShoweringNeedsWaterMessage)
 			EndIf
 		Else
 			If IsInWater(DirtyActor)
-				WashActor(DirtyActor, WashProp, false, (DirtyActor == PlayerRef))
+				WashActor(DirtyActor, WashProp, false, PlayerTeammates && Menu.AutomateFollowerBathing.GetValue() > 0)
 				return true
 			Else
 				mzinUtil.GameMessage(BathingNeedsWaterMessage)
