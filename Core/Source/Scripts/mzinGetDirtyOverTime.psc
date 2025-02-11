@@ -235,13 +235,13 @@ Function RunDirtCycleUpdate()
 	RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
 EndFunction
 Event OnObjectEquipped(Form WashProp, ObjectReference WashPropReference)
-	If WashProp.HasKeyWord(WashPropKeyword) && !BatheQuest.IsInCommmonRestriction(DirtyActor)
+	If WashProp.HasKeyWord(WashPropKeyword) && !BatheQuest.IsRestricted(DirtyActor)
 		if BatheQuest.IsInWater(DirtyActor)
 			CloseInventory()
-			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, DoShower = false)
+			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, false, (DirtyActor == PlayerRef))
 		elseIf BatheQuest.IsUnderWaterfall(DirtyActor)
 			CloseInventory()
-			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, DoShower = true)
+			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, true, (DirtyActor == PlayerRef))
 		endIf
 	EndIf
 EndEvent
@@ -312,7 +312,6 @@ Function RenewDirtSpell()
 	ApplyDirtLeadInSpell()
 	
 	If DirtyActorIsPlayer && DirtinessTier > 0
-		Debug.Trace("mzin_ DirtinessTier: " + DirtinessTier)
 		Message ExitMessage = ExitTierMessageList.GetAt(DirtinessTier - 1) As Message
 		If ExitMessage
 			mzinUtil.GameMessage(ExitMessage)

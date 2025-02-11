@@ -52,9 +52,9 @@ Function RegForEvents()
 	RegisterForModEvent("BiS_WashActorFinish", "OnBiS_WashActorFinish")
 EndFunction
 
-Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool abDoShower, Bool abDoAnimate = false, Bool abFullClean = false, Bool abDoSoap = false)
+Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool abDoShower, bool abDoPlayerTeammates = false, Bool abDoAnimate = false, Bool abFullClean = false, Bool abDoSoap = false)
 	If akDirtyActor as Actor
-		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, abDoShower, abDoAnimate, abFullClean, abDoSoap)
+		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, abDoShower, abDoPlayerTeammates, abDoAnimate, abFullClean, abDoSoap)
 	Else
 		mzinUtil.LogTrace("OnBiS_WashActor(): Received invalid actor: " + akDirtyActor)
 	EndIf
@@ -98,17 +98,17 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 	If WashProp == None
 		WashProp = TryFindWashProp(DirtyActor)
 	EndIf
-	If !IsInCommmonRestriction(DirtyActor)
+	If !IsRestricted(DirtyActor)
 		If Shower
 			If IsUnderWaterfall(DirtyActor)
-				WashActor(DirtyActor, WashProp, DoShower = true)
+				WashActor(DirtyActor, WashProp, true, (DirtyActor == PlayerRef))
 				return true
 			Else
 				mzinUtil.GameMessage(ShoweringNeedsWaterMessage)
 			EndIf
 		Else
 			If IsInWater(DirtyActor)
-				WashActor(DirtyActor, WashProp, DoShower = false)
+				WashActor(DirtyActor, WashProp, false, (DirtyActor == PlayerRef))
 				return true
 			Else
 				mzinUtil.GameMessage(BathingNeedsWaterMessage)
@@ -118,19 +118,22 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 	return false
 EndFunction
 
-Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false, Bool DoAnimate = true, Bool DoFullClean = false, Bool DoSoap = false)
+Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false, Bool DoPlayerTeammates = false, Bool DoAnimate = true, Bool DoFullClean = false, Bool DoSoap = false)
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
 	Bool UsedSoap = false
 	If DirtyActorIsPlayer
 		UnregisterForAllKeys()
-		PlayerAlias.RunCycleHelper()
 		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0, Init.IsFrostFallInstalled)
 		OlUtil.SendBathePlayerModEvent()
 	EndIf
+	If DoPlayerTeammates
+		PlayerAlias.RunCycleHelper()
+	endIf
 
 	if DoAnimate
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
 			UsedSoap = true
+			DirtyActor.RemoveItem(WashProp, 1, True, None)
 		EndIf
 		if DirtyActorIsPlayer
 			If DoShower
@@ -162,9 +165,9 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	DirtyActor.ClearExtraArrows()
 	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
 	SexlabInt.SlClearCum(DirtyActor)
-	mzinInterfacePaf.ClearPafDirt(Init.PAF_API as PAF_MainQuestScript, DirtyActor, Init.IsPAFInstalled)
+	mzinInterfacePaf.ClearPafDirt(Init.PAF_API, DirtyActor, Init.IsPAFInstalled)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor, Init.IsOCumInstalled)
-	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API as fadeTattoos, DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult, Init.IsFadeTattoosInstalled)
+	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult, Init.IsFadeTattoosInstalled)
 	
 	SendCleanDirtEvent(DirtyActor, UsedSoap)
 
@@ -247,6 +250,11 @@ Int Function GetWashPropIndex(MiscObject Soap)
 	Return -1
 EndFunction
 
+Bool Function IsInWater(Actor DirtyActor)
+	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor) \
+	|| (Init.IsWadeInWaterInstalled && DirtyActor.HasMagicEffect(Init.LokiWaterSlowdownEffect)))
+EndFunction
+
 Bool Function IsUnderWaterfall(Actor DirtyActor)
 	If !(WaterRestrictionEnabled.GetValue() As Bool)
 		Return True
@@ -277,24 +285,12 @@ Bool Function IsUnderWaterfall(Actor DirtyActor)
 	Return False
 EndFunction
 
-Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
-	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt")
-    If (BiS_CleanActorDirtEvent)
-		ModEvent.PushForm(BiS_CleanActorDirtEvent, akTarget)
-		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToClean)
-		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToCleanInterval)
-		ModEvent.PushBool(BiS_CleanActorDirtEvent, UsedSoap)
-        ModEvent.Send(BiS_CleanActorDirtEvent)
-    EndIf
+Bool Function IsRestricted(Actor DirtyActor, Actor PotentialGawker = None)
+	return IsInCommmonRestriction(DirtyActor) || IsTooShy(DirtyActor, PotentialGawker)
 EndFunction
 
 Bool Function IsInCommmonRestriction(Actor DirtyActor)
-	return (IsDeviceBlocked(DirtyActor) || !IsPermitted(DirtyActor) || IsTooShy(DirtyActor) || IsInInvalidCondition(DirtyActor))
-EndFunction
-
-Bool Function IsInWater(Actor DirtyActor)
-	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor) \
-	|| (Init.IsWadeInWaterInstalled && DirtyActor.HasMagicEffect(Init.LokiWaterSlowdownEffect)))
+	return (IsDeviceBlocked(DirtyActor) || IsNotPermitted(DirtyActor) || IsInInvalidCondition(DirtyActor))
 EndFunction
 
 Bool Function IsInInvalidCondition(Actor DirtyActor)
@@ -318,7 +314,7 @@ Bool Function IsDeviceBlocked(Actor akTarget)
 	Return False
 EndFunction
 
-Bool Function IsPermitted(Actor akTarget)
+Bool Function IsNotPermitted(Actor akTarget)
 	Int Index = StorageUtil.FormListFind(none, "BiS_ForbiddenActors", akTarget)
 	If Index != -1
 		Int ForbiddenCount = StorageUtil.StringListCount(akTarget, "BiS_ForbiddenString") - 1
@@ -326,7 +322,7 @@ Bool Function IsPermitted(Actor akTarget)
 		If ForbiddenString != ""
 			mzinUtil.LogNotification(ForbiddenString)
 		Else
-			mzinUtil.LogTrace("IsPermitted: Blank string retrieved for index " + ForbiddenCount + " on actor " + akTarget)
+			mzinUtil.LogTrace("IsNotPermitted: Blank string retrieved for index " + ForbiddenCount + " on actor " + akTarget)
 		EndIf
 		
 		; Send forbidden bathe attempt modevent
@@ -335,65 +331,46 @@ Bool Function IsPermitted(Actor akTarget)
 			ModEvent.PushForm(ForbiddenBatheAttempt, akTarget)
 			ModEvent.Send(ForbiddenBatheAttempt)
 		EndIf
-		Return False
-	Else
 		Return True
+	Else
+		Return False
 	EndIf
 EndFunction
 
-Bool Function IsTooShy(Actor akTarget)
+Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 	If Menu.Shyness
 		If Init.IsSexlabArousedInstalled && akTarget.GetFactionRank(Init.SLAExhibitionistFaction) >= 0
 			Return False
 		EndIf
-		
-		mzinGawkers.Stop()
-		if mzinGawkers.Start()
-			Int i = 0 
-			While i < mzinGawkers.GetNumAliases()
-				Actor Gawker = (mzinGawkers.GetNthAlias(i) as ReferenceAlias).GetReference() as Actor
-				If Gawker && Gawker != akTarget
-					If !IsGawkerSlave(Gawker)
-						If Gawker.HasLOS(PlayerRef)
-							DoShyMessage(akTarget, Gawker)
-							mzinGawkers.Stop()
-							Return True
-						EndIf
-						If !akTarget.IsInInterior()
-							If akTarget.GetDistance(Gawker) < Menu.ShyDistance
-								DoShyMessage(akTarget, Gawker)
-								mzinGawkers.Stop()
-								Return True
-							EndIf
-						EndIf
-					EndIf
-				EndIf
-				i += 1
-			EndWhile
+
+		If !akGawker
+			akGawker = GetGawker(akTarget)
 		EndIf
-		mzinGawkers.Stop()
+		
+		If akGawker
+			if akTarget == PlayerRef
+				mzinUtil.LogNotification("No way am I bathing in front of " + akGawker.GetBaseObject().GetName() + "!")
+			elseIf akTarget.IsPlayerTeammate()
+				mzinUtil.LogNotification(akTarget.GetBaseObject().GetName() + ": You're joking, right? I'm not bathing in front of " +  akGawker.GetBaseObject().GetName() + "!")
+			else
+				mzinUtil.LogNotification(akTarget.GetBaseObject().GetName() + " refuses to bathe in front of " + akGawker.GetBaseObject().GetName() + ".")
+			endIf
+			Return True
+		EndIf
 	EndIf
 	Return False
 EndFunction
 
-Function DoShyMessage(Actor akTarget, Actor Gawker)
-	If akTarget == PlayerRef
-		mzinUtil.LogNotification("No way am I bathing in front of " + Gawker.GetBaseObject().GetName())
-	Else
-		mzinUtil.LogNotification(akTarget.GetBaseObject().GetName() + ": You're joking right? I'm not bathing in front of " + Gawker.GetBaseObject().GetName())
-	EndIf
-EndFunction
-
-Bool Function IsGawkerSlave(Actor Gawker)
-	If Init.IsZazInstalled
-		If Gawker.IsInFaction(Init.ZazSlaveFaction)
-			Return True
-		Else
-			Return False
+Actor Function GetGawker(Actor akActor)
+	mzinGawkers.Stop()
+	if mzinGawkers.Start()
+		Actor Gawker = (mzinGawkers.GetNthAlias(0) as ReferenceAlias).GetReference() as Actor
+		mzinGawkers.Stop()
+		If Gawker && Gawker != akActor
+			return Gawker
 		EndIf
-	Else
-		Return False
-	EndIf
+	endIf
+	return none
 EndFunction
 
 Function GetSoapy(Actor akActor)
@@ -434,7 +411,7 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
 	StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-	StorageUtil.UnSetStringValue(DirtyActor, "mzin_LastWashProp")
+	StorageUtil.UnSetFormValue(DirtyActor, "mzin_LastWashProp")
 	StorageUtil.UnSetIntValue(DirtyActor, "mzin_LastWashState")
 EndFunction
 
@@ -444,4 +421,15 @@ Function UpdateActorDirtPercent(Actor akActor, float afNewValue)
 	elseIf DirtyActors.Find(akActor) != -1
 		StorageUtil.SetFloatValue(akActor, "BiS_Dirtiness", afNewValue)
 	EndIf
+EndFunction
+
+Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
+	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt")
+    If (BiS_CleanActorDirtEvent)
+		ModEvent.PushForm(BiS_CleanActorDirtEvent, akTarget)
+		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToClean)
+		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToCleanInterval)
+		ModEvent.PushBool(BiS_CleanActorDirtEvent, UsedSoap)
+        ModEvent.Send(BiS_CleanActorDirtEvent)
+    EndIf
 EndFunction

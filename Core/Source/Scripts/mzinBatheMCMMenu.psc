@@ -24,7 +24,7 @@ Float Property SexInterval = 1.0 Auto Hidden
 Float Property TimeToClean = 10.0 Auto Hidden
 Float Property TimeToCleanInterval = 0.25 Auto Hidden
 Bool Property Shyness = True Auto Hidden
-Int Property ShyDistance = 2800 Auto Hidden
+GlobalVariable Property ShynessDistance Auto
 Bool Property AutoPlayerTFC = False Auto Hidden
 Bool Property TexSetOverride = False Auto Hidden
 Bool Property GameMessage = True Auto Hidden
@@ -108,11 +108,11 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.4.0"
+	return "2.4.1"
 EndFunction
 
 Int Function GetVersion()
-	Return 16
+	Return 17
 EndFunction
 
 Event OnConfigOpen()
@@ -430,7 +430,7 @@ Function DisplaySettingsPage()
 	ShowerKeyMapID = AddKeyMapOption("$BIS_L_SHOWER_HOTKEY", ShowerKeyCode.GetValue() As Int)
 	AddHeaderOption("$BIS_HEADER_MISC")
 	ShynessToggleID = AddToggleOption("$BIS_L_SHYNESSTOGGLE", Shyness)
-	ShyDistanceOID_S = AddSliderOption("$BIS_L_SHYDISTANCE", ShyDistance, DisplayFormatDecimal)
+	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue(), DisplayFormatDecimal)
 	
 	SetCursorPosition(1)
 	AddHeaderOption("$BIS_HEADER_DIRT_RATE")
@@ -555,9 +555,6 @@ Function DisplayAuxiliaryPage()
 		endIf
 		if init.IsWadeInWaterInstalled
 			AddTextOption("$BIS_L_WadeInWater", "")
-		endIf
-		if init.IsZazInstalled
-			AddTextOption("$BIS_L_Zaz", "")
 		endIf
 	endIf
 EndFunction
@@ -938,8 +935,8 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_TIMETOCLEANINTERVAL")
 	ElseIf OptionId == ShynessToggleID
 		SetInfoText("$BIS_DESC_SHYNESSTOGGLE")
-	ElseIf OptionId == ShyDistanceOID_S
-		SetInfoText("$BIS_DESC_SHYDISTANCE")
+	ElseIf OptionId == ShynessDistanceOID_S
+		SetInfoText("$BIS_DESC_SHYNESSDISTANCE")
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightIntegrationsPage(int OptionID)
@@ -1421,10 +1418,10 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		DisplayFormat = DisplayFormatDecimal
 		SliderValue = OptionValue
 		TimeToCleanInterval = SliderValue
-	ElseIf OptionID == ShyDistanceOID_S
+	ElseIf OptionID == ShynessDistanceOID_S
 		DisplayFormat = DisplayFormatDecimal
 		SliderValue = OptionValue
-		ShyDistance = SliderValue as Int
+		ShynessDistance.SetValue(SliderValue)
 	EndIf
 	
 	SetSliderOptionValue(OptionID, OptionValue, DisplayFormat)
@@ -1673,12 +1670,12 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogRange(0.01, 5.0)
 		SetSliderDialogInterval(0.01)
 		SliderValue = TimeToCleanInterval
-	ElseIf OptionID == ShyDistanceOID_S
+	ElseIf OptionID == ShynessDistanceOID_S
 		DisplayFormat = DisplayFormatDecimal
 		SetSliderDialogDefaultValue(2000.0)
 		SetSliderDialogRange(0.0, 6000.0)
 		SetSliderDialogInterval(200.0)
-		SliderValue = ShyDistance
+		SliderValue = ShynessDistance.GetValue()
 	EndIf
 	
 	; set slider value
@@ -1896,7 +1893,7 @@ Bool Function SavePapyrusSettings()
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "TimeToClean", TimeToClean)
 	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "TimeToCleanInterval", TimeToCleanInterval)
 
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShyDistance", ShyDistance)
+	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "ShynessDistance", ShynessDistance.GetValue())
 	
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex", FadeDirtSex as int)
 	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "Shyness", Shyness as int)
@@ -1992,7 +1989,7 @@ Bool Function LoadPapyrusSettings()
 	TimeToClean = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "TimeToClean")
 	TimeToCleanInterval = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "TimeToCleanInterval")
 	
-	ShyDistance = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "ShyDistance")
+	ShynessDistance.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "ShynessDistance"))
 	
 	FadeDirtSex = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex")
 	Shyness = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "Shyness")
@@ -2077,7 +2074,7 @@ Int OverlayProgressOID_T
 Int RemoveAllOverlaysOID_T
 Int TexSetOverrideID
 Int ShynessToggleID
-Int ShyDistanceOID_S
+Int ShynessDistanceOID_S
 Int TimeToCleanOID_S
 Int TimeToCleanIntervalOID_S
 
