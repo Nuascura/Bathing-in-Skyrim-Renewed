@@ -286,7 +286,9 @@ Bool Function StartAnimationFemale(int aiPreset, bool abOverride = false, int ai
 				BathingStyle[1] = mzinBatheA2_S1_Cloth
 				BathingStyle[2] = mzinBatheA3_S1_Cloth
 			endIf
-			if !abOverride
+			if abOverride
+				SelectedStyle = BathingStyle[0]
+			else
 				SelectedStyle = BathingStyle[Utility.RandomInt(0, BathingStyle.Length - 1)]
 			endIf
 			RinseOn()
@@ -306,7 +308,7 @@ Bool Function StartAnimationFemale(int aiPreset, bool abOverride = false, int ai
 				SelectedStyle = BathingStyle[Utility.RandomInt(0, BathingStyle.Length - 1)]
 			endIf
 		endIf
-
+		
 		if SelectedStyle
 			GoToState("InSequenceCustom")
 			return true
@@ -331,7 +333,9 @@ Bool Function StartAnimationMale(int aiPreset, bool abOverride = false, int aiTi
 				BathingStyle[1] = mzinBatheMA2_S1_Cloth
 				BathingStyle[2] = mzinBatheMA3_S1_Cloth
 			endIf
-			if !abOverride
+			if abOverride
+				SelectedStyle = BathingStyle[0]
+			else
 				SelectedStyle = BathingStyle[Utility.RandomInt(0, BathingStyle.Length - 1)]
 			endIf
 			RinseOn()
