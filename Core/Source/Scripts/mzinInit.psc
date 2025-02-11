@@ -8,7 +8,6 @@ String Property SPEstate = "$BIS_L_NULL" Auto Hidden
 Bool Property IsSexlabInstalled = false Auto Hidden
 Bool Property IsSexlabArousedInstalled = false Auto Hidden
 Bool Property IsDdsInstalled = false Auto Hidden
-Bool Property IsZazInstalled = false Auto Hidden
 Bool Property IsWadeInWaterInstalled = false Auto Hidden
 Bool Property IsMalignisAnimInstalled = false Auto Hidden
 Bool Property IsFadeTattoosInstalled = false Auto Hidden
@@ -93,12 +92,6 @@ Int Function DoSoftCheck()
 		IsDdsInstalled = true
 		i += 1
 	EndIf
-	
-	IsZazInstalled = false
-	If Game.GetModByName("ZaZAnimationPack.esm") != 255
-		IsZazInstalled = true
-		i += 1
-	EndIf
 
 	IsWadeInWaterInstalled = false
 	If Game.GetModByName("WadeInWater.esp") != 255 || Game.GetModByName("SinkOrSwim.esp") != 255
@@ -153,9 +146,6 @@ Function SetInternalVariables()
 		ElseIf Game.GetModByName("SinkOrSwim.esp") != 255
 			LokiWaterSlowdownEffect = Game.GetFormFromFile(0x000D62, "SinkOrSwim.esp") as MagicEffect
 		EndIf
-	EndIf
-	If IsZazInstalled
-		ZazSlaveFaction = Game.GetFormFromFile(0x000096AE, "ZaZAnimationPack.esm") as Faction
 	EndIf
 	If IsSexlabInstalled
 		SexLabForbiddenActors  = Game.GetFormFromFile(0x049068, "SexLab.esm") as Faction
