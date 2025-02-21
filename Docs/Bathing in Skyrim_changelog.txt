@@ -1,3 +1,10 @@
+2.4.3
+- Add: Auto Load and Auto Start flags.
+- Add: Improved safeguards for invalid config value imports.
+- Fix: Outdated translation files.
+
+
+
 2.4.2
 Primary
 - Fix: Minor regression in handling of player teammate bathing via player-follower dialogue.
