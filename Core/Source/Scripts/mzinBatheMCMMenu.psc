@@ -3,6 +3,8 @@ ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 
 Bool IsConfigOpen = false
 
+import JsonUtil
+
 ; Modified
 mzinTextureUtility Property TexUtil Auto
 mzinOverlayUtility Property OlUtil Auto
@@ -103,12 +105,14 @@ Int Property AnimCustomTierCondFollowers = 1 Auto
 
 Int Property cachedSoftCheck = 0 Auto Hidden
 
+string config = "BathingInSkyrim/Settings.json"
+
 ; constants
 String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.4.2"
+	return "2.4.3"
 EndFunction
 
 Int Function GetVersion()
@@ -116,11 +120,11 @@ Int Function GetVersion()
 EndFunction
 
 Event OnConfigOpen()
+	UnregisterForUpdate()
+	GoToState("")
+
 	IsConfigOpen = true
-	if !(BathingInSkyrimEnabled.GetValue() as bool)
-		Pages = new String[1]
-		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
-	elseIf (BathingInSkyrimEnabled.GetValue() as bool)
+	If BathingInSkyrimEnabled.GetValue() == 1
 		Pages = new String[7]
 		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
 		Pages[1] = "$BIS_PAGE_SETTINGS"
@@ -129,6 +133,9 @@ Event OnConfigOpen()
 		Pages[4] = "$BIS_PAGE_TRACKED_ACTORS"
 		Pages[5] = "$BIS_PAGE_INTEGRATIONS"
 		Pages[6] = "$BIS_PAGE_AUXILIARY"
+	else
+		Pages = new String[1]
+		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
 	endIf
 EndEvent
 Function VersionUpdate()
@@ -211,10 +218,16 @@ EndFunction
 
 ; initialize events
 Event OnConfigInit()
+	if JsonExists(config)
+		Load(config)
+	endIf
 	if CurrentVersion == 0
 		InternalUpdate()
 		mzinUtil.LogNotification("Installed Bathing in Skyrim " + GetModVersion(), true)
 		mzinUtil.LogTrace("Installed Bathing in Skyrim " + GetModVersion(), true)
+		if BathingInSkyrimEnabled.GetValue() == 0 && GetIntValue(config, "!!doautostart") == 1
+			GoToState("AutoStartST")
+		endIf
 	endIf
 EndEvent
 Event OnVersionUpdate(Int Version)
@@ -248,6 +261,17 @@ Event OnConfigClose()
 	IsConfigOpen = false
 EndEvent
 
+State AutoStartST
+	Event OnBeginState()
+		RegisterForSingleUpdate(10.0)
+	EndEvent
+	Event OnUpdate()
+		BathingInSkyrimEnabled.SetValue(-1)
+		EnableBathingInSkyrim(GetIntValue(config, "!!doautoload") == 1)
+		GoToState("")
+	EndEvent
+EndState
+
 ; display pages
 Function DisplaySplashPage()
 	LoadCustomContent("Bathing in Skyrim.dds", 56, 63)
@@ -257,8 +281,8 @@ Function DisplaySystemOverviewPage()
 	ModStateOID_T = AddTextOption("$BIS_L_MODSTATE", GetModState())
 	AddEmptyOption()
 	AddHeaderOption("$BIS_HEADER_SAVELOAD")
-	PapSetSaveOID_T = AddTextOption("$BIS_L_SAVE_SETTINGS", "$BIS_L_SAVE", (!(BathingInSkyrimEnabled.GetValue() as bool)) as int)
-	PapSetLoadOID_T = AddTextOption("$BIS_L_LOAD_SETTINGS", "$BIS_L_LOAD", (!(BathingInSkyrimEnabled.GetValue() as bool)) as int)
+	PapSetSaveOID_T = AddTextOption("$BIS_L_SAVE_SETTINGS", "$BIS_L_SAVE", (BathingInSkyrimEnabled.GetValue() != 1) as int)
+	PapSetLoadOID_T = AddTextOption("$BIS_L_LOAD_SETTINGS", "$BIS_L_LOAD", (BathingInSkyrimEnabled.GetValue() != 1) as int)
 	SetCursorPosition(1)
 	AddHeaderOption("")
 	AddTextOption("$BIS_L_MODVERSION", GetModVersion(), OPTION_FLAG_DISABLED)
@@ -1055,17 +1079,17 @@ Function HandleOnOptionSelectAnimationsPageFollowers(Int OptionID)
 EndFunction
 Function HandleOnOptionSelectSystemOverviewPage(Int OptionID)
 	If OptionID == ModStateOID_T
-		If BathingInSkyrimEnabled.GetValue() As Bool
+		If BathingInSkyrimEnabled.GetValue() == 1
 			if ShowMessage("$BIS_MSG_ASK_DISABLE", True) == True
 				BathingInSkyrimEnabled.SetValue(-1)
 				SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
 				DisableBathingInSkyrim()
 			endIf
-		Else
+		ElseIf BathingInSkyrimEnabled.GetValue() == 0
 			BathingInSkyrimEnabled.SetValue(-1)
 			SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
 			ShowMessage("$BIS_MSG_ASK_ENABLE", false)
-			EnableBathingInSkyrim()
+			EnableBathingInSkyrim(GetIntValue(config, "!!doautoload") == 1)
 		EndIf
 	ElseIf OptionID == PapSetSaveOID_T
 		SetTextOptionValue(PapSetSaveOID_T, "$BIS_TXT_SAVING", false)
@@ -1731,7 +1755,7 @@ Function HandleOnOptionSliderOpenIntegrationsPage(int OptionID)
 EndFunction
 
 ; helper functions
-Function EnableBathingInSkyrim()
+Function EnableBathingInSkyrim(Bool abAutoLoad)
 	Utility.Wait(1.0)
 	Init.DoHardCheck()
 	cachedSoftCheck = Init.DoSoftCheck()
@@ -1745,6 +1769,10 @@ Function EnableBathingInSkyrim()
 	mzinBatheFollowerDialogQuest.Start()
 
 	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
+
+	if abAutoLoad && LoadPapyrusSettings(true)
+		mzinUtil.LogNotification("Auto loaded configuration.", true)
+	endIf
 
 	BathingInSkyrimEnabled.SetValue(1)
 
@@ -1820,8 +1848,8 @@ Function DoRemoveOverlays(Actor akTarget, bool displayProgress = true)
 EndFunction
 
 Bool Function SavePapyrusSettings()
-	if JsonUtil.JsonExists("BathingInSkyrim/Settings.json")
-		if JsonUtil.IsPendingSave("BathingInSkyrim/Settings.json")
+	if JsonExists(config)
+		if IsPendingSave(config)
 			if !ShowMessage("$BIS_MSG_SAVE_WARN_1")
 				return false
 			endIf
@@ -1832,183 +1860,187 @@ Bool Function SavePapyrusSettings()
 		endIf
 	endIf
 
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "DialogTopicEnabled", DialogTopicEnabled.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AutomateFollowerBathing", AutomateFollowerBathing.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyle", GetSoapyStyle.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "CheckStatusKeyCode", CheckStatusKeyCode.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BatheKeyCode", BatheKeyCode.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShowerKeyCode", ShowerKeyCode.GetValueInt())
+	SetIntValue(config, "DialogTopicEnabled", DialogTopicEnabled.GetValueInt())
+	SetIntValue(config, "AutomateFollowerBathing", AutomateFollowerBathing.GetValueInt())
+	SetIntValue(config, "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValueInt())
+	SetIntValue(config, "GetSoapyStyle", GetSoapyStyle.GetValueInt())
+	SetIntValue(config, "GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValueInt())
+	SetIntValue(config, "CheckStatusKeyCode", CheckStatusKeyCode.GetValueInt())
+	SetIntValue(config, "BatheKeyCode", BatheKeyCode.GetValueInt())
+	SetIntValue(config, "ShowerKeyCode", ShowerKeyCode.GetValueInt())
 	
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationStyle", BathingAnimationStyle.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationStyleFollowers", BathingAnimationStyleFollowers.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShoweringAnimationStyle", ShoweringAnimationStyle.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "ShoweringAnimationStyleFollowers", ShoweringAnimationStyleFollowers.GetValueInt())
+	SetIntValue(config, "BathingAnimationStyle", BathingAnimationStyle.GetValueInt())
+	SetIntValue(config, "BathingAnimationStyleFollowers", BathingAnimationStyleFollowers.GetValueInt())
+	SetIntValue(config, "ShoweringAnimationStyle", ShoweringAnimationStyle.GetValueInt())
+	SetIntValue(config, "ShoweringAnimationStyleFollowers", ShoweringAnimationStyleFollowers.GetValueInt())
 	
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabled", GetDressedAfterBathingEnabled.GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabledFollowers", GetDressedAfterBathingEnabledFollowers.GetValueInt())
-	JsonUtil.IntListCopy("BathingInSkyrim/Settings.json", "ArmorSlotArray", ArmorSlotArray)
-	JsonUtil.IntListCopy("BathingInSkyrim/Settings.json", "ArmorSlotArrayFollowers", ArmorSlotArrayFollowers)
+	SetIntValue(config, "GetDressedAfterBathingEnabled", GetDressedAfterBathingEnabled.GetValueInt())
+	SetIntValue(config, "GetDressedAfterBathingEnabledFollowers", GetDressedAfterBathingEnabledFollowers.GetValueInt())
+	IntListCopy(config, "ArmorSlotArray", ArmorSlotArray)
+	IntListCopy(config, "ArmorSlotArrayFollowers", ArmorSlotArrayFollowers)
 	
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessUpdateInterval", DirtinessUpdateInterval.GetValue())
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPercentage", DirtinessPercentage.GetValue())
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourPlayerHouse", DirtinessPerHourPlayerHouse.GetValue())
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourSettlement", DirtinessPerHourSettlement.GetValue())
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue())
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue())
+	SetFloatValue(config, "DirtinessUpdateInterval", DirtinessUpdateInterval.GetValue())
+	SetFloatValue(config, "DirtinessPercentage", DirtinessPercentage.GetValue())
+	SetFloatValue(config, "DirtinessPerHourPlayerHouse", DirtinessPerHourPlayerHouse.GetValue())
+	SetFloatValue(config, "DirtinessPerHourSettlement", DirtinessPerHourSettlement.GetValue())
+	SetFloatValue(config, "DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue())
+	SetFloatValue(config, "DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue())
 	
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold0", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue())
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue())
+	SetFloatValue(config, "DirtinessThreshold0", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
+	SetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue())
+	SetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue())
 	
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount2", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount3", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCount2", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCount3", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValueInt())
 	
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers0", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers1", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers2", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValueInt())
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers3", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCountFollowers0", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCountFollowers1", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCountFollowers2", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCountFollowers3", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValueInt())
 
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomMSet1Freq", AnimCustomMSet1Freq)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet1Freq", AnimCustomFSet1Freq)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet2Freq", AnimCustomFSet2Freq)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet3Freq", AnimCustomFSet3Freq)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AnimCustomTierCond", AnimCustomTierCond)
+	SetFloatValue(config, "AnimCustomMSet1Freq", AnimCustomMSet1Freq)
+	SetFloatValue(config, "AnimCustomFSet1Freq", AnimCustomFSet1Freq)
+	SetFloatValue(config, "AnimCustomFSet2Freq", AnimCustomFSet2Freq)
+	SetFloatValue(config, "AnimCustomFSet3Freq", AnimCustomFSet3Freq)
+	SetIntValue(config, "AnimCustomTierCond", AnimCustomTierCond)
 	
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomMSet1FreqFollowers", AnimCustomMSet1FreqFollowers)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet1FreqFollowers", AnimCustomFSet1FreqFollowers)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet2FreqFollowers", AnimCustomFSet2FreqFollowers)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet3FreqFollowers", AnimCustomFSet3FreqFollowers)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AnimCustomTierCondFollowers", AnimCustomTierCondFollowers)
+	SetFloatValue(config, "AnimCustomMSet1FreqFollowers", AnimCustomMSet1FreqFollowers)
+	SetFloatValue(config, "AnimCustomFSet1FreqFollowers", AnimCustomFSet1FreqFollowers)
+	SetFloatValue(config, "AnimCustomFSet2FreqFollowers", AnimCustomFSet2FreqFollowers)
+	SetFloatValue(config, "AnimCustomFSet3FreqFollowers", AnimCustomFSet3FreqFollowers)
+	SetIntValue(config, "AnimCustomTierCondFollowers", AnimCustomTierCondFollowers)
 	
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerSexActor", DirtinessPerSexActor)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "VictimMult", VictimMult)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "OverlayApplyAt", OverlayApplyAt)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "StartingAlpha", StartingAlpha)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "SexIntervalDirt", SexIntervalDirt)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "SexInterval", SexInterval)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "TimeToClean", TimeToClean)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "TimeToCleanInterval", TimeToCleanInterval)
+	SetFloatValue(config, "DirtinessPerSexActor", DirtinessPerSexActor)
+	SetFloatValue(config, "VictimMult", VictimMult)
+	SetFloatValue(config, "OverlayApplyAt", OverlayApplyAt)
+	SetFloatValue(config, "StartingAlpha", StartingAlpha)
+	SetFloatValue(config, "SexIntervalDirt", SexIntervalDirt)
+	SetFloatValue(config, "SexInterval", SexInterval)
+	SetFloatValue(config, "TimeToClean", TimeToClean)
+	SetFloatValue(config, "TimeToCleanInterval", TimeToCleanInterval)
 
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "ShynessDistance", ShynessDistance.GetValue())
+	SetFloatValue(config, "ShynessDistance", ShynessDistance.GetValue())
 	
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex", FadeDirtSex as int)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "Shyness", Shyness as int)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "AutoPlayerTFC", AutoPlayerTFC as int)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "TexSetOverride", TexSetOverride as int)
+	SetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
+	SetIntValue(config, "Shyness", Shyness as int)
+	SetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
+	SetIntValue(config, "TexSetOverride", TexSetOverride as int)
 
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime", FadeTatsFadeTime)
-	JsonUtil.SetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult", FadeTatsSoapMult)
+	SetFloatValue(config, "FadeTatsFadeTime", FadeTatsFadeTime)
+	SetFloatValue(config, "FadeTatsSoapMult", FadeTatsSoapMult)
 
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "GameMessage", GameMessage as int)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "LogNotification", LogNotification as int)
-	JsonUtil.SetIntValue("BathingInSkyrim/Settings.json", "LogTrace", LogTrace as int)
+	SetIntValue(config, "GameMessage", GameMessage as int)
+	SetIntValue(config, "LogNotification", LogNotification as int)
+	SetIntValue(config, "LogTrace", LogTrace as int)
 	
-	JsonUtil.Save("BathingInSkyrim/Settings.json")
+	Save(config)
 
 	ShowMessage("$BIS_MSG_COMPLETED_SAVE", False)
 	return True
 EndFunction
 
-Bool Function LoadPapyrusSettings()
-	; Simple config health check
-	if !JsonUtil.JsonExists("BathingInSkyrim/Settings.json")
-		ShowMessage("$BIS_MSG_LOAD_WARN_1", false)
-		return false
-	ElseIf !(JsonUtil.Load("BathingInSkyrim/Settings.json") && JsonUtil.IsGood("BathingInSkyrim/Settings.json"))
-		ShowMessage("$BIS_MSG_LOAD_WARN_2", false)
-		return false
-	else
-		if !ShowMessage("$BIS_MSG_ASK_LOAD")
+Bool Function LoadPapyrusSettings(Bool abSilent = false)
+	if !abSilent
+		; Simple config health check
+		if !JsonExists(config)
+			ShowMessage("$BIS_MSG_LOAD_WARN_1", false)
 			return false
+		ElseIf !(Load(config) && IsGood(config))
+			ShowMessage("$BIS_MSG_LOAD_WARN_2", false)
+			return false
+		else
+			if !ShowMessage("$BIS_MSG_ASK_LOAD")
+				return false
+			endIf
 		endIf
 	endIf
 
-	DialogTopicEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "DialogTopicEnabled"))
-	AutomateFollowerBathing.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AutomateFollowerBathing"))
-	WaterRestrictionEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "WaterRestrictionEnabled"))
-	GetSoapyStyle.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyle"))
-	GetSoapyStyleFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetSoapyStyleFollowers"))
-	CheckStatusKeyCode.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "CheckStatusKeyCode"))
-	BatheKeyCode.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BatheKeyCode"))
-	ShowerKeyCode.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "ShowerKeyCode"))
+	DialogTopicEnabled.SetValue(GetIntValue(config, "DialogTopicEnabled", DialogTopicEnabled.GetValue() as int))
+	AutomateFollowerBathing.SetValue(GetIntValue(config, "AutomateFollowerBathing", AutomateFollowerBathing.GetValue() as int))
+	WaterRestrictionEnabled.SetValue(GetIntValue(config, "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValue() as int))
+	GetSoapyStyle.SetValue(GetIntValue(config, "GetSoapyStyle", GetSoapyStyle.GetValue() as int))
+	GetSoapyStyleFollowers.SetValue(GetIntValue(config, "GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValue() as int))
+	CheckStatusKeyCode.SetValue(GetIntValue(config, "CheckStatusKeyCode", CheckStatusKeyCode.GetValue() as int))
+	BatheKeyCode.SetValue(GetIntValue(config, "BatheKeyCode", BatheKeyCode.GetValue() as int))
+	ShowerKeyCode.SetValue(GetIntValue(config, "ShowerKeyCode", ShowerKeyCode.GetValue() as int))
 	
-	BathingAnimationStyle.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationStyle"))
-	BathingAnimationStyleFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationStyleFollowers"))
-	ShoweringAnimationStyle.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "ShoweringAnimationStyle"))
-	ShoweringAnimationStyleFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "ShoweringAnimationStyleFollowers"))
+	BathingAnimationStyle.SetValue(GetIntValue(config, "BathingAnimationStyle", BathingAnimationStyle.GetValue() as int))
+	BathingAnimationStyleFollowers.SetValue(GetIntValue(config, "BathingAnimationStyleFollowers", BathingAnimationStyleFollowers.GetValue() as int))
+	ShoweringAnimationStyle.SetValue(GetIntValue(config, "ShoweringAnimationStyle", ShoweringAnimationStyle.GetValue() as int))
+	ShoweringAnimationStyleFollowers.SetValue(GetIntValue(config, "ShoweringAnimationStyleFollowers", ShoweringAnimationStyleFollowers.GetValue() as int))
 	
-	GetDressedAfterBathingEnabled.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabled"))
-	GetDressedAfterBathingEnabledFollowers.SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GetDressedAfterBathingEnabledFollowers"))
+	GetDressedAfterBathingEnabled.SetValue(GetIntValue(config, "GetDressedAfterBathingEnabled", GetDressedAfterBathingEnabled.GetValue() as int))
+	GetDressedAfterBathingEnabledFollowers.SetValue(GetIntValue(config, "GetDressedAfterBathingEnabledFollowers", GetDressedAfterBathingEnabledFollowers.GetValue() as int))
 
-	ArmorSlotArray = JsonUtil.IntListToArray("BathingInSkyrim/Settings.json", "ArmorSlotArray")
-	ArmorSlotArrayFollowers = JsonUtil.IntListToArray("BathingInSkyrim/Settings.json", "ArmorSlotArrayFollowers")
+	ArmorSlotArray = IntListToArray(config, "ArmorSlotArray")
+	ArmorSlotArrayFollowers = IntListToArray(config, "ArmorSlotArrayFollowers")
 	
-	DirtinessUpdateInterval.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessUpdateInterval"))
-	DirtinessPercentage.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPercentage"))
-	DirtinessPerHourPlayerHouse.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourPlayerHouse"))
-	DirtinessPerHourSettlement.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourSettlement"))
-	DirtinessPerHourDungeon.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourDungeon"))
-	DirtinessPerHourWilderness.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerHourWilderness"))
+	DirtinessUpdateInterval.SetValue(GetFloatValue(config, "DirtinessUpdateInterval", DirtinessUpdateInterval.GetValue()))
+	DirtinessPercentage.SetValue(GetFloatValue(config, "DirtinessPercentage", DirtinessPercentage.GetValue()))
+	DirtinessPerHourPlayerHouse.SetValue(GetFloatValue(config, "DirtinessPerHourPlayerHouse", DirtinessPerHourPlayerHouse.GetValue()))
+	DirtinessPerHourSettlement.SetValue(GetFloatValue(config, "DirtinessPerHourSettlement", DirtinessPerHourSettlement.GetValue()))
+	DirtinessPerHourDungeon.SetValue(GetFloatValue(config, "DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue()))
+	DirtinessPerHourWilderness.SetValue(GetFloatValue(config, "DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue()))
 	
-	(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold0"))
-	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold1"))
-	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessThreshold2"))
+	(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold0", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()))
 	
-	(BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount0"))
-	(BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount1"))
-	(BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount2"))
-	(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCount3"))
+	(BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue() as int))
+	(BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue() as int))
+	(BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount2", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValue() as int))
+	(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount3", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue() as int))
 	
-	(BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers0"))
-	(BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers1"))
-	(BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers2"))
-	(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValueInt(JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "BathingAnimationLoopCountFollowers3"))
+	(BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers0", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValue() as int))
+	(BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers1", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValue() as int))
+	(BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers2", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValue() as int))
+	(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers3", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue() as int))
 	
-	AnimCustomMSet1Freq = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomMSet1Freq")
-	AnimCustomFSet1Freq = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet1Freq")
-	AnimCustomFSet2Freq = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet2Freq")
-	AnimCustomFSet3Freq = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet3Freq")
-	AnimCustomTierCond = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AnimCustomTierCond")
+	AnimCustomMSet1Freq = GetFloatValue(config, "AnimCustomMSet1Freq", AnimCustomMSet1Freq)
+	AnimCustomFSet1Freq = GetFloatValue(config, "AnimCustomFSet1Freq", AnimCustomFSet1Freq)
+	AnimCustomFSet2Freq = GetFloatValue(config, "AnimCustomFSet2Freq", AnimCustomFSet2Freq)
+	AnimCustomFSet3Freq = GetFloatValue(config, "AnimCustomFSet3Freq", AnimCustomFSet3Freq)
+	AnimCustomTierCond = GetIntValue(config, "AnimCustomTierCond", AnimCustomTierCond)
 
-	AnimCustomMSet1FreqFollowers = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomMSet1FreqFollowers")
-	AnimCustomFSet1FreqFollowers = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet1FreqFollowers")
-	AnimCustomFSet2FreqFollowers = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet2FreqFollowers")
-	AnimCustomFSet3FreqFollowers = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "AnimCustomFSet3FreqFollowers")
-	AnimCustomTierCondFollowers = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AnimCustomTierCondFollowers")
+	AnimCustomMSet1FreqFollowers = GetFloatValue(config, "AnimCustomMSet1FreqFollowers", AnimCustomMSet1FreqFollowers)
+	AnimCustomFSet1FreqFollowers = GetFloatValue(config, "AnimCustomFSet1FreqFollowers", AnimCustomFSet1FreqFollowers)
+	AnimCustomFSet2FreqFollowers = GetFloatValue(config, "AnimCustomFSet2FreqFollowers", AnimCustomFSet2FreqFollowers)
+	AnimCustomFSet3FreqFollowers = GetFloatValue(config, "AnimCustomFSet3FreqFollowers", AnimCustomFSet3FreqFollowers)
+	AnimCustomTierCondFollowers = GetIntValue(config, "AnimCustomTierCondFollowers", AnimCustomTierCondFollowers)
 
-	DirtinessPerSexActor = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "DirtinessPerSexActor")
-	StartingAlpha = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "StartingAlpha")
-	VictimMult = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "VictimMult")
-	OverlayApplyAt = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "OverlayApplyAt")
-	SexIntervalDirt = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "SexIntervalDirt")
-	SexInterval = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "SexInterval")
-	TimeToClean = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "TimeToClean")
-	TimeToCleanInterval = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "TimeToCleanInterval")
+	DirtinessPerSexActor = GetFloatValue(config, "DirtinessPerSexActor", DirtinessPerSexActor)
+	StartingAlpha = GetFloatValue(config, "StartingAlpha", StartingAlpha)
+	VictimMult = GetFloatValue(config, "VictimMult", VictimMult)
+	OverlayApplyAt = GetFloatValue(config, "OverlayApplyAt", OverlayApplyAt)
+	SexIntervalDirt = GetFloatValue(config, "SexIntervalDirt", SexIntervalDirt)
+	SexInterval = GetFloatValue(config, "SexInterval", SexInterval)
+	TimeToClean = GetFloatValue(config, "TimeToClean", TimeToClean)
+	TimeToCleanInterval = GetFloatValue(config, "TimeToCleanInterval", TimeToCleanInterval)
 	
-	ShynessDistance.SetValue(JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "ShynessDistance"))
+	ShynessDistance.SetValue(GetFloatValue(config, "ShynessDistance", ShynessDistance.GetValue()))
 	
-	FadeDirtSex = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "FadeDirtSex")
-	Shyness = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "Shyness")
-	AutoPlayerTFC = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "AutoPlayerTFC")
-	TexSetOverride = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "TexSetOverride")
+	FadeDirtSex = GetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
+	Shyness = GetIntValue(config, "Shyness", Shyness as int)
+	AutoPlayerTFC = GetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
+	TexSetOverride = GetIntValue(config, "TexSetOverride", TexSetOverride as int)
 
-	FadeTatsFadeTime = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsFadeTime")
-	FadeTatsSoapMult = JsonUtil.GetFloatValue("BathingInSkyrim/Settings.json", "FadeTatsSoapMult")
+	FadeTatsFadeTime = GetFloatValue(config, "FadeTatsFadeTime", FadeTatsFadeTime)
+	FadeTatsSoapMult = GetFloatValue(config, "FadeTatsSoapMult", FadeTatsFadeTime)
 
-	GameMessage = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "GameMessage")
-	LogNotification = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "LogNotification")
-	LogTrace = JsonUtil.GetIntValue("BathingInSkyrim/Settings.json", "LogTrace")
+	GameMessage = GetIntValue(config, "GameMessage", GameMessage as int)
+	LogNotification = GetIntValue(config, "LogNotification", LogNotification as int)
+	LogTrace = GetIntValue(config, "LogTrace", LogTrace as int)
 	
 	SetLocalArrays()
 	BatheQuest.RegisterHotKeys()
 
 	CorrectInvalidSettings()
 	
-	ShowMessage("$BIS_MSG_COMPLETED_LOAD", False)
+	if !abSilent
+		ShowMessage("$BIS_MSG_COMPLETED_LOAD", False)
+	endIf
 	return true
 EndFunction
 
