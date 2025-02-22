@@ -2,6 +2,7 @@
 - Add: Auto Load and Auto Start flags.
 - Add: Improved safeguards for invalid config value imports.
 - Fix: Outdated translation files.
+- Change: Dirt overlays now apply with absolute white tint.
 
 
 

@@ -58,7 +58,7 @@ Function ApplyOverlay(Actor akTarget, Bool Gender, String Area, String OverlaySl
 	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 0, 0, 0, TRUE)
 	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 7, 0, 0, TRUE)
 	
-	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 7, -1, 0, TRUE)
+	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 7, -1, 0xFFFFFF, TRUE)
     NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 0, -1, 0, TRUE)
     NiOverride.AddNodeOverrideFloat(akTarget, Gender, Node, 8, -1, Alpha, TRUE)
 	NiOverride.AddNodeOverrideFloat(akTarget, Gender, Node, 2, -1, 0.0, TRUE)
