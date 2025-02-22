@@ -401,15 +401,8 @@ Function StripActor()
 	Int Index = Clothing.Length
 	While Index
 		Index -= 1
-		BathingActor.UnequipItem(Clothing[Index], False, True)
+		BathingActor.UnequipItemEX(Clothing[Index], 0, False)
 	EndWhile
-
-	if BathingActor.IsWeaponDrawn()
-		while BathingActor.IsWeaponDrawn()
-			BathingActor.SheatheWeapon()
-			Utility.Wait(0.25)
-		endWhile
-	endIf
 	
 	; weapons
 	Objects = new Form[3]
@@ -425,6 +418,16 @@ Function StripActor()
 	if Objects[2]
 		BathingActor.UnequipItemEX(Objects[2], 0, False) ; Ammo
 	endIf
+
+	if BathingActor.isWeaponDrawn()
+        float break
+        while BathingActor.IsWeaponDrawn() && break < 5
+			BathingActor.SheatheWeapon()
+			Utility.Wait(0.25)
+            break += 0.25
+		endWhile
+		Utility.Wait(0.5)
+    endIf
 EndFunction
 Function DressActor()
 	If (BathingActorIsPlayer == True  && GetDressedAfterBathingEnabled.GetValue() As Bool) \
