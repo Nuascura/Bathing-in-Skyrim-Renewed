@@ -73,7 +73,9 @@ Int     ShowerStyle
 Int     TieredSetCondition
 Float[] AnimSet
 Armor[] Clothing
+Int[] ClothingID
 Form[]  Objects
+Int[]  ObjectsID
 Idle    SelectedStyle
 MiscObject WashProp
 Bool       WashPropIsSoap
@@ -397,28 +399,42 @@ Function StripActor()
 	Else
 		Clothing = SPE_Utility.FilterBySlotMask(EquippedItems, mzinUtil.GetCombinedSlotMask(Menu.ArmorSlotArrayFollowers), false)
 	EndIf
+	ClothingID = Utility.CreateIntArray(Clothing.Length, 0)
 	
 	Int Index = Clothing.Length
 	While Index
 		Index -= 1
+		ClothingID[Index] = BathingActor.GetWornItemID(Clothing[Index].GetSlotMask())
 		BathingActor.UnequipItemEX(Clothing[Index], 0, False)
 	EndWhile
 	
 	; weapons
 	Objects = new Form[3]
-	Objects[0] = BathingActor.GetEquippedObject(0) ; left hand
+	ObjectsID = new Int[3]
+	Objects[0] = PO3_SKSEFunctions.GetEquippedAmmo(BathingActor) ; Ammo
+	ObjectsID[0] = BathingActor.GetEquippedItemID(0)
 	if Objects[0]
-		BathingActor.UnequipItemEX(Objects[0], 2, False) ; left hand
+		BathingActor.UnequipItemEX(Objects[0], 0, False) ; Ammo
 	endIf
 	Objects[1] = BathingActor.GetEquippedObject(1) ; right hand
+	ObjectsID[1] = BathingActor.GetEquippedItemID(1)
 	if Objects[1]
-		BathingActor.UnequipItemEX(Objects[1], 1, False) ; right hand
+		if Objects[1] as spell
+			BathingActor.UnequipSpell(Objects[1] as spell, 1)
+		else
+			BathingActor.UnequipItemEX(Objects[1], 1, False) ; right hand
+		endIf
 	endIf
-	Objects[2] = PO3_SKSEFunctions.GetEquippedAmmo(BathingActor) ; Ammo
+	Objects[2] = BathingActor.GetEquippedObject(0) ; left hand
+	ObjectsID[2] = BathingActor.GetEquippedItemID(0)
 	if Objects[2]
-		BathingActor.UnequipItemEX(Objects[2], 0, False) ; Ammo
+		if Objects[2] as spell
+			BathingActor.UnequipSpell(Objects[2] as spell, 0)
+		else
+			BathingActor.UnequipItemEX(Objects[2], 2, False) ; left hand
+		endIf
 	endIf
-
+	
 	if BathingActor.isWeaponDrawn()
         float break
         while BathingActor.IsWeaponDrawn() && break < 5
@@ -434,32 +450,31 @@ Function DressActor()
 	|| (BathingActorIsPlayer == False && GetDressedAfterBathingEnabledFollowers.GetValue() As Bool)
 		
 		Int Index = Clothing.Length
-		
 		While Index
 			Index -= 1
 			If Clothing[Index]
-				BathingActor.EquipItem(Clothing[Index], False, True)
+				BathingActor.EquipItemByID(Clothing[Index], ClothingID[Index], 0)
 			EndIf
 		EndWhile
-	EndIf
 
-	if Objects[0]
-		if Objects[0] as spell
-			BathingActor.EquipSpell(Objects[0] as spell, 0)
-		else
-			BathingActor.EquipItem(Objects[0], False, True) ; left hand
+		if Objects[0]
+			BathingActor.EquipItemByID(Objects[0], ObjectsID[0], 0) ; Ammo
 		endIf
-	endIf
-	if Objects[1]
-		if Objects[1] as spell
-			BathingActor.EquipSpell(Objects[1] as spell, 1)
-		else
-			BathingActor.EquipItem(Objects[1], False, True) ; right hand
+		if Objects[1]
+			if Objects[1] as spell
+				BathingActor.EquipSpell(Objects[1] as spell, 1)
+			else
+				BathingActor.EquipItemByID(Objects[1], ObjectsID[1], 1) ; right hand
+			endIf
 		endIf
-	endIf
-	if Objects[2]
-		BathingActor.EquipItem(Objects[2], False, True) ; Ammo
-	endIf
+		if Objects[2]
+			if Objects[2] as spell
+				BathingActor.EquipSpell(Objects[2] as spell, 0)
+			else
+				BathingActor.EquipItemByID(Objects[2], ObjectsID[2], 2) ; left hand
+			endIf
+		endIf
+	EndIf
 EndFunction
 
 Function RinseOn()
