@@ -67,6 +67,7 @@ Package Property StopMovementPackage Auto
 
 Actor   BathingActor
 Bool    BathingActorIsPlayer
+Bool    BathingActorIsFemale
 Bool    BathingActorIsShowering
 Int     AnimationStyle
 Int     ShowerStyle
@@ -113,6 +114,7 @@ EndProperty
 Event OnEffectStart(Actor Target, Actor Caster)
 	BathingActor = Target
 	BathingActorIsPlayer = (Target == BatheQuest.PlayerRef)
+	BathingActorIsFemale = BathingActor.GetActorBase().GetSex()
 	ForbidSex(BathingActor, Forbid = true)
 
 	BathingActorIsShowering = StorageUtil.PluckIntValue(BathingActor, "mzin_LastWashState") as Bool
@@ -124,12 +126,7 @@ Event OnEffectStart(Actor Target, Actor Caster)
 EndEvent
 
 Event OnEffectFinish(Actor Target, Actor Caster)
-	if GetState() != ""
-		StopAnimation()
-	else	
-		GoToState("")
-	endIf
-	BathingActor.RemoveSpell(PlayBathingAnimation)
+	StopAnimation()
 EndEvent
 
 State StartSequence
@@ -140,7 +137,7 @@ State StartSequence
 		If BathingActorIsPlayer
 			AnimationStyle = BathingAnimationStyle.GetValue() as int
 			ShowerStyle = ShoweringAnimationStyle.GetValue() as int
-			if BathingActor.GetActorBase().GetSex() == 1
+			if BathingActorIsFemale
 				AnimSet = Menu.AnimCustomFSet
 			else
 				AnimSet = Menu.AnimCustomMSet
@@ -149,7 +146,7 @@ State StartSequence
 		else
 			AnimationStyle = BathingAnimationStyleFollowers.GetValue() as int
 			ShowerStyle = ShoweringAnimationStyleFollowers.GetValue() as int
-			if BathingActor.GetActorBase().GetSex() == 1
+			if BathingActorIsFemale
 				AnimSet = Menu.AnimCustomFSetFollowers
 			else
 				AnimSet = Menu.AnimCustomMSetFollowers
@@ -162,17 +159,19 @@ State StartSequence
 				SetFreeCam(Menu.AutoPlayerTFC && true)
 				Game.DisablePlayerControls(false, True, True, False, True, True, True, 0)
 			endIf
-			if (BathingActor.GetActorBase().GetSex() == 1 && StartAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), BathingActorIsShowering, TieredSetCondition)) \
-			|| (BathingActor.GetActorBase().GetSex() == 0 && StartAnimationMale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), BathingActorIsShowering, TieredSetCondition))
+			if (BathingActorIsFemale && StartAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), BathingActorIsShowering, TieredSetCondition)) \
+			|| (!BathingActorIsFemale && StartAnimationMale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), BathingActorIsShowering, TieredSetCondition))
 				return
 			endIf
 		EndIf
 
 		GoToState("FinishSequence")
-		OnUpdate()
 	EndEvent
 EndState
 State FinishSequence
+	Event OnBeginState()
+		OnUpdate()
+	EndEvent
 	Event OnUpdate()
 		if BathingActorIsPlayer
 			SetFreeCam(Menu.AutoPlayerTFC && false)
@@ -181,7 +180,10 @@ State FinishSequence
 		UnlockActor()
 		ForbidSex(BathingActor, Forbid = false)
 		SendWashActorFinishModEvent(BathingActor, WashProp, WashPropIsSoap)
-		Self.Dispel()
+		BathingActor.RemoveSpell(PlayBathingAnimation)
+	EndEvent
+	Event OnEffectFinish(Actor Target, Actor Caster)
+		; Keep empty
 	EndEvent
 EndState
 State InSequenceDefault
@@ -352,7 +354,6 @@ Bool Function StartAnimationMale(int aiPreset, bool abOverride = false, int aiTi
 	endIf
 EndFunction
 Function StopAnimation(bool PlayRinseOff = false)
-	UnregisterForUpdate()
 	Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState")
 	Utility.Wait(0.5)
 
@@ -363,7 +364,6 @@ Function StopAnimation(bool PlayRinseOff = false)
 	EndIf
 
 	GoToState("FinishSequence")
-	OnUpdate()
 EndFunction
 
 Function GetSoapy()
