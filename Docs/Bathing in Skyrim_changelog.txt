@@ -1,8 +1,12 @@
 2.4.3
 - Add: Auto Load and Auto Start flags.
 - Add: Improved safeguards for invalid config value imports.
+- Improve: Object functions now use SKSE-accepted hash to more accurately cache your last-equipped item in the presence of duplicate base object forms.
+- Improve: Mod shutdown efficacy.
 - Fix: Outdated translation files.
+- Fix: Bathing process recursion.
 - Change: Dirt overlays now apply with absolute white tint.
+- Additional optimizations.
 
 
 
