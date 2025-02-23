@@ -1795,8 +1795,10 @@ Function DisableBathingInSkyrim()
 		DirtyActors.Revert()
 	EndIf
 
-	BatheQuest.Stop()
-	mzinBatheFollowerDialogQuest.Stop()
+	Quest.GetQuest("mzinBatheQuest").reset()
+	Quest.GetQuest("mzinBatheQuest").stop()
+	Quest.GetQuest("mzinBatheFollowerDialogQuest").reset()
+	Quest.GetQuest("mzinBatheFollowerDialogQuest").stop()
 			
 	BathingInSkyrimEnabled.SetValue(0)
 
