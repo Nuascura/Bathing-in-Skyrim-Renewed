@@ -353,7 +353,7 @@ Function CheckDirt()
 	If DirtyActor.HasMagicEffect(mzinDirtinessTier2Effect) || DirtyActor.HasMagicEffect(mzinDirtinessTier3Effect) \
 	|| DirtyActor.HasMagicEffect(mzinDirtinessTier1p5Effect)
 		mzinUtil.LogTrace("Adding dirt to: " + DirtyActor.GetBaseObject().GetName())
-		OlUtil.ApplyDirt(DirtyActor, Menu.StartingAlpha)
+		OlUtil.ApplyDirt(DirtyActor, Menu.StartingAlpha, Menu.OverlayTint)
 	Else
 		mzinUtil.LogTrace("Actor is clean: " + DirtyActor.GetBaseObject().GetName())
 	EndIf

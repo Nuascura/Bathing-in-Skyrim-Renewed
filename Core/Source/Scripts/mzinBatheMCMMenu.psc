@@ -20,6 +20,7 @@ Float Property DirtinessPerSexActor = 0.04 Auto Hidden
 Float Property VictimMult = 2.5 Auto Hidden
 Float Property OverlayApplyAt = 0.40 Auto Hidden
 Float Property StartingAlpha = 0.15 Auto Hidden
+Int Property OverlayTint = 0xFFFFFF Auto Hidden
 Bool Property FadeDirtSex = true Auto Hidden
 Float Property SexIntervalDirt = 35.0 Auto Hidden
 Float Property SexInterval = 1.0 Auto Hidden
@@ -112,7 +113,7 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.4.3"
+	return "2.4.4"
 EndFunction
 
 Int Function GetVersion()
@@ -469,6 +470,7 @@ Function DisplaySettingsPage()
 	AddHeaderOption("$BIS_HEADER_OVERLAYS")
 	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY_{}")
 	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DisplayFormatPercentage)
+	OverlayTintOID_C = AddColorOption("$BIS_L_OVERLAYTINT", OverlayTint)
 	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DisplayFormatDecimal)
 	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DisplayFormatDecimal)
 	TexSetOverrideID = AddTextOption("$BIS_L_OVERLAYTEXSETOVERRIDE", TexSetOverride)
@@ -763,6 +765,9 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(0.98)
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)	
+	ElseIf OptionID == OverlayTintOID_C
+		OverlayTint = 0xFFFFFF
+		SetColorOptionValue(OptionID, 0xFFFFFF)
 	; text
 	ElseIf OptionID == TexSetOverrideID
 		TexSetOverride = false
@@ -939,6 +944,8 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_OVERLAYAPPLY")
 	ElseIf OptionId == StartingAlphaOID_S
 		SetInfoText("$BIS_DESC_OVERLAYALPHA")
+	ElseIf OptionId == OverlayTintOID_C
+		SetInfoText("$BIS_DESC_OVERLAYTINT")
 	ElseIf OptionID == TexSetOverrideID
 		SetInfoText("$BIS_DESC_TEXSETOVERRIDE")
 		
@@ -1022,6 +1029,30 @@ Event OnOptionKeyMapChange(Int OptionID, Int KeyCode, String ConflictControl, St
 	EndIf
 EndEvent
 
+; OnOptionColorOpen
+Event OnOptionColorOpen(Int OptionID)
+	If CurrentPage == "$BIS_PAGE_SETTINGS"
+		HandleOnOptionColorOpenSettingsPage(OptionID)
+	EndIf
+EndEvent
+Function HandleOnOptionColorOpenSettingsPage(Int OptionID)
+	If OptionID == OverlayTintOID_C
+		SetColorDialogStartColor(OverlayTint)
+		SetColorDialogDefaultColor(0xFFFFFF)
+	EndIf
+EndFunction
+; OnOptionColorAccept
+Event OnOptionColorAccept(Int OptionID, Int Color)
+	If CurrentPage == "$BIS_PAGE_SETTINGS"
+		HandleOnOptionColorAcceptSettingsPage(OptionID, Color)
+	EndIf
+EndEvent
+Function HandleOnOptionColorAcceptSettingsPage(Int OptionID, Int Color)
+	If OptionID == OverlayTintOID_C
+		OverlayTint = Color
+	EndIf
+	SetColorOptionValue(OptionID, Color)
+EndFunction
 ; OnOptionSelect
 Event OnOptionSelect(Int OptionID)
 	If CurrentPage == "$BIS_PAGE_SYSTEM_OVERVIEW" || CurrentPage == ""
@@ -1918,6 +1949,7 @@ Bool Function SavePapyrusSettings()
 	SetFloatValue(config, "VictimMult", VictimMult)
 	SetFloatValue(config, "OverlayApplyAt", OverlayApplyAt)
 	SetFloatValue(config, "StartingAlpha", StartingAlpha)
+	SetIntValue(config, "OverlayTint", OverlayTint)
 	SetFloatValue(config, "SexIntervalDirt", SexIntervalDirt)
 	SetFloatValue(config, "SexInterval", SexInterval)
 	SetFloatValue(config, "TimeToClean", TimeToClean)
@@ -2014,6 +2046,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 
 	DirtinessPerSexActor = GetFloatValue(config, "DirtinessPerSexActor", DirtinessPerSexActor)
 	StartingAlpha = GetFloatValue(config, "StartingAlpha", StartingAlpha)
+	OverlayTint = GetIntValue(config, "OverlayTint", OverlayTint)
 	VictimMult = GetFloatValue(config, "VictimMult", VictimMult)
 	OverlayApplyAt = GetFloatValue(config, "OverlayApplyAt", OverlayApplyAt)
 	SexIntervalDirt = GetFloatValue(config, "SexIntervalDirt", SexIntervalDirt)
@@ -2102,6 +2135,7 @@ Int BatheKeyMapID
 Int ShowerKeyMapID
 Int OverlayApplyAtOID_S
 Int StartingAlphaOID_S
+Int OverlayTintOID_C
 Int TexSetCountOID_T
 Int RedetectDirtSetsOID_T
 Int OverlayProgressOID_T

@@ -20,7 +20,7 @@ Event OnInit()
 	AreasTexNames[3] = "Face"
 EndEvent 
 
-Function BeginOverlay(Actor akTarget, Float Alpha)
+Function BeginOverlay(Actor akTarget, Float Alpha, Int Tint)
 	String TextureToApply
 	Int Gender = akTarget.GetLeveledActorBase().GetSex()
 	Int i = 0
@@ -35,21 +35,21 @@ Function BeginOverlay(Actor akTarget, Float Alpha)
 	TextureToApply = TexPrefix + "DirtFX"
 	;StorageUtil.SetStringValue(akTarget, "mzin_DirtTexturePath", TextureToApply)
 	While i < Areas.Length
-		ReadyOverlay(akTarget, Gender as Bool, Areas[i], (TextureToApply + AreasTexNames[i] + ".dds"), Alpha)
+		ReadyOverlay(akTarget, Gender as Bool, Areas[i], (TextureToApply + AreasTexNames[i] + ".dds"), Alpha, Tint)
 		i += 1
 	EndWhile
 EndFunction
 
-Function ReadyOverlay(Actor akTarget, Bool Gender, String Area, String TextureToApply, Float Alpha)
+Function ReadyOverlay(Actor akTarget, Bool Gender, String Area, String TextureToApply, Float Alpha, Int Tint)
 	Int SlotToUse = GetEmptySlot(akTarget, Gender, Area)
 	If SlotToUse != -1
-		ApplyOverlay(akTarget, Gender, Area, SlotToUse, TextureToApply, Alpha)
+		ApplyOverlay(akTarget, Gender, Area, SlotToUse, TextureToApply, Alpha, Tint)
 	Else
 		mzinUtil.LogTrace("Error applying overlay to area: " + Area)
 	EndIf
 EndFunction
 
-Function ApplyOverlay(Actor akTarget, Bool Gender, String Area, String OverlaySlot, String TextureToApply, Float Alpha)
+Function ApplyOverlay(Actor akTarget, Bool Gender, String Area, String OverlaySlot, String TextureToApply, Float Alpha, Int Tint)
 	String Node = Area + " [ovl" + OverlaySlot + "]"
 	If !NiOverride.HasOverlays(akTarget)
 		NiOverride.AddOverlays(akTarget)
@@ -58,7 +58,7 @@ Function ApplyOverlay(Actor akTarget, Bool Gender, String Area, String OverlaySl
 	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 0, 0, 0, TRUE)
 	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 7, 0, 0, TRUE)
 	
-	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 7, -1, 0xFFFFFF, TRUE)
+	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 7, -1, Tint, TRUE)
     NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 0, -1, 0, TRUE)
     NiOverride.AddNodeOverrideFloat(akTarget, Gender, Node, 8, -1, Alpha, TRUE)
 	NiOverride.AddNodeOverrideFloat(akTarget, Gender, Node, 2, -1, 0.0, TRUE)
@@ -197,9 +197,9 @@ Function RemoveOverlay(Actor akTarget, Bool Gender, String Node)
 	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 3, -1)
 EndFunction
 
-Function ApplyDirt(Actor akTarget, Float Alpha)
+Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint)
 	ClearDirt(akTarget)
-	BeginOverlay(akTarget, Alpha)
+	BeginOverlay(akTarget, Alpha, Tint)
 EndFunction
 
 Function SendBathePlayerModEvent()
