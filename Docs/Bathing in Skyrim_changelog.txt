@@ -1,4 +1,13 @@
+2.4.4
+Primary
+- Add: Option to change dirt tint.
+- Add: Patch for Licenses - Player Oppression.
+- Update: Localization files.
+
+
+
 2.4.3
+Primary
 - Add: Auto Load and Auto Start flags.
 - Add: Improved safeguards for invalid config value imports.
 - Improve: Object functions now use SKSE-accepted hash to more accurately cache your last-equipped item in the presence of duplicate base object forms.
