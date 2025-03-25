@@ -60,9 +60,9 @@ Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool abDoShower, bool 
 	EndIf
 EndEvent
 
-Event OnBiS_WashActorFinish(Form akBathingActor, Form akWashProp, Bool abUsingSoap = false)
+Event OnBiS_WashActorFinish(Form akBathingActor, Form akWashProp, Bool abFullClean = false)
 	If akBathingActor as Actor
-		WashActorFinish(akBathingActor as Actor, akWashProp as MiscObject, abUsingSoap)
+		WashActorFinish(akBathingActor as Actor, akWashProp as MiscObject, abFullClean)
 	Else
 		mzinUtil.LogTrace("OnBiS_WashActorFinish(): Received invalid actor: " + akBathingActor)
 	EndIf
@@ -120,7 +120,6 @@ EndFunction
 
 Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false, Bool DoPlayerTeammates = false, Bool DoAnimate = true, Bool DoFullClean = false, Bool DoSoap = false)
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
-	Bool UsedSoap = false
 	If DirtyActorIsPlayer
 		UnregisterForAllKeys()
 		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0, Init.IsFrostFallInstalled)
@@ -132,18 +131,18 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 
 	if DoAnimate
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
-			UsedSoap = true
+			DoFullClean = true
 			DirtyActor.RemoveItem(WashProp, 1, True, None)
 		EndIf
 		if DirtyActorIsPlayer
 			If DoShower
-				if UsedSoap
+				if DoFullClean
 					mzinUtil.GameMessage(ShoweringWithSoapMessage)
 				else
 					mzinUtil.GameMessage(ShoweringWithoutSoapMessage)
 				endIf
 			else
-				if UsedSoap
+				if DoFullClean
 					mzinUtil.GameMessage(BathingWithSoapMessage)
 				else
 					mzinUtil.GameMessage(BathingWithoutSoapMessage)
@@ -157,9 +156,6 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 		If DoSoap
 			GetSoapy(DirtyActor)
 		EndIf
-		If DoFullClean
-			UsedSoap = true
-		EndIf
 	endIf
 
 	DirtyActor.ClearExtraArrows()
@@ -167,9 +163,9 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	SexlabInt.SlClearCum(DirtyActor)
 	mzinInterfacePaf.ClearPafDirt(Init.PAF_API, DirtyActor, Init.IsPAFInstalled)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor, Init.IsOCumInstalled)
-	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, UsedSoap, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult, Init.IsFadeTattoosInstalled)
+	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult, Init.IsFadeTattoosInstalled)
 	
-	SendCleanDirtEvent(DirtyActor, UsedSoap)
+	SendCleanDirtEvent(DirtyActor, DoFullClean)
 
 	; ----
 
@@ -177,20 +173,20 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 		If DoSoap
 			GetUnsoapy(DirtyActor)
 		EndIf
-		WashActorFinish(DirtyActor, WashProp, UsedSoap)
+		WashActorFinish(DirtyActor, WashProp, DoFullClean)
 	endIf
 	
 	OlUtil.SendBatheModEvent(DirtyActor as Form)
 EndFunction
 
-Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool UsedSoap = false)
+Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFullClean = false)
 	if (DirtyActor == PlayerRef || DirtyActors.Find(DirtyActor) != -1) \
-	&& (UsedSoap || !DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell))
+	&& (DoFullClean || !DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell))
 		RemoveSpells(DirtyActor, SoapBonusSpellList)
 		RemoveSpells(DirtyActor, DirtinessSpellList)
 		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
 		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", Utility.GetCurrentGameTime())
-		If WashProp
+		If DoFullClean
 			UpdateActorDirtPercent(DirtyActor, 0.0)
 			ApplySoapBonus(DirtyActor, WashProp)
 			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
