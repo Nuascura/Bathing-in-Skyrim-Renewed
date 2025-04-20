@@ -1,3 +1,19 @@
+2.5.0
+Primary
+- Fix: WashActorFinish does not respect abDoFullClean.
+- Fix: Player actor dirt does not correctly update when sex animation scene begins; Only NPC dirt updates.
+- Optimize: Wash Actor function sequence.
+- Add: IsActorInWater() global function under Utility script.
+- Add: Show equipped item on player if available under a slot selection.
+- Add: OStim support.
+- Improve: SexLab fade dirt handling.
+- Change: Trim option highlight detail.
+- Change: Sex Animation mod event sequences.
+- Change: Ignore IsNearPlayer condition on game load.
+- Update: Localization files.
+
+
+
 2.4.4
 Primary
 - Add: Option to change dirt tint.
