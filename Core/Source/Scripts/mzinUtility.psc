@@ -6,6 +6,11 @@ string Function GetModVersion()
     return Menu.GetModVersion()
 EndFunction
 
+Bool Function IsActorInWater(Actor akActor) global
+	mzinBatheQuest BatheQuest = Quest.GetQuest("mzinBatheQuest") as mzinBatheQuest
+	return BatheQuest.IsInWater(akActor) || BatheQuest.IsUnderWaterfall(akActor)
+EndFunction
+
 Function LogTrace(String LogMessage, Bool Force = False)
     if LogMessage
         if Force || Menu.LogTrace

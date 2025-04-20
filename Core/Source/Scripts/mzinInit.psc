@@ -14,6 +14,7 @@ Bool Property IsFadeTattoosInstalled = false Auto Hidden
 Bool Property IsFrostFallInstalled = false Auto Hidden
 Bool Property IsPAFInstalled = false Auto Hidden
 Bool Property IsOCumInstalled = false Auto Hidden
+Bool Property IsOstimInstalled = false Auto Hidden
 
 Keyword Property zad_DeviousHeavyBondage Auto Hidden
 Keyword Property zad_DeviousSuit Auto Hidden
@@ -120,6 +121,12 @@ Int Function DoSoftCheck()
 	IsOCumInstalled = false
 	If Game.GetModByName("OCum.esp") != 255
 		IsOCumInstalled = true
+		i += 1
+	EndIf
+
+	IsOStimInstalled = false
+	If Game.GetModByName("OStim.esp") != 255
+		IsOStimInstalled = true
 		i += 1
 	EndIf
 

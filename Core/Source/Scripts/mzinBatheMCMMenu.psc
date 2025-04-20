@@ -113,7 +113,7 @@ String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
 String Function GetModVersion()
-	return "2.4.5"
+	return "2.5.0"
 EndFunction
 
 Int Function GetVersion()
@@ -481,10 +481,10 @@ Function DisplaySettingsPage()
 	OverlayProgressOID_T = AddTextOption("", "$BIS_L_INACTIVE")
 EndFunction
 Function DisplayIntegrationsPage()
-	if !Init.IsSexlabInstalled && !Init.IsFadeTattoosInstalled
+	if !Init.IsSexlabInstalled && !Init.IsOStimInstalled && !Init.IsFadeTattoosInstalled
 		AddTextOption("$BIS_TXT_EMPTY", "", OPTION_FLAG_DISABLED)
 	else
-		If Init.IsSexlabInstalled
+		If Init.IsSexlabInstalled || Init.IsOStimInstalled
 			AddHeaderOption("$BIS_HEADER_SEX")
 			DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
 			VictimMultOID_S = AddSliderOption("$BIS_L_VICTIMMULT", VictimMult, DisplayFormatDecimal)
@@ -499,7 +499,7 @@ Function DisplayIntegrationsPage()
 		EndIf
 	
 		SetCursorPosition(1)
-		If Init.IsSexlabInstalled && FadeDirtSex
+		If (Init.IsSexlabInstalled || Init.IsOStimInstalled) && FadeDirtSex
 			AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
 			AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
 			AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
@@ -569,6 +569,9 @@ Function DisplayAuxiliaryPage()
 		endIf
 		if init.IsOCumInstalled
 			AddTextOption("$BIS_L_OCum", "")
+		endIf
+		if init.IsOStimInstalled
+			AddTextOption("$BIS_L_OStim", "")
 		endIf
 		if init.IsPAFInstalled
 			AddTextOption("$BIS_L_PAF", "")
@@ -866,7 +869,15 @@ Function HandleOnOptionHighlightAnimationsPage(Int OptionID)
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleID
 		SetInfoText("$BIS_DESC_GET_DRESSED")
 	Else
-		SetInfoText("$BIS_DESC_GET_NAKED")
+		int index = UndressArmorSlotToggleIDs.Find(OptionID)
+		if index != -1
+			Armor equippedArmor = PlayerRef.GetEquippedArmorInSlot(ArmorSlotArray[index])
+			if equippedArmor && equippedArmor.GetName() != ""
+				SetInfoText("$BIS_DESC_GET_NAKED_{" + equippedArmor.GetName() + "}")
+			else
+				SetInfoText("$BIS_DESC_GET_NAKED")
+			endIf
+		endIf
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightAnimationsPageFollowers(Int OptionID)
@@ -896,7 +907,7 @@ Function HandleOnOptionHighlightAnimationsPageFollowers(Int OptionID)
 		SetInfoText("$BIS_DESC_ANIM_TIERCOND")
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleIDFollowers
 		SetInfoText("$BIS_DESC_GET_DRESSED")
-	Else
+	ElseIf UndressArmorSlotToggleIDsFollowers.Find(OptionID) != -1
 		SetInfoText("$BIS_DESC_GET_NAKED")
 	EndIf
 EndFunction

@@ -49,6 +49,7 @@ Float DirtAppliedLastUpdate
 Float LocalDirtinessPercentage
 Float LocalLastUpdateTime
 Float SexDirt
+Int SexTID
 
 Event OnPlayerLoadGame()
 	RegisterForEvents()
@@ -73,10 +74,6 @@ Event OnBiS_UpdateActorsAll()
 	EndIf
 EndEvent
 
-Event OnBiS_SexMethodToggle()
-	CheckSexEvents()
-EndEvent
-
 Event OnBiS_CleanActorDirt(Form akTarget, Float TimeToClean, Float TimeToCleanInterval, Bool UsedSoap)
 	Float LowerLimit = (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue()
 	If UsedSoap
@@ -98,77 +95,86 @@ Event OnBiS_CleanActorDirt(Form akTarget, Float TimeToClean, Float TimeToCleanIn
 	EndIf
 EndEvent
 
-Event OnAnimationStart(int tid, bool HasPlayer)
-	Actor[] actorList = SexlabInt.GetSexActors(tid)
-	;mzinUtil.LogMessageBox("tid" + tid + "\nHasPlayer: " + HasPlayer + "\nFadeDirtSex: " + Menu.FadeDirtSex + "\nactorList.Find(DirtyActor): " + actorList.Find(DirtyActor) + "\nLocalDirtinessPercentage: " + LocalDirtinessPercentage + "\n\nDirtyActor: " + DirtyActor + "\n\nactorList: " + actorList)
-	If Menu.FadeDirtSex && actorList.Find(DirtyActor) >= 0 && LocalDirtinessPercentage < 1.0
-		If !mzinAnimationInProcList.HasForm(DirtyActor)
-			mzinAnimationInProcList.AddForm(DirtyActor)
-			Int i = actorList.Length
-			mzinUtil.LogTrace("Sex started on " + DirtyActor.GetBaseObject().GetName())
-			SexDirt = 0.0
-			Float SexDirtiness = 0.0
-			Actor CurrentActor
-			While i > 0
-				i -= 1
-				CurrentActor = actorList[i]
-				If CurrentActor != DirtyActor
-					If CurrentActor.IsInFaction(CreatureFaction) || CurrentActor.HasKeyWord(ActorTypeCreature)
-						SexDirtiness += (2.0 * Menu.DirtinessPerSexActor)
-					Else
-						SexDirtiness += Menu.DirtinessPerSexActor
-					EndIf
-				EndIf
-			EndWhile
-			Bool IsVictim = SexlabInt.SlIsVictim(tid, DirtyActor)
-			If IsVictim
-				SexDirtiness *= Menu.VictimMult
-			EndIf
-			While SexlabInt.SlIsActorActive(DirtyActor) && LocalDirtinessPercentage != 1.0
-				LocalDirtinessPercentage += (SexDirtiness / Menu.SexIntervalDirt)
-				If LocalDirtinessPercentage > 1.0
-					LocalDirtinessPercentage = 1.0
-				EndIf
-				RenewDirtSpell()
-				Utility.Wait(Menu.SexInterval)
-			EndWhile
-			If DirtyActor != PlayerRef
-				StorageUtil.SetFloatValue(DirtyActor, "BiS_Dirtiness", LocalDirtinessPercentage)
-			EndIf
-			mzinAnimationInProcList.RemoveAddedForm(DirtyActor)
-		EndIf
-	EndIf
+Event OnBiS_SexMethodToggle()
+	CheckSexEvents()
 EndEvent
 
-Event OnAnimationEnd(int tid, bool HasPlayer)
-	If !Menu.FadeDirtSex
-		Float SexDirtiness = 0.0
-		Actor[] actorList = SexlabInt.GetSexActors(tid)
-		Actor CurrentActor
-		Int i = actorList.Length
-		If actorList.Find(DirtyActor) >= 0
-			While i > 0
-				i -= 1
-				CurrentActor = actorList[i]
-				If CurrentActor != DirtyActor
-					If CurrentActor.IsInFaction(CreatureFaction) || CurrentActor.HasKeyWord(ActorTypeCreature)
-						SexDirtiness += (2.0 * Menu.DirtinessPerSexActor)
-					Else
-						SexDirtiness += Menu.DirtinessPerSexActor
-					EndIf
-				EndIf
-			EndWhile
-			SexDirt = SexDirtiness
-			;SexLabFramework SexLab = SexLabUtil.GetAPI()
-			Bool IsVictim = SexlabInt.SlIsVictim(tid, DirtyActor)
-			If IsVictim
-				SexDirt *= Menu.VictimMult
-			EndIf
-			mzinUtil.LogTrace(DirtyActor.GetBaseObject().GetName() + " gained " + SexDirt + " dirtiness from sex. IsVictim: " + IsVictim)
-			RegisterForSingleUpdate(0.1)
-		EndIf
-	EndIf
+Event OnAnimationStart_SexLab(int tid, bool HasPlayer)
+	Actor[] actorList = SexlabInt.GetSexActors(tid)
+	if IsActorInSexAnimation(actorList)
+		SexTID = tid
+		SexDirt = GetAnimationDirt(actorList, SexlabInt.SlIsVictim(tid, DirtyActor))
+		GoToState("Animation_SexLab")
+		if Menu.FadeDirtSex
+			mzinAnimationInProcList.AddForm(DirtyActor)
+			RegisterForSingleUpdate(0.5)
+		endIf
+	endIf
 EndEvent
+Event OnAnimationEnd_SexLab(int tid, bool HasPlayer)
+	if tid == SexTID
+		AnimationDirtNoFade()
+		EndAnimationState()
+	endIf
+EndEvent
+
+Event OnAnimationStart_OStim(string EventName, string StrArg, float ThreadID, Form Sender)
+	int tid = ThreadID as int
+	Actor[] actorList = mzinInterfaceOStim.GetActors(tid)
+	if IsActorInSexAnimation(actorList)
+		SexTID = tid
+		SexDirt = GetAnimationDirt(actorList, mzinInterfaceOStim.IsActorVictim(DirtyActor, tid))
+		GoToState("Animation_OStim")
+	endIf
+EndEvent
+Event OnAnimationChange_OStim(string EventName, string SceneID, float ThreadID, Form Sender)
+	if (ThreadID as int) == SexTID
+		if Menu.FadeDirtSex
+			if (mzinInterfaceOStim.IsSceneSexual(SceneID) && !mzinInterfaceOStim.IsSceneTransition(SceneID))			
+				if !mzinAnimationInProcList.HasForm(DirtyActor)
+					mzinAnimationInProcList.AddForm(DirtyActor)
+					RegisterForSingleUpdate(0.5)
+				endIf
+			else
+				if mzinAnimationInProcList.HasForm(DirtyActor)
+					mzinAnimationInProcList.RemoveAddedForm(DirtyActor)
+					UnregisterForUpdate()
+				endIf
+			endIf
+		endIf
+	endIf
+EndEvent
+Event OnAnimationOrgasm_OStim(string EventName, string SceneID, float ThreadID, Form Sender)
+	if (ThreadID as int) == SexTID
+		AnimationDirtNoFade()
+	endIf
+EndEvent
+Event OnAnimationEnd_OStim(string EventName, string Json, float ThreadID, Form Sender)
+	if (ThreadID as int) == SexTID
+		AnimationDirtNoFade(mzinInterfaceOStim.GetExcitementPercentage(DirtyActor))
+		EndAnimationState()
+	endIf
+EndEvent
+
+Float Function GetAnimationDirt(Actor[] actorList, bool isVictim)
+	Int i = actorList.Length
+	Actor CurrentActor
+	While i > 0
+		i -= 1
+		CurrentActor = actorList[i]
+		If CurrentActor != DirtyActor
+			If CurrentActor.IsInFaction(CreatureFaction) || CurrentActor.HasKeyWord(ActorTypeCreature)
+				SexDirt += (2.0 * Menu.DirtinessPerSexActor)
+			Else
+				SexDirt += Menu.DirtinessPerSexActor
+			EndIf
+		EndIf
+	EndWhile
+	If isVictim
+		SexDirt *= Menu.VictimMult
+	EndIf
+	return SexDirt
+EndFunction
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	RegisterForEvents()
@@ -221,12 +227,85 @@ Event OnEffectStart(Actor Target, Actor Caster)
 		EndIf
 	EndIf
 EndEvent
+
 Event OnUpdateGameTime()
 	RunDirtCycleUpdate()
 EndEvent
+
 Event OnUpdate()
 	RunDirtCycleUpdate()
 EndEvent
+
+State Animation_SexLab
+	Event OnBeginState()
+		UnregisterForUpdate()
+		UnregisterForUpdateGameTime()
+	EndEvent
+	Event OnUpdate()
+		if LocalDirtinessPercentage != 1.0
+			IncrementDirtFromSex(SexDirt / Menu.SexIntervalDirt)
+			RenewDirtSpell()
+			RegisterForSingleUpdate(Menu.SexInterval)
+		endIf
+	EndEvent
+	Event OnUpdateGameTime()
+		if !SexlabInt.SlIsActorActive(DirtyActor)
+			EndAnimationState()
+		endIf
+	EndEvent
+	Event OnEndState()
+		SexDirt = 0.0
+		SexTID = 0
+		RegisterForSingleUpdate(0.5)
+	EndEvent
+EndState
+
+State Animation_OStim
+	Event OnBeginState()
+		UnregisterForUpdate()
+		UnregisterForUpdateGameTime()
+	EndEvent
+	Event OnUpdate()
+		if LocalDirtinessPercentage < 1.0
+			IncrementDirtFromSex(SexDirt / Menu.SexIntervalDirt)
+			RenewDirtSpell()
+			if mzinAnimationInProcList.HasForm(DirtyActor)
+				RegisterForSingleUpdate(Menu.SexInterval)
+			endIf
+		endIf
+	EndEvent
+	Event OnUpdateGameTime()
+		if !mzinInterfaceOStim.IsActorActive(DirtyActor)
+			EndAnimationState()
+		endIf
+	EndEvent
+	Event OnEndState()
+		SexDirt = 0.0
+		SexTID = 0
+		RegisterForSingleUpdate(0.5)
+	EndEvent
+EndState
+
+Function AnimationDirtNoFade(float modifier = 1.0)
+	if !Menu.FadeDirtSex
+		IncrementDirtFromSex(SexDirt, modifier)
+	endIf
+EndFunction
+Function IncrementDirtFromSex(Float base, Float mod = 1.0)
+	LocalDirtinessPercentage += base * mod
+	If LocalDirtinessPercentage > 1.0
+		LocalDirtinessPercentage = 1.0
+	EndIf
+EndFunction
+Function EndAnimationState()
+	mzinAnimationInProcList.RemoveAddedForm(DirtyActor)
+	BatheQuest.UpdateActorDirtPercent(DirtyActor, LocalDirtinessPercentage)
+	GoToState("")
+EndFunction
+Bool Function IsActorInSexAnimation(Actor[] actorList)
+	return actorList.Find(DirtyActor) != -1
+EndFunction
+
 Function RunDirtCycleUpdate()
 	ApplyDirt()
 	Float CurrentGameTime = Utility.GetCurrentGameTime()
@@ -259,8 +338,6 @@ Function ApplyDirt()
 	Float DirtPerHour = GetDirtPerHour()
 
 	Float DirtAdded = (DirtPerHour * HoursPassed)
-	DirtAdded += SexDirt
-	SexDirt = 0.0
 	If DirtAppliedLastUpdate <= 0.0
 		DirtAppliedLastUpdate = DirtAdded
 	EndIf
@@ -381,8 +458,14 @@ EndFunction
 
 Function CheckSexEvents()
 	If Init.IsSexlabInstalled
-		RegisterForModEvent("HookAnimationStart", "OnAnimationStart")
-		RegisterForModEvent("HookAnimationEnd", "OnAnimationEnd")
+		RegisterForModEvent("HookAnimationStart", "OnAnimationStart_SexLab")
+		RegisterForModEvent("HookAnimationEnd", "OnAnimationEnd_SexLab")
+	EndIf
+	If Init.IsOStimInstalled
+		RegisterForModEvent("ostim_thread_start", "OnAnimationStart_OStim")
+		RegisterForModEvent("ostim_thread_scenechanged", "OnAnimationChange_OStim")
+		RegisterForModEvent("ostim_actor_orgasm", "OnAnimationOrgasm_OStim")
+		RegisterForModEvent("ostim_thread_end", "OnAnimationEnd_OStim")
 	EndIf
 EndFunction
 
