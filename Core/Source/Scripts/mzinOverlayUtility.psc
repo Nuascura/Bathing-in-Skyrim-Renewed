@@ -117,6 +117,7 @@ Int Function GetNumSlots(String Area)
 EndFunction
 
 Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all sets from all overlay slots but takes a long time
+	mzinUtil.LogTrace("Called ClearDirtGameLoad on " + akTarget.GetBaseObject().GetName())
 	int Gender = akTarget.GetLeveledActorBase().GetSex()
 	String TexPath
 	String[] TexPrefixes
