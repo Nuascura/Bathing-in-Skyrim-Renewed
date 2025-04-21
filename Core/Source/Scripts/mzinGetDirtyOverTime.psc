@@ -26,6 +26,7 @@ Spell Property mzinDirtinessTier1p5Spell Auto
 FormList Property EnterTierMessageList Auto
 FormList Property ExitTierMessageList Auto
 
+GlobalVariable Property GameDaysPassed auto
 GlobalVariable Property DirtinessUpdateInterval Auto
 GlobalVariable Property DirtinessPercentage Auto
 GlobalVariable Property DirtinessPerHourPlayerHouse Auto
@@ -210,19 +211,20 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	CheckAlpha()
 	
 	Float LastUpdate = StorageUtil.GetFloatValue(DirtyActor, "BiS_LastUpdate", -100.0)
+	Float CurrentGameTime = GameDaysPassed.GetValue()
 	If LastUpdate == -100.0
-		LocalLastUpdateTime = Utility.GetCurrentGameTime()
+		LocalLastUpdateTime = CurrentGameTime
 		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", LocalLastUpdateTime)
 		RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
 	Else
 		LocalLastUpdateTime = LastUpdate
 		Float UpdateIntervalInGameTime = (DirtinessUpdateInterval.GetValue() / 24)
-		If Utility.GetCurrentGameTime() > LocalLastUpdateTime + UpdateIntervalInGameTime
+		If CurrentGameTime > LocalLastUpdateTime + UpdateIntervalInGameTime
 			mzinUtil.LogTrace("Running update now on " + DirtyActor.GetBaseObject().GetName())
 			RegisterForSingleUpdate(0.1)
 		Else
-			mzinUtil.LogTrace("Running update in " + (UpdateIntervalInGameTime - (Utility.GetCurrentGameTime() - LocalLastUpdateTime)) + " on " + DirtyActor.GetBaseObject().GetName())
-			RegisterForSingleUpdateGameTime(UpdateIntervalInGameTime - (Utility.GetCurrentGameTime() - LocalLastUpdateTime))
+			mzinUtil.LogTrace("Running update in " + (UpdateIntervalInGameTime - (CurrentGameTime - LocalLastUpdateTime)) + " on " + DirtyActor.GetBaseObject().GetName())
+			RegisterForSingleUpdateGameTime(UpdateIntervalInGameTime - (CurrentGameTime - LocalLastUpdateTime))
 		EndIf
 	EndIf
 EndEvent
@@ -307,7 +309,7 @@ EndFunction
 
 Function RunDirtCycleUpdate()
 	ApplyDirt()
-	Float CurrentGameTime = Utility.GetCurrentGameTime()
+	Float CurrentGameTime = GameDaysPassed.GetValue()
 	LocalLastUpdateTime = CurrentGameTime
 	StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", CurrentGameTime)
 	RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
@@ -333,7 +335,7 @@ Function CloseInventory()
 EndFunction
 
 Function ApplyDirt()
-	Float HoursPassed = (Utility.GetCurrentGameTime() - LocalLastUpdateTime) * 24
+	Float HoursPassed = (GameDaysPassed.GetValue() - LocalLastUpdateTime) * 24
 	Float DirtPerHour = GetDirtPerHour()
 
 	Float DirtAdded = (DirtPerHour * HoursPassed)

@@ -17,6 +17,8 @@ GlobalVariable Property CheckStatusKeyCode Auto
 
 GlobalVariable Property DirtinessPercentage Auto
 
+GlobalVariable Property GameDaysPassed Auto
+
 FormList Property DirtyActors Auto
 FormList Property WashPropList Auto
 FormList Property SoapBonusSpellList Auto
@@ -184,7 +186,7 @@ Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFu
 		RemoveSpells(DirtyActor, SoapBonusSpellList)
 		RemoveSpells(DirtyActor, DirtinessSpellList)
 		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", Utility.GetCurrentGameTime())
+		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
 		If DoFullClean
 			UpdateActorDirtPercent(DirtyActor, 0.0)
 			ApplySoapBonus(DirtyActor, WashProp)
