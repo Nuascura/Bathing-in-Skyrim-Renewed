@@ -1,7 +1,7 @@
 Scriptname mzinInterfaceFadeTats
 
-Function FadeTats(Quest kFadeTattoos, Actor Target, Bool UsedSoap, Float FadeTatsFadeTime, Float FadeTatsSoapMult, Bool abAllow) Global
-    if !abAllow
+Function FadeTats(Quest kFadeTattoos, Actor Target, Bool UsedSoap, Float FadeTatsFadeTime, Float FadeTatsSoapMult) Global
+    if !kFadeTattoos
         return
     endIf
 

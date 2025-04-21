@@ -2,7 +2,6 @@ ScriptName mzinGetDirtyOverTime Extends ActiveMagicEffect
 { this script increases the player's dirtiness over time }
 
 mzinBatheQuest Property BatheQuest Auto
-mzinInterfaceSexlab Property SexlabInt Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinOverlayUtility Property OlUtil Auto
 mzinUtility Property mzinUtil Auto
@@ -100,10 +99,10 @@ Event OnBiS_SexMethodToggle()
 EndEvent
 
 Event OnAnimationStart_SexLab(int tid, bool HasPlayer)
-	Actor[] actorList = SexlabInt.GetSexActors(tid)
+	Actor[] actorList = mzinInterfaceSexLab.GetSexActors(Init.SL_API, tid)
 	if IsActorInSexAnimation(actorList)
 		SexTID = tid
-		SexDirt = GetAnimationDirt(actorList, SexlabInt.SlIsVictim(tid, DirtyActor))
+		SexDirt = GetAnimationDirt(actorList, mzinInterfaceSexLab.IsVictim(Init.SL_API, tid, DirtyActor))
 		GoToState("Animation_SexLab")
 		if Menu.FadeDirtSex
 			mzinAnimationInProcList.AddForm(DirtyActor)
@@ -249,7 +248,7 @@ State Animation_SexLab
 		endIf
 	EndEvent
 	Event OnUpdateGameTime()
-		if !SexlabInt.SlIsActorActive(DirtyActor)
+		if !mzinInterfaceSexLab.IsActorActive(Init.SL_API, DirtyActor)
 			EndAnimationState()
 		endIf
 	EndEvent

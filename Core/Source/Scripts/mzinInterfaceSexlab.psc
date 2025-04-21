@@ -1,75 +1,28 @@
-Scriptname mzinInterfaceSexlab extends Quest  
+Scriptname mzinInterfaceSexLab
 
-Quest SlQuest
-
-Event OnInit()
-	RegisterForModEvent("mzin_Int_PlayerLoadsGame", "On_mzin_Int_PlayerLoadsGame")
-EndEvent
-
-Event On_mzin_Int_PlayerLoadsGame(string eventName, string strArg, float numArg, Form sender)
-	PlayerLoadsGame()
-EndEvent
-
-Function PlayerLoadsGame()
-	If Game.GetModByName("SexLab.esm") != 255
-		If GetState() != "Installed"
-			GoToState("Installed")
-		EndIf
-	
-	Else
-		If GetState() != ""
-			GoToState("")
-		EndIf
-	EndIf
+Actor[] Function GetSexActors(Quest SlQuest, Int tid) Global
+	if SlQuest
+		Return (SLQuest as SexlabFramework).GetController(tid).Positions
+	endIf
+	Return (new Actor[1])
 EndFunction
 
-Bool Function GetIsInterfaceActive()
-	If GetState() == "Installed"
-		Return true
-	EndIf
+Bool Function IsActorActive(Quest SlQuest, Actor akTarget) Global
+	if SlQuest
+		Return (SLQuest as SexlabFramework).IsActorActive(akTarget)
+	endIf
 	Return false
 EndFunction
 
-; Installed =======================================
-
-State Installed
-	Actor[] Function GetSexActors(Int tid)
-		Return mzinIntSexlab.GetSexActors(SlQuest, tid)
-	EndFunction
-
-	Bool Function SlIsActorActive(Actor akTarget)
-		Return mzinIntSexlab.SlIsActorActive(SlQuest, akTarget)
-	EndFunction
-
-	Bool Function SlIsVictim(Int tid, Actor akTarget)
-		Return mzinIntSexlab.SlIsVictim(SlQuest, tid, akTarget)
-	EndFunction
-
-	Function SlClearCum(Actor akTarget)
-		mzinIntSexlab.SlClearCum(SlQuest, akTarget)
-	EndFunction
-EndState
-
-; Not Installed ====================================
-
-Actor[] Function GetSexActors(Int tid)
-	Actor[] Blah = new Actor[1]
-	Return Blah
+Bool Function IsVictim(Quest SlQuest, Int tid, Actor akTarget) Global
+	if SlQuest
+		Return (SLQuest as SexlabFramework).IsVictim(tid, akTarget)
+	endIf
+	Return False
 EndFunction
 
-Bool Function SlIsActorActive(Actor akTarget)
-	Return false
+Function ClearCum(Quest SlQuest, Actor akTarget) Global
+	if SlQuest
+		(SLQuest as SexlabFramework).ClearCum(akTarget)
+	endIf
 EndFunction
-
-Bool Function SlIsVictim(Int tid, Actor akTarget)
-	Return false
-EndFunction
-
-Function SlClearCum(Actor Target)
-EndFunction
-
-Event OnEndState()
-	Utility.Wait(5.0) ; Wait before entering active state to help avoid making function calls to scripts that may not have initialized yet.
-	
-	SlQuest = Game.GetFormFromFile(0x000D62, "SexLab.esm") as Quest
-EndEvent

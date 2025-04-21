@@ -16,8 +16,6 @@ Event OnPlayerLoadGame() ; run whenever possible
 	
 	RegisterForModEvent("BiS_ForbidBathing", "OnBiS_ForbidBathing")
 	RegisterForModEvent("BiS_PermitBathing", "OnBiS_PermitBathing")
-
-	SendModEvent("mzin_Int_PlayerLoadsGame")
 EndEvent
 
 Event OnBiS_ForbidBathing(Form Sender, Form ForbiddenActor, String ForbiddenString)

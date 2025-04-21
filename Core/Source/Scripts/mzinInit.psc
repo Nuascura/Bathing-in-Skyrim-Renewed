@@ -25,6 +25,7 @@ Faction Property SexLabForbiddenActors Auto Hidden
 
 MagicEffect Property LokiWaterSlowdownEffect Auto Hidden
 
+Quest Property SL_API Auto Hidden
 Quest Property PAF_API Auto Hidden
 Quest Property OCA_API Auto Hidden
 Quest Property FadeTats_API Auto Hidden
@@ -155,6 +156,7 @@ Function SetInternalVariables()
 		EndIf
 	EndIf
 	If IsSexlabInstalled
+		SL_API = Quest.GetQuest("SexLabQuestFramework")
 		SexLabForbiddenActors  = Game.GetFormFromFile(0x049068, "SexLab.esm") as Faction
 	EndIf
 	If IsSexlabArousedInstalled

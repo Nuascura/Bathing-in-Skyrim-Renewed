@@ -1,3 +1,13 @@
+2.6.0
+Primary
+- Remove: SexLab interface quest.
+- Change: Store SexLab quest under Init quest.
+- Change: Disable bathing if actor is active under SexLab or OStim.
+- Optimize: Reduce redundancies in Boolean checks.
+- Update: SEQ.
+
+
+
 2.5.0
 Primary
 - Fix: WashActorFinish does not respect abDoFullClean.

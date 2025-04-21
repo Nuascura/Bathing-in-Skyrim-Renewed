@@ -3,7 +3,6 @@ ScriptName mzinBatheQuest Extends Quest
 
 mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
-mzinInterfaceSexlab Property SexlabInt Auto
 mzinOverlayUtility Property OlUtil Auto
 mzinUtility Property mzinUtil Auto
 mzinBathePlayerAlias Property PlayerAlias Auto
@@ -122,7 +121,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
 	If DirtyActorIsPlayer
 		UnregisterForAllKeys()
-		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0, Init.IsFrostFallInstalled)
+		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0)
 		OlUtil.SendBathePlayerModEvent()
 	EndIf
 	If DoPlayerTeammates
@@ -160,10 +159,10 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 
 	DirtyActor.ClearExtraArrows()
 	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
-	SexlabInt.SlClearCum(DirtyActor)
-	mzinInterfacePaf.ClearPafDirt(Init.PAF_API, DirtyActor, Init.IsPAFInstalled)
-	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor, Init.IsOCumInstalled)
-	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult, Init.IsFadeTattoosInstalled)
+	mzinInterfaceSexLab.ClearCum(Init.SL_API, DirtyActor)
+	mzinInterfacePaf.ClearPafDirt(Init.PAF_API, DirtyActor)
+	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor)
+	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 	
 	SendCleanDirtEvent(DirtyActor, DoFullClean)
 
@@ -290,7 +289,13 @@ Bool Function IsInCommmonRestriction(Actor DirtyActor)
 EndFunction
 
 Bool Function IsInInvalidCondition(Actor DirtyActor)
-	return DirtyActor.IsSwimming() || DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor)
+	return DirtyActor.IsSwimming() || IsActorAnimating(DirtyActor) || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor)
+EndFunction
+
+Bool Function IsActorAnimating(Actor DirtyActor)
+	return DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) \
+	|| mzinInterfaceSexLab.IsActorActive(Init.SL_API, DirtyActor) \
+	|| (Init.IsOstimInstalled && mzinInterfaceOStim.IsActorActive(DirtyActor))
 EndFunction
 
 Bool Function IsDeviceBlocked(Actor akTarget)
