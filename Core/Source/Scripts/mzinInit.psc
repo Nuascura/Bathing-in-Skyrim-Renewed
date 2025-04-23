@@ -34,12 +34,6 @@ GlobalVariable Property FrostfallRunning_var Auto Hidden
 
 Keyword[] Property KeywordIgnoreItem Auto
 
-Event OnInit()
-	DoHardCheck()
-	DoSoftCheck()
-	SetInternalVariables()
-EndEvent
-
 Bool Function DoHardCheck()
 	int i = 0
 
@@ -161,6 +155,7 @@ Function SetInternalVariables()
 		SL_API = Quest.GetQuest("SexLabQuestFramework")
 		SexLabForbiddenActors  = Game.GetFormFromFile(0x049068, "SexLab.esm") as Faction
 	else
+		SL_API = none
 		SexLabForbiddenActors = none
 	EndIf
 	If IsSexlabArousedInstalled
@@ -169,8 +164,8 @@ Function SetInternalVariables()
 		SLAExhibitionistFaction = none
 	EndIf
 	If IsDdsInstalled
-		zad_DeviousHeavyBondage = Game.GetFormFromFile(0x0005226C, "Devious Devices - Integration.esm") as Keyword
-		zad_DeviousSuit = Game.GetFormFromFile(0x0002AFA3, "Devious Devices - Assets.esm") as Keyword
+		zad_DeviousHeavyBondage = Keyword.GetKeyword("zad_DeviousHeavyBondage")
+		zad_DeviousSuit = Keyword.GetKeyword("zad_DeviousSuit")
 	else
 		zad_DeviousHeavyBondage = none
 		zad_DeviousSuit = none
