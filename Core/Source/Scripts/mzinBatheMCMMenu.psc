@@ -112,6 +112,12 @@ string config = "BathingInSkyrim/Settings.json"
 String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 
+Bool Property ShowTierCondConfig
+	Bool Function Get()
+		return Init.IsMalignisAnimInstalled
+	EndFUnction
+EndProperty
+
 String Function GetModVersion()
 	return "2.6.0"
 EndFunction
@@ -326,8 +332,10 @@ Function DisplayAnimationsPage()
 	if Init.IsMalignisAnimInstalled
 		AnimCustomFSet3SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet3", AnimCustomFSet3Freq, "{0}", CUSTOM_FREQ_FLAG)
 	endIf
-	AddHeaderOption("$BIS_HEADER_COND_ANIM")
-	AnimCustomTierCondMenuID = AddMenuOption("$BIS_L_ANIM_TIERCOND", AnimCustomTierCondArray[AnimCustomTierCond], CUSTOM_FREQ_FLAG)
+	if ShowTierCondConfig
+		AddHeaderOption("$BIS_HEADER_COND_ANIM")
+		AnimCustomTierCondMenuID = AddMenuOption("$BIS_L_ANIM_TIERCOND", AnimCustomTierCondArray[AnimCustomTierCond], CUSTOM_FREQ_FLAG)
+	endIf
 
 	SetCursorPosition(1)	
 
@@ -399,8 +407,10 @@ Function DisplayAnimationsPageFollowers()
 	if Init.IsMalignisAnimInstalled
 		AnimCustomFSet3SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet3", AnimCustomFSet3FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
 	endIf
-	AddHeaderOption("$BIS_HEADER_COND_ANIM")
-	AnimCustomTierCondMenuIDFollowers = AddMenuOption("$BIS_L_ANIM_TIERCOND", AnimCustomTierCondArray[AnimCustomTierCondFollowers], CUSTOM_FREQ_FLAG)
+	if ShowTierCondConfig
+		AddHeaderOption("$BIS_HEADER_COND_ANIM")
+		AnimCustomTierCondMenuIDFollowers = AddMenuOption("$BIS_L_ANIM_TIERCOND", AnimCustomTierCondArray[AnimCustomTierCondFollowers], CUSTOM_FREQ_FLAG)
+	endIf
 
 	SetCursorPosition(1)
 
