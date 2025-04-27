@@ -123,7 +123,7 @@ String Function GetModVersion()
 EndFunction
 
 Int Function GetVersion()
-	Return 17
+	Return 18
 EndFunction
 
 Event OnConfigOpen()
