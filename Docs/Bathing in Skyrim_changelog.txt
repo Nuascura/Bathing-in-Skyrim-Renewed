@@ -1,10 +1,22 @@
 2.6.0
 Primary
+- Add: Modifier key setting. This replaces the shower hotkey.
+- Fix: StartAnimation invalid function return if selected style is vanilla.
+- Improve: Bathing sequence invalid animation state detection.
+- Change: Hide tier condition configuration if a valid animation set isn't available.
+
+Secondary
+- Remove: Animation Actor Guard.
+- Remove: mzinInit OnInit event.
 - Remove: SexLab interface quest.
+- Change: Swim detection from explicit MGEF condition check to anim event reception.
 - Change: Store SexLab quest under Init quest.
-- Change: Disable bathing if actor is active under SexLab or OStim.
+- Change: Disallow bathing if actor is active under SexLab or OStim.
+- Change: Reset init props if corresponding mods are later inactive.
 - Optimize: Reduce redundancies in Boolean checks.
+- Optimize: Use GameDaysPassed globalvar instead of utility call.
 - Update: SEQ.
+- Update: Localization files.
 
 
 
