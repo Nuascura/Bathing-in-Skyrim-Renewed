@@ -12,7 +12,7 @@ GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property GetSoapyStyleFollowers Auto
 
 GlobalVariable Property BatheKeyCode Auto
-GlobalVariable Property ShowerKeyCode Auto
+GlobalVariable Property ModifierKeyCode Auto
 GlobalVariable Property CheckStatusKeyCode Auto
 
 GlobalVariable Property DirtinessPercentage Auto
@@ -72,26 +72,30 @@ EndEvent
 Event OnKeyDown(Int KeyCode)
 	If !Utility.IsInMenuMode()
 		UnregisterForAllKeys()
-		If KeyCode == CheckStatusKeyCode.GetValueInt()
+		If KeyCode == CheckStatusKeyCode.GetValue() as int
 			mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
-		ElseIf (KeyCode == BatheKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, false, true)) \
-		|| (KeyCode == ShowerKeyCode.GetValueInt() && TryWashActor(PlayerRef, None, true, true))
-			return
-		Endif
+		ElseIf KeyCode == BatheKeyCode.GetValue() as int
+			if Input.IsKeyPressed(ModifierKeyCode.GetValue() as int) 
+				if TryWashActor(PlayerRef, None, true, true)
+					return
+				endIf
+			else
+				if TryWashActor(PlayerRef, None, false, true)
+					return
+				endIf
+			endIf
+		EndIf
 		RegisterHotKeys()
 	EndIf
 EndEvent
 
 Function RegisterHotKeys()
 	UnregisterForAllKeys()
-	If BatheKeyCode.GetValueInt() != 0
-		RegisterForKey(BatheKeyCode.GetValueInt())
+	If BatheKeyCode.GetValue() as int != 0
+		RegisterForKey(BatheKeyCode.GetValue() as int)
 	EndIf
-	If ShowerKeyCode.GetValueInt() != 0
-		RegisterForKey(ShowerKeyCode.GetValueInt())
-	EndIf
-	If CheckStatusKeyCode.GetValueInt() != 0
-		RegisterForKey(CheckStatusKeyCode.GetValueInt())
+	If CheckStatusKeyCode.GetValue() as int != 0
+		RegisterForKey(CheckStatusKeyCode.GetValue() as int)
 	EndIf
 EndFunction
 

@@ -63,7 +63,7 @@ GlobalVariable Property GetSoapyStyleFollowers Auto
 mzinBatheQuest Property BatheQuest Auto
 GlobalVariable Property CheckStatusKeyCode Auto
 GlobalVariable Property BatheKeyCode Auto
-GlobalVariable Property ShowerKeyCode Auto
+GlobalVariable Property ModifierKeyCode Auto
 
 ; animation settings
 FormList Property BathingAnimationLoopCountList Auto
@@ -462,7 +462,7 @@ Function DisplaySettingsPage()
 	AddHeaderOption("$BIS_HEADER_HOTKEYS")
 	CheckStatusKeyMapID = AddKeyMapOption("$BIS_L_STATUS_HOTKEY", CheckStatusKeyCode.GetValue() As Int)
 	BatheKeyMapID = AddKeyMapOption("$BIS_L_BATHE_HOTKEY", BatheKeyCode.GetValue() As Int)
-	ShowerKeyMapID = AddKeyMapOption("$BIS_L_SHOWER_HOTKEY", ShowerKeyCode.GetValue() As Int)
+	ModifierKeyMapID = AddKeyMapOption("$BIS_L_SHOWER_HOTKEY", ModifierKeyCode.GetValue() As Int)
 	AddHeaderOption("$BIS_HEADER_MISC")
 	ShynessToggleID = AddToggleOption("$BIS_L_SHYNESSTOGGLE", Shyness)
 	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue(), DisplayFormatDecimal)
@@ -798,10 +798,9 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 		BatheKeyCode.Value = 0
 		BatheQuest.RegisterHotKeys()
 		SetKeymapOptionValue(OptionID, BatheKeyCode.Value as int)
-	ElseIf OptionID == ShowerKeyMapID
-		ShowerKeyCode.Value = 0
-		BatheQuest.RegisterHotKeys()
-		SetKeymapOptionValue(OptionID, ShowerKeyCode.Value as int)
+	ElseIf OptionID == ModifierKeyMapID
+		ModifierKeyCode.Value = 0
+		SetKeymapOptionValue(OptionID, ModifierKeyCode.Value as int)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultTrackedActorsPage(Int OptionID)
@@ -943,8 +942,8 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_STATUS_HOTKEY")
 	ElseIf OptionID == BatheKeyMapID
 		SetInfoText("$BIS_DESC_BATHE_HOTKEY")
-	ElseIf OptionID == ShowerKeyMapID
-		SetInfoText("$BIS_DESC_SHOWER_HOTKEY")
+	ElseIf OptionID == ModifierKeyMapID
+		SetInfoText("$BIS_DESC_MODIFIER_HOTKEY")
 	ElseIf OptionID == DirtinessPerHourPlayerHouseSliderID
 		SetInfoText("$BIS_DESC_RATE_IN_PLAYERHOUSE")
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
@@ -1038,14 +1037,14 @@ Event OnOptionKeyMapChange(Int OptionID, Int KeyCode, String ConflictControl, St
 		If OptionID == CheckStatusKeyMapID
 			BatheQuest.UnregisterForKey(CheckStatusKeyCode.Value as int)
 			CheckStatusKeyCode.Value = KeyCode
+			BatheQuest.RegisterForKey(KeyCode)
 		ElseIf OptionID == BatheKeyMapID
 			BatheQuest.UnregisterForKey(BatheKeyCode.Value as int)
 			BatheKeyCode.Value = KeyCode
-		ElseIf OptionID == ShowerKeyMapID
-			BatheQuest.UnregisterForKey(ShowerKeyCode.Value as int)
-			ShowerKeyCode.Value = KeyCode
+			BatheQuest.RegisterForKey(KeyCode)
+		ElseIf OptionID == ModifierKeyMapID
+			ModifierKeyCode.Value = KeyCode
 		EndIf
-		BatheQuest.RegisterForKey(KeyCode)
 		SetKeymapOptionValue(OptionID, KeyCode)
 	EndIf
 EndEvent
@@ -1914,22 +1913,22 @@ Bool Function SavePapyrusSettings()
 		endIf
 	endIf
 
-	SetIntValue(config, "DialogTopicEnabled", DialogTopicEnabled.GetValueInt())
-	SetIntValue(config, "AutomateFollowerBathing", AutomateFollowerBathing.GetValueInt())
-	SetIntValue(config, "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValueInt())
-	SetIntValue(config, "GetSoapyStyle", GetSoapyStyle.GetValueInt())
-	SetIntValue(config, "GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValueInt())
-	SetIntValue(config, "CheckStatusKeyCode", CheckStatusKeyCode.GetValueInt())
-	SetIntValue(config, "BatheKeyCode", BatheKeyCode.GetValueInt())
-	SetIntValue(config, "ShowerKeyCode", ShowerKeyCode.GetValueInt())
+	SetIntValue(config, "DialogTopicEnabled", DialogTopicEnabled.GetValue() as int)
+	SetIntValue(config, "AutomateFollowerBathing", AutomateFollowerBathing.GetValue() as int)
+	SetIntValue(config, "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValue() as int)
+	SetIntValue(config, "GetSoapyStyle", GetSoapyStyle.GetValue() as int)
+	SetIntValue(config, "GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValue() as int)
+	SetIntValue(config, "CheckStatusKeyCode", CheckStatusKeyCode.GetValue() as int)
+	SetIntValue(config, "BatheKeyCode", BatheKeyCode.GetValue() as int)
+	SetIntValue(config, "ModifierKeyCode", ModifierKeyCode.GetValue() as int)
 	
-	SetIntValue(config, "BathingAnimationStyle", BathingAnimationStyle.GetValueInt())
-	SetIntValue(config, "BathingAnimationStyleFollowers", BathingAnimationStyleFollowers.GetValueInt())
-	SetIntValue(config, "ShoweringAnimationStyle", ShoweringAnimationStyle.GetValueInt())
-	SetIntValue(config, "ShoweringAnimationStyleFollowers", ShoweringAnimationStyleFollowers.GetValueInt())
+	SetIntValue(config, "BathingAnimationStyle", BathingAnimationStyle.GetValue() as int)
+	SetIntValue(config, "BathingAnimationStyleFollowers", BathingAnimationStyleFollowers.GetValue() as int)
+	SetIntValue(config, "ShoweringAnimationStyle", ShoweringAnimationStyle.GetValue() as int)
+	SetIntValue(config, "ShoweringAnimationStyleFollowers", ShoweringAnimationStyleFollowers.GetValue() as int)
 	
-	SetIntValue(config, "GetDressedAfterBathingEnabled", GetDressedAfterBathingEnabled.GetValueInt())
-	SetIntValue(config, "GetDressedAfterBathingEnabledFollowers", GetDressedAfterBathingEnabledFollowers.GetValueInt())
+	SetIntValue(config, "GetDressedAfterBathingEnabled", GetDressedAfterBathingEnabled.GetValue() as int)
+	SetIntValue(config, "GetDressedAfterBathingEnabledFollowers", GetDressedAfterBathingEnabledFollowers.GetValue() as int)
 	IntListCopy(config, "ArmorSlotArray", ArmorSlotArray)
 	IntListCopy(config, "ArmorSlotArrayFollowers", ArmorSlotArrayFollowers)
 	
@@ -1944,15 +1943,15 @@ Bool Function SavePapyrusSettings()
 	SetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue())
 	SetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue())
 	
-	SetIntValue(config, "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValueInt())
-	SetIntValue(config, "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValueInt())
-	SetIntValue(config, "BathingAnimationLoopCount2", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValueInt())
-	SetIntValue(config, "BathingAnimationLoopCount3", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue() as int)
+	SetIntValue(config, "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue() as int)
+	SetIntValue(config, "BathingAnimationLoopCount2", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValue() as int)
+	SetIntValue(config, "BathingAnimationLoopCount3", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue() as int)
 	
-	SetIntValue(config, "BathingAnimationLoopCountFollowers0", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValueInt())
-	SetIntValue(config, "BathingAnimationLoopCountFollowers1", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValueInt())
-	SetIntValue(config, "BathingAnimationLoopCountFollowers2", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValueInt())
-	SetIntValue(config, "BathingAnimationLoopCountFollowers3", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValueInt())
+	SetIntValue(config, "BathingAnimationLoopCountFollowers0", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValue() as int)
+	SetIntValue(config, "BathingAnimationLoopCountFollowers1", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValue() as int)
+	SetIntValue(config, "BathingAnimationLoopCountFollowers2", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValue() as int)
+	SetIntValue(config, "BathingAnimationLoopCountFollowers3", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue() as int)
 
 	SetFloatValue(config, "AnimCustomMSet1Freq", AnimCustomMSet1Freq)
 	SetFloatValue(config, "AnimCustomFSet1Freq", AnimCustomFSet1Freq)
@@ -2019,7 +2018,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	GetSoapyStyleFollowers.SetValue(GetIntValue(config, "GetSoapyStyleFollowers", GetSoapyStyleFollowers.GetValue() as int))
 	CheckStatusKeyCode.SetValue(GetIntValue(config, "CheckStatusKeyCode", CheckStatusKeyCode.GetValue() as int))
 	BatheKeyCode.SetValue(GetIntValue(config, "BatheKeyCode", BatheKeyCode.GetValue() as int))
-	ShowerKeyCode.SetValue(GetIntValue(config, "ShowerKeyCode", ShowerKeyCode.GetValue() as int))
+	ModifierKeyCode.SetValue(GetIntValue(config, "ModifierKeyCode", ModifierKeyCode.GetValue() as int))
 	
 	BathingAnimationStyle.SetValue(GetIntValue(config, "BathingAnimationStyle", BathingAnimationStyle.GetValue() as int))
 	BathingAnimationStyleFollowers.SetValue(GetIntValue(config, "BathingAnimationStyleFollowers", BathingAnimationStyleFollowers.GetValue() as int))
@@ -2153,7 +2152,7 @@ Int DirtinessThresholdTier2SliderID
 Int DirtinessThresholdTier3SliderID
 Int CheckStatusKeyMapID
 Int BatheKeyMapID
-Int ShowerKeyMapID
+Int ModifierKeyMapID
 Int OverlayApplyAtOID_S
 Int StartingAlphaOID_S
 Int OverlayTintOID_C
