@@ -5,16 +5,16 @@ String Property PO3PEstate = "$BIS_L_NULL" Auto Hidden
 String Property SKEE64state = "$BIS_L_NULL" Auto Hidden
 String Property SPEstate = "$BIS_L_NULL" Auto Hidden
 
-Bool Property IsSexlabInstalled = false Auto Hidden
-Bool Property IsSexlabArousedInstalled = false Auto Hidden
-Bool Property IsDdsInstalled = false Auto Hidden
+Bool Property IsSexLabInstalled = false Auto Hidden
+Bool Property IsSexLabArousedInstalled = false Auto Hidden
+Bool Property IsDeviousDevicesInstalled = false Auto Hidden
 Bool Property IsWadeInWaterInstalled = false Auto Hidden
 Bool Property IsMalignisAnimInstalled = false Auto Hidden
 Bool Property IsFadeTattoosInstalled = false Auto Hidden
 Bool Property IsFrostFallInstalled = false Auto Hidden
 Bool Property IsPAFInstalled = false Auto Hidden
 Bool Property IsOCumInstalled = false Auto Hidden
-Bool Property IsOstimInstalled = false Auto Hidden
+Bool Property IsOStimInstalled = false Auto Hidden
 
 Keyword Property zad_DeviousHeavyBondage Auto Hidden
 Keyword Property zad_DeviousSuit Auto Hidden
@@ -71,21 +71,21 @@ EndFunction
 Int Function DoSoftCheck()
 	int i = 0
 
-	IsSexlabInstalled = false
+	IsSexLabInstalled = false
 	If Game.GetModByName("SexLab.esm") != 255
-		IsSexlabInstalled = true
+		IsSexLabInstalled = true
 		i += 1
 	EndIf
 
-	IsSexlabArousedInstalled = false
+	IsSexLabArousedInstalled = false
 	If Game.GetModByName("SexLabAroused.esm") != 255
-		IsSexlabArousedInstalled = true
+		IsSexLabArousedInstalled = true
 		i += 1
 	EndIf
 
-	IsDdsInstalled = false
+	IsDeviousDevicesInstalled = false
 	If Game.GetModByName("Devious Devices - Integration.esm") != 255
-		IsDdsInstalled = true
+		IsDeviousDevicesInstalled = true
 		i += 1
 	EndIf
 
@@ -151,19 +151,19 @@ Function SetInternalVariables()
 			LokiWaterSlowdownEffect = none
 		EndIf
 	EndIf
-	If IsSexlabInstalled
+	If IsSexLabInstalled
 		SL_API = Quest.GetQuest("SexLabQuestFramework")
 		SexLabForbiddenActors  = Game.GetFormFromFile(0x049068, "SexLab.esm") as Faction
 	else
 		SL_API = none
 		SexLabForbiddenActors = none
 	EndIf
-	If IsSexlabArousedInstalled
+	If IsSexLabArousedInstalled
 		SLAExhibitionistFaction = Game.GetFormFromFile(0x0713DA, "SexLabAroused.esm") as Faction
 	else
 		SLAExhibitionistFaction = none
 	EndIf
-	If IsDdsInstalled
+	If IsDeviousDevicesInstalled
 		zad_DeviousHeavyBondage = Keyword.GetKeyword("zad_DeviousHeavyBondage")
 		zad_DeviousSuit = Keyword.GetKeyword("zad_DeviousSuit")
 	else

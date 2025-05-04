@@ -491,10 +491,10 @@ Function DisplaySettingsPage()
 	OverlayProgressOID_T = AddTextOption("", "$BIS_L_INACTIVE")
 EndFunction
 Function DisplayIntegrationsPage()
-	if !Init.IsSexlabInstalled && !Init.IsOStimInstalled && !Init.IsFadeTattoosInstalled
+	if !Init.IsSexLabInstalled && !Init.IsOStimInstalled && !Init.IsFadeTattoosInstalled
 		AddTextOption("$BIS_TXT_EMPTY", "", OPTION_FLAG_DISABLED)
 	else
-		If Init.IsSexlabInstalled || Init.IsOStimInstalled
+		If Init.IsSexLabInstalled || Init.IsOStimInstalled
 			AddHeaderOption("$BIS_HEADER_SEX")
 			DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
 			VictimMultOID_S = AddSliderOption("$BIS_L_VICTIMMULT", VictimMult, DisplayFormatDecimal)
@@ -509,7 +509,7 @@ Function DisplayIntegrationsPage()
 		EndIf
 	
 		SetCursorPosition(1)
-		If (Init.IsSexlabInstalled || Init.IsOStimInstalled) && FadeDirtSex
+		If (Init.IsSexLabInstalled || Init.IsOStimInstalled) && FadeDirtSex
 			AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
 			AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
 			AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
@@ -568,8 +568,8 @@ Function DisplayAuxiliaryPage()
 	if cachedSoftCheck
 		AddEmptyOption()
 		AddHeaderOption("$BIS_HEADER_AVAILABLE_INTEGRATIONS")
-		if init.IsDdsInstalled
-			AddTextOption("$BIS_L_Dds", "")
+		if init.IsDeviousDevicesInstalled
+			AddTextOption("$BIS_L_DeviousDevices", "")
 		endIf
 		if init.IsFadeTattoosInstalled
 			AddTextOption("$BIS_L_FadeTattoos", "")
@@ -586,11 +586,11 @@ Function DisplayAuxiliaryPage()
 		if init.IsPAFInstalled
 			AddTextOption("$BIS_L_PAF", "")
 		endIf
-		if init.IsSexlabInstalled
-			AddTextOption("$BIS_L_Sexlab", "")
+		if init.IsSexLabInstalled
+			AddTextOption("$BIS_L_SexLab", "")
 		endIf
-		if init.IsSexlabArousedInstalled
-			AddTextOption("$BIS_L_SexlabAroused", "")
+		if init.IsSexLabArousedInstalled
+			AddTextOption("$BIS_L_SexLabAroused", "")
 		endIf
 		if init.IsWadeInWaterInstalled
 			AddTextOption("$BIS_L_WadeInWater", "")

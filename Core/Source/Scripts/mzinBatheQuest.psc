@@ -305,7 +305,7 @@ Bool Function IsActorAnimating(Actor DirtyActor)
 EndFunction
 
 Bool Function IsDeviceBlocked(Actor akTarget)
-	If Init.IsDdsInstalled
+	If Init.IsDeviousDevicesInstalled
 		If akTarget.WornHasKeyword(Init.zad_DeviousHeavyBondage)
 			if akTarget == PlayerRef
 				mzinUtil.LogNotification("You can't wash yourself with your hands tied")
@@ -420,6 +420,12 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 	StorageUtil.UnSetFormValue(DirtyActor, "mzin_LastWashProp")
 	StorageUtil.UnSetIntValue(DirtyActor, "mzin_LastWashState")
+
+	if Init.IsSexLabInstalled
+		if DirtyActor != PlayerRef
+			mzinInterfaceSexLab.UntrackActor(Init.SL_API, DirtyActor, DirtyActor.GetFormID())
+		endIf
+	endIf
 EndFunction
 
 Function UpdateActorDirtPercent(Actor akActor, float afNewValue)

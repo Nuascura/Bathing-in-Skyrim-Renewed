@@ -318,10 +318,10 @@ Event OnObjectEquipped(Form WashProp, ObjectReference WashPropReference)
 	If WashProp.HasKeyWord(WashPropKeyword) && !BatheQuest.IsRestricted(DirtyActor)
 		if BatheQuest.IsInWater(DirtyActor)
 			CloseInventory()
-			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, false, (DirtyActor == PlayerRef))
+			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, false, DirtyActorIsPlayer)
 		elseIf BatheQuest.IsUnderWaterfall(DirtyActor)
 			CloseInventory()
-			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, true, (DirtyActor == PlayerRef))
+			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, true, DirtyActorIsPlayer)
 		endIf
 	EndIf
 EndEvent
@@ -458,15 +458,29 @@ Function RegisterForEvents()
 EndFunction
 
 Function CheckSexEvents()
-	If Init.IsSexlabInstalled
-		RegisterForModEvent("HookAnimationStart", "OnAnimationStart_SexLab")
-		RegisterForModEvent("HookAnimationEnd", "OnAnimationEnd_SexLab")
+	If Init.IsSexLabInstalled
+		If DirtyActorIsPlayer
+			RegisterForModEvent("PlayerTrack_Start", "OnAnimationStart_SexLab")
+			RegisterForModEvent("PlayerTrack_End", "OnAnimationEnd_SexLab")
+		Else
+			Int fid = DirtyActor.GetFormID()
+			mzinInterfaceSexLab.TrackActor(Init.SL_API, DirtyActor, fid)
+			RegisterForModEvent("BiS_" + fid + "Track_Start", "OnAnimationStart_SexLab")
+			RegisterForModEvent("BiS_" + fid + "Track_End", "OnAnimationEnd_SexLab")
+		EndIf
 	EndIf
 	If Init.IsOStimInstalled
-		RegisterForModEvent("ostim_thread_start", "OnAnimationStart_OStim")
-		RegisterForModEvent("ostim_thread_scenechanged", "OnAnimationChange_OStim")
-		RegisterForModEvent("ostim_actor_orgasm", "OnAnimationOrgasm_OStim")
-		RegisterForModEvent("ostim_thread_end", "OnAnimationEnd_OStim")
+		If DirtyActorIsPlayer
+			RegisterForModEvent("ostim_start", "OnAnimationStart_OStim")
+			RegisterForModEvent("ostim_scenechanged", "OnAnimationChange_OStim")
+			RegisterForModEvent("ostim_orgasm", "OnAnimationOrgasm_OStim")
+			RegisterForModEvent("ostim_end", "OnAnimationEnd_OStim")
+		Else
+			RegisterForModEvent("ostim_thread_start", "OnAnimationStart_OStim")
+			RegisterForModEvent("ostim_thread_scenechanged", "OnAnimationChange_OStim")
+			RegisterForModEvent("ostim_actor_orgasm", "OnAnimationOrgasm_OStim")
+			RegisterForModEvent("ostim_thread_end", "OnAnimationEnd_OStim")
+		EndIf
 	EndIf
 EndFunction
 

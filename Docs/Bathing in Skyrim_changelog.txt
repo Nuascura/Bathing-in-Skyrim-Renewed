@@ -3,6 +3,8 @@ Primary
 - Add: Modifier key setting. This replaces the shower hotkey.
 - Fix: StartAnimation invalid function return if selected style is vanilla.
 - Improve: Bathing sequence invalid animation state detection.
+- Improve: Event reception for NPCs.
+- Improve: Event reception for Player actors.
 - Change: Hide tier condition configuration if a valid animation set isn't available.
 
 Secondary
