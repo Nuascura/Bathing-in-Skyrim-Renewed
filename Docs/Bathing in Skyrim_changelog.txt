@@ -2,6 +2,7 @@
 Primary
 - Add: Modifier key setting. This replaces the shower hotkey.
 - Fix: StartAnimation invalid function return if selected style is vanilla.
+- Fix: Bathing sequence potential deferred state change when vanilla idle bathing.
 - Improve: Bathing sequence invalid animation state detection.
 - Improve: Event reception for NPCs.
 - Improve: Event reception for Player actors.

@@ -69,9 +69,7 @@ Actor   BathingActor
 Bool    BathingActorIsPlayer
 Bool    BathingActorIsFemale
 Bool    BathingActorIsShowering
-Int     AnimationStyle
-Int     ShowerStyle
-Int     TieredSetCondition
+
 Float[] AnimSet
 Armor[] Clothing
 Int[]   ClothingID
@@ -131,45 +129,50 @@ EndEvent
 
 State StartSequence
 	Event OnBeginState()
+		Int AnimStyle
+		Int AnimStyleSwr
+		String AnimState = ""
+		Int AnimTierCond
 		LockActor()
 		StripActor()
 
 		If BathingActorIsPlayer
-			AnimationStyle = BathingAnimationStyle.GetValue() as int
-			ShowerStyle = ShoweringAnimationStyle.GetValue() as int
+			AnimStyle = BathingAnimationStyle.GetValue() as int
+			AnimStyleSwr = ShoweringAnimationStyle.GetValue() as int
 			if BathingActorIsFemale
 				AnimSet = Menu.AnimCustomFSet
 			else
 				AnimSet = Menu.AnimCustomMSet
 			endIf
-			TieredSetCondition = Menu.AnimCustomTierCond
+			AnimTierCond = Menu.AnimCustomTierCond
 		else
-			AnimationStyle = BathingAnimationStyleFollowers.GetValue() as int
-			ShowerStyle = ShoweringAnimationStyleFollowers.GetValue() as int
+			AnimStyle = BathingAnimationStyleFollowers.GetValue() as int
+			AnimStyleSwr = ShoweringAnimationStyleFollowers.GetValue() as int
 			if BathingActorIsFemale
 				AnimSet = Menu.AnimCustomFSetFollowers
 			else
 				AnimSet = Menu.AnimCustomMSetFollowers
 			endIf
-			TieredSetCondition = Menu.AnimCustomTierCondFollowers
+			AnimTierCond = Menu.AnimCustomTierCondFollowers
 		EndIf
 
-		If AnimationStyle > 0
+		If AnimStyle > 0
 			if BathingActorIsPlayer
 				SetFreeCam(Menu.AutoPlayerTFC && true)
 				Game.DisablePlayerControls(false, True, True, False, True, True, True, 0)
 			endIf
 			if BathingActorIsFemale
-				StartAnimationFemale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), BathingActorIsShowering, TieredSetCondition)
+				AnimState = StartAnimationFemale(GetPresetSequence(AnimSet, AnimStyle, AnimStyleSwr), BathingActorIsShowering, AnimTierCond)
 			else 
-				StartAnimationMale(GetPresetSequence(AnimSet, AnimationStyle, ShowerStyle), BathingActorIsShowering, TieredSetCondition)
+				AnimState = StartAnimationMale(GetPresetSequence(AnimSet, AnimStyle, AnimStyleSwr), BathingActorIsShowering, AnimTierCond)
 			endIf
 		EndIf
 
-		if GetState() == "StartSequence"
+		if AnimState == ""
 			GoToState("FinishSequence")
 		else
 			RegisterForEvents()
+			GoToState("InSequence" + AnimState)
 		endIf
 	EndEvent
 EndState
@@ -281,9 +284,9 @@ int Function GetPresetSequence(float[] animList, int animStyle, int overrideStyl
 	endIf
 EndFunction
 
-Function StartAnimationFemale(int aiPreset, bool abOverride = false, int aiTierCond)
+String Function StartAnimationFemale(int aiPreset, bool abOverride = false, int aiTierCond)
 	if aiPreset == 1
-		GoToState("InSequenceDefault")
+		return "Default"
 	else
 		If aiPreset == 2
 			Idle[] BathingStyle = new Idle[3]
@@ -320,13 +323,14 @@ Function StartAnimationFemale(int aiPreset, bool abOverride = false, int aiTierC
 		endIf
 		
 		if SelectedStyle
-			GoToState("InSequenceCustom")
+			return "Custom"
 		endIf
 	endIf
+	return ""
 EndFunction
-Function StartAnimationMale(int aiPreset, bool abOverride = false, int aiTierCond)
+String Function StartAnimationMale(int aiPreset, bool abOverride = false, int aiTierCond)
 	If aiPreset == 1
-		GoToState("InSequenceDefault")
+		return "Default"
 	else
 		If aiPreset == 2
 			Idle[] BathingStyle = new Idle[3]
@@ -348,9 +352,10 @@ Function StartAnimationMale(int aiPreset, bool abOverride = false, int aiTierCon
 		endIf
 
 		if SelectedStyle
-			GoToState("InSequenceCustom")
+			return "Custom"
 		endIf
 	endIf
+	return ""
 EndFunction
 Function StopAnimation(bool PlayRinseOff = false, bool ResetState = true)
 	if ResetState
