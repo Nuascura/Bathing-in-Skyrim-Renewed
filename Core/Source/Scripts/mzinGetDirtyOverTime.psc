@@ -177,9 +177,9 @@ Float Function GetAnimationDirt(Actor[] actorList, bool isVictim)
 EndFunction
 
 Event OnEffectStart(Actor Target, Actor Caster)
-	RegisterForEvents()
 	DirtyActor = Target
 	DirtyActorIsPlayer = (Target == PlayerRef)
+	RegisterForEvents()
 
 	Int InitialDirtinessTier = (Self.GetMagnitude() As Int) - 1
 	If DirtyActorIsPlayer
