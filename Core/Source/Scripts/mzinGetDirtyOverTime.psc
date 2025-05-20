@@ -99,27 +99,23 @@ Event OnBiS_SexMethodToggle()
 	CheckSexEvents()
 EndEvent
 
-Event OnAnimationStart_SexLab(int tid, bool HasPlayer)
-	Actor[] actorList = mzinInterfaceSexLab.GetSexActors(Init.SL_API, tid)
-	if IsActorInSexAnimation(actorList)
-		SexTID = tid
-		SexDirt = GetAnimationDirt(actorList, mzinInterfaceSexLab.IsVictim(Init.SL_API, tid, DirtyActor))
-		GoToState("Animation_SexLab")
-		if Menu.FadeDirtSex
-			mzinAnimationInProcList.AddForm(DirtyActor)
-			RegisterForSingleUpdate(0.5)
-		endIf
-	endIf
+Event OnAnimationStart_SexLab(Form FormRef, int tid)
+	SexTID = tid
+	SexDirt = GetAnimationDirt(mzinInterfaceSexLab.GetSexActors(Init.SL_API, tid), mzinInterfaceSexLab.IsVictim(Init.SL_API, tid, DirtyActor))
+	GoToState("Animation_SexLab")
 EndEvent
-Event OnAnimationEnd_SexLab(int tid, bool HasPlayer)
-	if tid == SexTID
-		AnimationDirtNoFade()
-		EndAnimationState()
-	endIf
+Event OnAnimationEnd_SexLab(Form FormRef, int tid)
+	AnimationDirtNoFade()
+	EndAnimationState()
 EndEvent
 
 Event OnAnimationStart_OStim(string EventName, string StrArg, float ThreadID, Form Sender)
-	int tid = ThreadID as int
+	int tid
+	if DirtyActorIsPlayer
+		tid = 0
+	else
+		tid = ThreadID as int
+	endIf
 	Actor[] actorList = mzinInterfaceOStim.GetActors(tid)
 	if IsActorInSexAnimation(actorList)
 		SexTID = tid
@@ -127,8 +123,8 @@ Event OnAnimationStart_OStim(string EventName, string StrArg, float ThreadID, Fo
 		GoToState("Animation_OStim")
 	endIf
 EndEvent
-Event OnAnimationChange_OStim(string EventName, string SceneID, float ThreadID, Form Sender)
-	if (ThreadID as int) == SexTID
+Event OnThreadChange_OStim(string EventName, string SceneID, float ThreadID, Form Sender)
+	if DirtyActorIsPlayer || (ThreadID as int) == SexTID
 		if Menu.FadeDirtSex
 			if (mzinInterfaceOStim.IsSceneSexual(SceneID) && !mzinInterfaceOStim.IsSceneTransition(SceneID))			
 				if !mzinAnimationInProcList.HasForm(DirtyActor)
@@ -145,12 +141,12 @@ Event OnAnimationChange_OStim(string EventName, string SceneID, float ThreadID, 
 	endIf
 EndEvent
 Event OnAnimationOrgasm_OStim(string EventName, string SceneID, float ThreadID, Form Sender)
-	if (ThreadID as int) == SexTID
+	if DirtyActorIsPlayer || (ThreadID as int) == SexTID
 		AnimationDirtNoFade()
 	endIf
 EndEvent
 Event OnAnimationEnd_OStim(string EventName, string Json, float ThreadID, Form Sender)
-	if (ThreadID as int) == SexTID
+	if DirtyActorIsPlayer || (ThreadID as int) == SexTID
 		AnimationDirtNoFade(mzinInterfaceOStim.GetExcitementPercentage(DirtyActor))
 		EndAnimationState()
 	endIf
@@ -241,6 +237,10 @@ State Animation_SexLab
 	Event OnBeginState()
 		UnregisterForUpdate()
 		UnregisterForUpdateGameTime()
+		if Menu.FadeDirtSex
+			mzinAnimationInProcList.AddForm(DirtyActor)
+			RegisterForSingleUpdate(0.5)
+		endIf
 	EndEvent
 	Event OnUpdate()
 		if LocalDirtinessPercentage != 1.0
