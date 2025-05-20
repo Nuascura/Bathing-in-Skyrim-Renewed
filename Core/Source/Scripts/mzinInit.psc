@@ -12,7 +12,6 @@ Bool Property IsWadeInWaterInstalled = false Auto Hidden
 Bool Property IsMalignisAnimInstalled = false Auto Hidden
 Bool Property IsFadeTattoosInstalled = false Auto Hidden
 Bool Property IsFrostFallInstalled = false Auto Hidden
-Bool Property IsPAFInstalled = false Auto Hidden
 Bool Property IsOCumInstalled = false Auto Hidden
 Bool Property IsOStimInstalled = false Auto Hidden
 
@@ -26,7 +25,6 @@ Faction Property SexLabForbiddenActors Auto Hidden
 MagicEffect Property LokiWaterSlowdownEffect Auto Hidden
 
 Quest Property SL_API Auto Hidden
-Quest Property PAF_API Auto Hidden
 Quest Property OCA_API Auto Hidden
 Quest Property FadeTats_API Auto Hidden
 
@@ -107,12 +105,6 @@ Int Function DoSoftCheck()
 		i += 1
 	EndIf
 
-	IsPAFInstalled = false
-	If Game.GetModByName("PeeAndFart.esp") != 255
-		IsPAFInstalled = true
-		i += 1
-	EndIf
-
 	IsOCumInstalled = false
 	If Game.GetModByName("OCum.esp") != 255
 		IsOCumInstalled = true
@@ -169,11 +161,6 @@ Function SetInternalVariables()
 	else
 		zad_DeviousHeavyBondage = none
 		zad_DeviousSuit = none
-	EndIf
-	If IsPAFInstalled
-		PAF_API = Quest.GetQuest("PAF_MainQuest") ;0x0012C8
-	else
-		PAF_API = none
 	EndIf
 	If IsOCumInstalled
 		OCA_API = Quest.GetQuest("OCumQuest") ;0x001800

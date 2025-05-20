@@ -119,7 +119,7 @@ Bool Property ShowTierCondConfig
 EndProperty
 
 String Function GetModVersion()
-	return "2.6.0"
+	return "2.6.1"
 EndFunction
 
 Int Function GetVersion()
@@ -582,9 +582,6 @@ Function DisplayAuxiliaryPage()
 		endIf
 		if init.IsOStimInstalled
 			AddTextOption("$BIS_L_OStim", "")
-		endIf
-		if init.IsPAFInstalled
-			AddTextOption("$BIS_L_PAF", "")
 		endIf
 		if init.IsSexLabInstalled
 			AddTextOption("$BIS_L_SexLab", "")

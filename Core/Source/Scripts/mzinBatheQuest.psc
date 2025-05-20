@@ -166,7 +166,6 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	DirtyActor.ClearExtraArrows()
 	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
 	mzinInterfaceSexLab.ClearCum(Init.SL_API, DirtyActor)
-	mzinInterfacePaf.ClearPafDirt(Init.PAF_API, DirtyActor)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor)
 	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 	
@@ -252,8 +251,11 @@ Int Function GetWashPropIndex(MiscObject Soap)
 EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
-	return (!(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor) \
-	|| (Init.IsWadeInWaterInstalled && DirtyActor.HasMagicEffect(Init.LokiWaterSlowdownEffect)))
+	if Init.IsWadeInWaterInstalled
+		return !(WaterRestrictionEnabled.GetValue() As Bool) || DirtyActor.HasMagicEffect(Init.LokiWaterSlowdownEffect)
+	else
+		return !(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor)
+	endIf
 EndFunction
 
 Bool Function IsUnderWaterfall(Actor DirtyActor)
