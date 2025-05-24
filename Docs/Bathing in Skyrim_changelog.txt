@@ -1,3 +1,14 @@
+2.6.1
+Primary
+- Fix: SexLab mod event reception.
+- Fix: OStim mod event processing conditions.
+- Fix: Potential state desync.
+- Remove: PAF integration.
+- Change: Separate Wade in Water and default PO3PE water method detection.
+- Update: Localization files.
+
+
+
 2.6.0
 Primary
 - Add: Modifier key setting. This replaces the shower hotkey.
