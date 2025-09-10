@@ -119,7 +119,7 @@ Bool Property ShowTierCondConfig
 EndProperty
 
 String Function GetModVersion()
-	return "2.6.1"
+	return "2.6.2"
 EndFunction
 
 Int Function GetVersion()
