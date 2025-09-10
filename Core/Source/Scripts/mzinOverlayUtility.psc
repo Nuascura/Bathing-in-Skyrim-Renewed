@@ -1,7 +1,6 @@
 Scriptname mzinOverlayUtility extends Quest
 
 String[] Areas
-String[] Property AreasTexNames Auto Hidden
 Actor Property PlayerRef Auto
 mzinTextureUtility Property TexUtil Auto
 mzinUtility Property mzinUtil Auto
@@ -12,12 +11,6 @@ Event OnInit()
 	Areas[1] = "Hands"
 	Areas[2] = "Feet"
 	Areas[3] = "Face"
-	
-	AreasTexNames = new String[4]
-	AreasTexNames[0] = "Body"
-	AreasTexNames[1] = "Hands"
-	AreasTexNames[2] = "Feet"
-	AreasTexNames[3] = "Face"
 EndEvent 
 
 Function BeginOverlay(Actor akTarget, Float Alpha, Int Tint)
@@ -35,7 +28,7 @@ Function BeginOverlay(Actor akTarget, Float Alpha, Int Tint)
 	TextureToApply = TexPrefix + "DirtFX"
 	;StorageUtil.SetStringValue(akTarget, "mzin_DirtTexturePath", TextureToApply)
 	While i < Areas.Length
-		ReadyOverlay(akTarget, Gender as Bool, Areas[i], (TextureToApply + AreasTexNames[i] + ".dds"), Alpha, Tint)
+		ReadyOverlay(akTarget, Gender as Bool, Areas[i], (TextureToApply + Areas[i] + ".dds"), Alpha, Tint)
 		i += 1
 	EndWhile
 EndFunction
@@ -76,7 +69,7 @@ Function UpdateAlpha(Actor akTarget, Float Alpha)
 	While i > 0
 		i -= 1
 		Int j = GetNumSlots(Areas[i])
-		MatchString = (TexPath + "DirtFX" + AreasTexNames[i] + ".dds")
+		MatchString = (TexPath + "DirtFX" + Areas[i] + ".dds")
 		While j > 0 && !Result
 			j -= 1
 			Node = Areas[i] + " [ovl" + j + "]"
@@ -138,7 +131,7 @@ Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all s
 				k -= 1
 				TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender as Bool, Node, 9, 0)
 				;mzinUtil.LogTrace("ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath)
-				If TexPath == (TexPrefixes[k] + "DirtFX" + AreasTexNames[i] + ".dds") || TexPath == ""
+				If TexPath == (TexPrefixes[k] + "DirtFX" + Areas[i] + ".dds") || TexPath == ""
 					RemoveOverlay(akTarget, Gender as Bool, Node)
 					;mzinUtil.LogTrace("Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
 				EndIf
@@ -146,10 +139,7 @@ Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all s
 		EndWhile
 		i += 1
 	EndWhile
-	If akTarget != PlayerRef
-		NiOverride.ApplyNodeOverrides(akTarget)
-		NiOverride.RemoveOverlays(akTarget)
-	EndIf	
+	NiOverride.ApplyNodeOverrides(akTarget)
 EndFunction
 
 Function ClearDirt(Actor akTarget) ; Clears the first dirt overlay it finds from each overlay area - faster
@@ -164,7 +154,7 @@ Function ClearDirt(Actor akTarget) ; Clears the first dirt overlay it finds from
 	Int i = 0
 	While i < Areas.Length
 		Int j = GetNumSlots(Areas[i])
-		MatchString = (TexPrefix + "DirtFX" + AreasTexNames[i] + ".dds")
+		MatchString = (TexPrefix + "DirtFX" + Areas[i] + ".dds")
 		While j > 0 && !Result
 			j -= 1
 			Node = Areas[i] + " [ovl" + j + "]"
@@ -179,10 +169,7 @@ Function ClearDirt(Actor akTarget) ; Clears the first dirt overlay it finds from
 		Result = false
 		i += 1
 	EndWhile
-	If akTarget != PlayerRef
-		NiOverride.ApplyNodeOverrides(akTarget)
-		NiOverride.RemoveOverlays(akTarget)
-	EndIf
+	NiOverride.ApplyNodeOverrides(akTarget)
 	StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
 EndFunction
 
