@@ -73,7 +73,7 @@ Int Function InitTexSets(int aiSex)
 EndFunction
 
 String Function PickRandomDirtSet(int aiSex, bool abPlayer)
-	int iDefault = (1 + ((Menu.TexSetOverride && abPlayer) as int))
+	int iDefault = (1 + (Menu.TexSetOverride as int))
 	if DirtSetCount[aiSex] >= iDefault
 		if Menu.TexSetOverride && abPlayer
 			Return "\\mzin\\Bathe\\Set1\\" + GetStringFromSex(aiSex) + "\\"
