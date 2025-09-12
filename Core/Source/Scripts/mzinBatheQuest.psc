@@ -70,12 +70,12 @@ Event OnBiS_WashActorFinish(Form akBathingActor, Form akWashProp, Bool abFullCle
 EndEvent
 
 Event OnKeyDown(Int KeyCode)
-	If !Utility.IsInMenuMode()
+	If !Utility.IsInMenuMode() && !SPE_Actor.GetPlayerSpeechTarget() && !UI.IsTextInputEnabled()
 		UnregisterForAllKeys()
 		If KeyCode == CheckStatusKeyCode.GetValue() as int
 			mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
 		ElseIf KeyCode == BatheKeyCode.GetValue() as int
-			if Input.IsKeyPressed(ModifierKeyCode.GetValue() as int) 
+			if Input.IsKeyPressed(ModifierKeyCode.GetValue() as int)
 				if TryWashActor(PlayerRef, None, true, true)
 					return
 				endIf
@@ -168,7 +168,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	mzinInterfaceSexLab.ClearCum(Init.SL_API, DirtyActor)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor)
 	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
-	
+
 	SendCleanDirtEvent(DirtyActor, DoFullClean)
 
 	; ----
@@ -179,7 +179,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 		EndIf
 		WashActorFinish(DirtyActor, WashProp, DoFullClean)
 	endIf
-	
+
 	OlUtil.SendBatheModEvent(DirtyActor as Form)
 EndFunction
 
@@ -220,7 +220,7 @@ Function RemoveSpells(Actor DirtyActor, FormList SpellsFormList)
 	Int Index = SpellsFormList.GetSize()
 	While Index
 		Index -= 1
-		DirtyActor.RemoveSpell(SpellsFormList.GetAt(Index) As Spell)	
+		DirtyActor.RemoveSpell(SpellsFormList.GetAt(Index) As Spell)
 	EndWhile
 EndFunction
 
@@ -232,21 +232,21 @@ MiscObject Function TryFindWashProp(Actor DirtyActor)
 		MiscObject WashProp = WashPropList.GetAt(WashPropIndex) As MiscObject
 		If DirtyActor.GetItemCount(WashProp) > 0
 			Return WashProp
-		EndIf		
+		EndIf
 	EndWhile
-	
+
 	Return None
 EndFunction
 Int Function GetWashPropIndex(MiscObject Soap)
 	Int WashPropIndex = WashPropList.GetSize()
 
 	While WashPropIndex
-		WashPropIndex -= 1		
+		WashPropIndex -= 1
 		If WashPropList.GetAt(WashPropIndex) As MiscObject == Soap
 			Return WashPropIndex
-		EndIf		
+		EndIf
 	EndWhile
-	
+
 	Return -1
 EndFunction
 
@@ -263,8 +263,8 @@ Bool Function IsUnderWaterfall(Actor DirtyActor)
 		Return True
 	EndIf
 
-	ObjectReference closestWaterfall = Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 3000.0)	
-	
+	ObjectReference closestWaterfall = Game.FindClosestReferenceOfAnyTypeInListFromRef(WaterfallList, DirtyActor, 3000.0)
+
 	If closestWaterfall
 
 		mzinUtil.LogTrace("player_Z() = " + DirtyActor.GetPositionZ() + "     Waterfall_Z = " + closestWaterfall.GetPositionZ() + "  diff_Z = " + (DirtyActor.GetPositionZ() - closestWaterfall.GetPositionZ()) as float)
@@ -297,7 +297,7 @@ Bool Function IsInCommmonRestriction(Actor DirtyActor)
 EndFunction
 
 Bool Function IsInInvalidCondition(Actor DirtyActor)
-	return DirtyActor.IsSwimming() || IsActorAnimating(DirtyActor) || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor)
+	return DirtyActor.IsSwimming() || IsActorAnimating(DirtyActor) || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor) || DirtyActor.GetSitState()
 EndFunction
 
 Bool Function IsActorAnimating(Actor DirtyActor)
@@ -333,7 +333,7 @@ Bool Function IsNotPermitted(Actor akTarget)
 		Else
 			mzinUtil.LogTrace("IsNotPermitted: Blank string retrieved for index " + ForbiddenCount + " on actor " + akTarget)
 		EndIf
-		
+
 		; Send forbidden bathe attempt modevent
 		Int ForbiddenBatheAttempt = ModEvent.Create("BiS_ForbiddenBatheAttempt")
 		If (ForbiddenBatheAttempt)
@@ -355,7 +355,7 @@ Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 		If !akGawker
 			akGawker = GetGawker(akTarget)
 		EndIf
-		
+
 		If akGawker
 			if akTarget == PlayerRef
 				mzinUtil.LogNotification("No way am I bathing in front of " + akGawker.GetBaseObject().GetName() + "!")
