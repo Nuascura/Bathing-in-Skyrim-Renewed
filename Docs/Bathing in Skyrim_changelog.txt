@@ -1,3 +1,20 @@
+2.6.2
+Primary
+- Add: Detection for Mod Config Version when importing configuration file.
+- Fix: Set 1 textures are not properly isolated for player application under Player Override.
+- Fix: Dialogue menus sometimes don't close after player asks NPC to solo bathe.
+- Fix: Player may erroneously enter a bathe state if hotkey is invoked in Crafting Menu.
+- Change: Hotkey-related events will no longer be invoked during dialogues or text-entry scaleform states.
+- Change: Actors will no longer bathe if in a sitting or sitting-transition state.
+
+Secondary
+- Change: Remove overlay removal divergence; Invoke ApplyNodeOverrides for all actors.
+- Change: Cache internal safety variables in Configuration File.
+- Optimize: Remove redundant OverlayUtility array.
+- Update: Localization files.
+
+
+
 2.6.1
 Primary
 - Fix: SexLab mod event reception.
