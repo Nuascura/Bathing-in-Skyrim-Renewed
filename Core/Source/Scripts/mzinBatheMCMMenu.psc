@@ -1910,6 +1910,12 @@ Bool Function SavePapyrusSettings()
 		endIf
 	endIf
 
+	; Set safety values
+	SetStringValue(config, "Mod Name", modname)
+	SetStringValue(config, "Mod Version", GetModVersion())
+	SetIntValue(config, "Mod Config Version", GetVersion())
+
+	; Set all other values
 	SetIntValue(config, "DialogTopicEnabled", DialogTopicEnabled.GetValue() as int)
 	SetIntValue(config, "AutomateFollowerBathing", AutomateFollowerBathing.GetValue() as int)
 	SetIntValue(config, "WaterRestrictionEnabled", WaterRestrictionEnabled.GetValue() as int)
@@ -2002,6 +2008,9 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 			ShowMessage("$BIS_MSG_LOAD_WARN_2", false)
 			return false
 		else
+			if GetVersion() != GetIntValue(config, "Mod Config Version")
+				ShowMessage("$BIS_MSG_LOAD_WARN_3", false)
+			endIf
 			if !ShowMessage("$BIS_MSG_ASK_LOAD")
 				return false
 			endIf
