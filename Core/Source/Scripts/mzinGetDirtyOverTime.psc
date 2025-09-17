@@ -245,7 +245,7 @@ State Animation_SexLab
 	Event OnUpdate()
 		if LocalDirtinessPercentage != 1.0
 			IncrementDirtFromSex(SexDirt / Menu.SexIntervalDirt)
-			RenewDirtSpell()
+			CheckAlpha()
 			RegisterForSingleUpdate(Menu.SexInterval)
 		endIf
 	EndEvent
@@ -269,7 +269,7 @@ State Animation_OStim
 	Event OnUpdate()
 		if LocalDirtinessPercentage < 1.0
 			IncrementDirtFromSex(SexDirt / Menu.SexIntervalDirt)
-			RenewDirtSpell()
+			CheckAlpha()
 			if mzinAnimationInProcList.HasForm(DirtyActor)
 				RegisterForSingleUpdate(Menu.SexInterval)
 			endIf
