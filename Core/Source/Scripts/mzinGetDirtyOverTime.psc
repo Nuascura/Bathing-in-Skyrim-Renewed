@@ -355,21 +355,42 @@ Function ApplyDirt()
 	RenewDirtSpell()
 EndFunction
 
-Int Function ApplyDirtSpell()
-	Int Index = DirtinessSpellList.GetSize()
-	While Index > 0
-		Index -= 1
-		If LocalDirtinessPercentage >= (DirtinessThresholdList.GetAt(Index - 1) As GlobalVariable).GetValue()
-			if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
-				return 0
-			else
-				RemoveSpells(SoapBonusSpellList)
-				RemoveSpells(DirtinessSpellList)
-				DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
-				Return Index
-			endIf
-		EndIf
-	EndWhile
+Int Function ApplyDirtSpell(bool abReverse = false)
+	if abReverse
+		Int Index = 0
+		While Index < DirtinessSpellList.GetSize() - 1
+			If LocalDirtinessPercentage < (DirtinessThresholdList.GetAt(Index) As GlobalVariable).GetValue()
+				if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
+					Return 0
+				else
+					If DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index + 1) As Spell) && DirtyActorIsPlayer
+						mzinUtil.GameMessage(ExitTierMessageList.GetAt(Index + 1) As Message)
+					EndIf
+					RemoveSpells(DirtinessSpellList)
+					DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
+					Return Index
+				endIf
+			EndIf
+			Index += 1
+		EndWhile
+	else
+		Int Index = DirtinessSpellList.GetSize()
+		While Index > 0
+			Index -= 1
+			If LocalDirtinessPercentage >= (DirtinessThresholdList.GetAt(Index - 1) As GlobalVariable).GetValue()
+				if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
+					Return 0
+				else
+					RemoveSpells(SoapBonusSpellList)
+					RemoveSpells(DirtinessSpellList)
+					If DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False) && DirtyActorIsPlayer
+						mzinUtil.GameMessage(EnterTierMessageList.GetAt(Index) As Message)
+					EndIf
+					Return Index
+				endIf
+			EndIf
+		EndWhile
+	endIf
 	Return -1
 EndFunction
 Function ApplyDirtLeadInSpell()
@@ -385,20 +406,8 @@ EndFunction
 
 Function RenewDirtSpell()
 	BatheQuest.UpdateActorDirtPercent(DirtyActor, LocalDirtinessPercentage)
-
-	Int DirtinessTier = ApplyDirtSpell()
+	ApplyDirtSpell()
 	ApplyDirtLeadInSpell()
-	
-	If DirtyActorIsPlayer && DirtinessTier > 0
-		Message ExitMessage = ExitTierMessageList.GetAt(DirtinessTier - 1) As Message
-		If ExitMessage
-			mzinUtil.GameMessage(ExitMessage)
-		EndIf
-		Message EnterMessage = EnterTierMessageList.GetAt(DirtinessTier) As Message
-		If EnterMessage
-			mzinUtil.GameMessage(EnterMessage)
-		EndIf
-	EndIf
 EndFunction
 
 Float Function GetDirtPerHour()
