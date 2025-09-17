@@ -4,13 +4,16 @@ Primary
 - Fix: Set 1 textures are not properly isolated for player application under Player Override.
 - Fix: Dialogue menus sometimes don't close after player asks NPC to solo bathe.
 - Fix: Player may erroneously enter a bathe state if hotkey is invoked in Crafting Menu.
-- Change: Hotkey-related events will no longer be invoked during dialogues or text-entry scaleform states.
+- Fix: Incorrect alpha update procedure during sex.
+- Improve: Hotkey-related events will no longer be invoked during dialogues or text-entry scaleform states.
 - Change: Actors will no longer bathe if in a sitting or sitting-transition state.
+- Change: Skip dirt state exit message if applying a higher tier dirt spell.
 
 Secondary
+- Add: Preliminary API work on incremental dirt regression/cleansing function.
 - Change: Remove overlay removal divergence; Invoke ApplyNodeOverrides for all actors.
 - Change: Cache internal safety variables in Configuration File.
-- Optimize: Remove redundant OverlayUtility array.
+- Remove: Redundant OverlayUtility local array for optimized value caching and referencing.
 - Update: Localization files.
 
 
