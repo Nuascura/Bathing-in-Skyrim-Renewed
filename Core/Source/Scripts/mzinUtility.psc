@@ -22,7 +22,7 @@ EndFunction
 Function LogNotification(String LogMessage, Bool Force = False)
     if LogMessage
         if Force
-            Debug.Notification("BISR: " + LogMessage)
+            Debug.Notification("BiSR: " + LogMessage)
         elseIf Menu.LogNotification
             Debug.Notification(LogMessage)
         endIf
