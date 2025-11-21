@@ -242,6 +242,7 @@ EndFunction
 ; helpers
 Function LockActor()
 	BathingActor.SetHeadTracking(false)
+	SPE_Actor.SetActorFrozen(BathingActor, true)
 	If BathingActorIsPlayer
 		Game.DisablePlayerControls(True, True, True, False, True, True, True, 0)
 		Game.SetPlayerAIDriven(true)
@@ -267,6 +268,7 @@ Function UnlockActor()
 		BathingActor.EvaluatePackage()
 	EndIf
 	BathingActor.SetHeadTracking(true)
+	SPE_Actor.SetActorFrozen(BathingActor, false)
 EndFUnction
 
 int Function GetPresetSequence(float[] animList, int animStyle, int overrideStyle)
