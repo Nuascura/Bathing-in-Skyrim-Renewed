@@ -331,6 +331,9 @@ Function CloseInventory()
 		if UI.IsMenuOpen("InventoryMenu")
             UI.InvokeString("InventoryMenu", "_global.skse.CloseMenu", "InventoryMenu")
         endIf
+		if UI.IsMenuOpen("TweenMenu")
+            UI.InvokeString("InventoryMenu", "_global.skse.CloseMenu", "TweenMenu")
+        endIf
 	EndIf
 EndFunction
 
