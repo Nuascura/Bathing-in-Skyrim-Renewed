@@ -243,12 +243,14 @@ EndFunction
 Function LockActor()
 	BathingActor.SetHeadTracking(false)
 	If BathingActorIsPlayer
-		Game.DisablePlayerControls(True, True, True, False, True, True, True, 0)
+		Game.DisablePlayerControls(False, True, True, False, True, True, True, 0)
 		Game.SetPlayerAIDriven(true)
 		if Game.GetCameraState() == 0
 			Game.ForceThirdPerson()
 		endIf
-		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
+		if Menu.AutoHideUI
+			UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
+		endIf
 	else
 		BathingActor.AllowPCDialogue(false)
 		ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)

@@ -28,6 +28,7 @@ Float Property TimeToClean = 10.0 Auto Hidden
 Float Property TimeToCleanInterval = 0.25 Auto Hidden
 Bool Property Shyness = True Auto Hidden
 GlobalVariable Property ShynessDistance Auto
+Bool Property AutoHideUI = True Auto Hidden
 Bool Property AutoPlayerTFC = False Auto Hidden
 Bool Property TexSetOverride = False Auto Hidden
 Bool Property GameMessage = True Auto Hidden
@@ -119,7 +120,7 @@ Bool Property ShowTierCondConfig
 EndProperty
 
 String Function GetModVersion()
-	return "2.6.3"
+	return "2.6.4"
 EndFunction
 
 Int Function GetVersion()
@@ -305,6 +306,7 @@ Function DisplayAnimationsPage()
 	BathingAnimationStyleMenuID = AddMenuOption("$BIS_L_ANIM_STYLE", BathingAnimationStyleArray[BathingAnimationStyle.GetValue() As Int])
 	ShoweringAnimationStyleMenuID = AddMenuOption("$BIS_L_SHOWER_OVERRIDE", ShoweringAnimationStyleArray[ShoweringAnimationStyle.GetValue() As Int], (!(BathingAnimationStyle.GetValue() as bool)) as int)
 	GetSoapyStyleMenuID = AddMenuOption("$BIS_L_SOAP_STYLE", GetSoapyStyleArray[GetSoapyStyle.GetValue() As Int])
+	AutoHideUIID = AddToggleOption("$BIS_L_AUTOHIDEUI", AutoHideUI)
 	AutoPlayerTFCID = AddToggleOption("$BIS_L_AUTOPLAYERTFC", AutoPlayerTFC)
 
 	AddHeaderOption("$BIS_HEADER_ANIM_LOOP")
@@ -658,6 +660,8 @@ Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
 		SetSliderOptionValue(OptionID, AnimCustomFSet3Freq, "{0}")
 
 	; toggles
+	ElseIf OptionID == AutoHideUIID
+		AutoHideUI = True
 	ElseIf OptionID == AutoPlayerTFCID
 		AutoPlayerTFC = False
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleID
@@ -852,6 +856,8 @@ Function HandleOnOptionHighlightAnimationsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_SHOWER_OVERRIDE")
 	ElseIf OptionID == GetSoapyStyleMenuID
 		SetInfoText("$BIS_DESC_SOAP_STYLE")
+	ElseIf OptionID == AutoHideUIID
+		SetInfoText("$BIS_DESC_AUTOHIDEUI")
 	ElseIf OptionID == AutoPlayerTFCID
 		SetInfoText("$BIS_DESC_AUTOPLAYERTFC")
 	ElseIf OptionId == BathingAnimationLoopsTier0SliderID
@@ -1089,7 +1095,10 @@ Event OnOptionSelect(Int OptionID)
 	EndIf	
 EndEvent
 Function HandleOnOptionSelectAnimationsPage(Int OptionID)
-	If OptionID == AutoPlayerTFCID
+	If OptionID == AutoHideUIID
+		AutoHideUI = !AutoHideUI
+		SetToggleOptionValue(OptionID, AutoHideUI)
+	ElseIf OptionID == AutoPlayerTFCID
 		AutoPlayerTFC = !AutoPlayerTFC
 		SetToggleOptionValue(OptionID, AutoPlayerTFC)
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleID
@@ -1982,6 +1991,7 @@ Bool Function SavePapyrusSettings()
 	
 	SetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
 	SetIntValue(config, "Shyness", Shyness as int)
+	SetIntValue(config, "AutoHideUI", AutoHideUI as int)
 	SetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
 	SetIntValue(config, "TexSetOverride", TexSetOverride as int)
 
@@ -2084,6 +2094,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	
 	FadeDirtSex = GetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
 	Shyness = GetIntValue(config, "Shyness", Shyness as int)
+	AutoHideUI = GetIntValue(config, "AutoHideUI", AutoHideUI as int)
 	AutoPlayerTFC = GetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
 	TexSetOverride = GetIntValue(config, "TexSetOverride", TexSetOverride as int)
 
@@ -2176,6 +2187,7 @@ Int TimeToCleanIntervalOID_S
 Int BathingAnimationStyleMenuID
 Int ShoweringAnimationStyleMenuID
 Int GetSoapyStyleMenuID
+Int AutoHideUIID
 Int AutoPlayerTFCID
 Int BathingAnimationLoopsTier0SliderID
 Int BathingAnimationLoopsTier1SliderID
