@@ -3,7 +3,6 @@ ScriptName mzinPlayBathingAnimation Extends ActiveMagicEffect
 
 mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
-mzinBatheQuest Property BatheQuest Auto
 mzinUtility Property mzinUtil Auto
 
 Keyword Property SoapKeyword Auto
@@ -11,24 +10,15 @@ Keyword Property SoapKeyword Auto
 Spell Property PlayBathingAnimation Auto
 
 FormList Property DirtinessSpellList Auto
-
 FormList Property BathingAnimationLoopCountList Auto
-FormList Property BathingAnimationLoopCountListFollowers Auto
 FormList Property PlayerHouseLocationList Auto
 FormList Property DungeonLocationList Auto
 FormList Property SettlementLocationList Auto
 
 GlobalVariable Property GetSoapyStyle Auto
-GlobalVariable Property GetSoapyStyleFollowers Auto
-
 GlobalVariable Property BathingAnimationStyle Auto
-GlobalVariable Property BathingAnimationStyleFollowers Auto
-
 GlobalVariable Property ShoweringAnimationStyle Auto
-GlobalVariable Property ShoweringAnimationStyleFollowers Auto
-
 GlobalVariable Property GetDressedAfterBathingEnabled Auto
-GlobalVariable Property GetDressedAfterBathingEnabledFollowers Auto
 
 GlobalVariable Property ForceCustomAnimationDuration Auto
 
@@ -64,21 +54,19 @@ Message Property BathingCompleteMessage Auto
 
 Package Property StopMovementPackage Auto
 
+Bool Property TargetIsPlayer Auto
 
-Actor   BathingActor
-Bool    BathingActorIsPlayer
-Bool    BathingActorIsFemale
-Bool    BathingActorIsShowering
-
-Float[] AnimSet
-Armor[] Clothing
-Int[]   ClothingID
-Form[]  Objects
-Int[]   ObjectsID
-Idle    SelectedStyle
+Actor      BathingActor
+Float[]    AnimSet
+Armor[]    Clothing
+Int[]      ClothingID
+Form[]     Objects
+Int[]      ObjectsID
+Idle       SelectedStyle
 MiscObject WashProp
 Bool       WashPropIsSoap
-String[] AnimEvents
+Bool       SwrOverride
+String[]   AnimEvents
 
 Int Property DirtinessTier
 	Int Function Get()
@@ -112,11 +100,9 @@ EndProperty
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	BathingActor = Target
-	BathingActorIsPlayer = (Target == BatheQuest.PlayerRef)
-	BathingActorIsFemale = BathingActor.GetActorBase().GetSex()
 	ForbidSex(BathingActor, Forbid = true)
 
-	BathingActorIsShowering = StorageUtil.PluckIntValue(BathingActor, "mzin_LastWashState") as Bool
+	SwrOverride = StorageUtil.PluckIntValue(BathingActor, "mzin_LastWashState") as Bool
 	WashProp = StorageUtil.PluckFormValue(BathingActor, "mzin_LastWashProp") as MiscObject
 	WashPropIsSoap = (WashProp && WashProp.HasKeyWord(SoapKeyword))
 	
@@ -133,38 +119,34 @@ State StartSequence
 		Int AnimStyleSwr
 		String AnimState = ""
 		Int AnimTierCond
+		Bool AnimActorSex = BathingActor.GetActorBase().GetSex()
 		LockActor()
 		StripActor()
 
-		If BathingActorIsPlayer
-			AnimStyle = BathingAnimationStyle.GetValue() as int
-			AnimStyleSwr = ShoweringAnimationStyle.GetValue() as int
-			if BathingActorIsFemale
-				AnimSet = Menu.AnimCustomFSet
-			else
-				AnimSet = Menu.AnimCustomMSet
-			endIf
-			AnimTierCond = Menu.AnimCustomTierCond
-		else
-			AnimStyle = BathingAnimationStyleFollowers.GetValue() as int
-			AnimStyleSwr = ShoweringAnimationStyleFollowers.GetValue() as int
-			if BathingActorIsFemale
-				AnimSet = Menu.AnimCustomFSetFollowers
-			else
-				AnimSet = Menu.AnimCustomMSetFollowers
-			endIf
-			AnimTierCond = Menu.AnimCustomTierCondFollowers
-		EndIf
+		AnimStyle = BathingAnimationStyle.GetValue() as int
+		AnimStyleSwr = ShoweringAnimationStyle.GetValue() as int
 
 		If AnimStyle > 0
-			if BathingActorIsPlayer
+			if TargetIsPlayer
 				SetFreeCam(Menu.AutoPlayerTFC && true)
-				Game.DisablePlayerControls(false, True, True, False, True, True, True, 0)
+				if AnimActorSex
+					AnimSet = Menu.AnimCustomFSet
+				else
+					AnimSet = Menu.AnimCustomMSet
+				endIf
+				AnimTierCond = Menu.AnimCustomTierCond
+			else
+				if AnimActorSex
+					AnimSet = Menu.AnimCustomFSetFollowers
+				else
+					AnimSet = Menu.AnimCustomMSetFollowers
+				endIf
+				AnimTierCond = Menu.AnimCustomTierCondFollowers
 			endIf
-			if BathingActorIsFemale
-				AnimState = StartAnimationFemale(GetPresetSequence(AnimSet, AnimStyle, AnimStyleSwr), BathingActorIsShowering, AnimTierCond)
+			if AnimActorSex
+				AnimState = StartAnimationFemale(GetPresetSequence(AnimSet, AnimStyle, SwrOverride, AnimStyleSwr), SwrOverride, AnimTierCond)
 			else 
-				AnimState = StartAnimationMale(GetPresetSequence(AnimSet, AnimStyle, AnimStyleSwr), BathingActorIsShowering, AnimTierCond)
+				AnimState = StartAnimationMale(GetPresetSequence(AnimSet, AnimStyle, SwrOverride, AnimStyleSwr), SwrOverride, AnimTierCond)
 			endIf
 		EndIf
 
@@ -181,7 +163,7 @@ State FinishSequence
 		OnUpdate()
 	EndEvent
 	Event OnUpdate()
-		if BathingActorIsPlayer
+		if TargetIsPlayer
 			SetFreeCam(Menu.AutoPlayerTFC && false)
 		endIf
 		DressActor()
@@ -200,11 +182,7 @@ State InSequenceDefault
 
 		RinseOn()
 
-		if BathingActorIsPlayer
-			AnimationCyclesRemaining = (BathingAnimationLoopCountList.GetAt(DirtinessTier) As GlobalVariable).GetValue() As Int
-		else
-			AnimationCyclesRemaining = (BathingAnimationLoopCountListFollowers.GetAt(DirtinessTier) As GlobalVariable).GetValue() As Int
-		endIf
+		AnimationCyclesRemaining = (BathingAnimationLoopCountList.GetAt(DirtinessTier) As GlobalVariable).GetValue() As Int
 
 		GetSoapy()
 
@@ -242,7 +220,7 @@ EndFunction
 ; helpers
 Function LockActor()
 	BathingActor.SetHeadTracking(false)
-	If BathingActorIsPlayer
+	If TargetIsPlayer
 		Game.DisablePlayerControls(False, True, True, False, True, True, True, 0)
 		Game.SetPlayerAIDriven(true)
 		if Game.GetCameraState() == 0
@@ -258,7 +236,7 @@ Function LockActor()
 	EndIf
 EndFunction
 Function UnlockActor()
-	If BathingActorIsPlayer
+	If TargetIsPlayer
 		Game.EnablePlayerControls(abLooking = false)
 		Game.SetPlayerAIDriven(false)
 		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
@@ -271,14 +249,14 @@ Function UnlockActor()
 	BathingActor.SetHeadTracking(true)
 EndFUnction
 
-int Function GetPresetSequence(float[] animList, int animStyle, int overrideStyle)
+int Function GetPresetSequence(float[] animList, int animStyle, bool doOverride, int overrideStyle)
 	; Vanilla Animations
-	If animStyle == 1 || (BathingActorIsShowering && overrideStyle == 1)
+	If animStyle == 1 || (doOverride && overrideStyle == 1)
 		return 1
 
 	; Custom Animations
 	else
-		if !(BathingActorIsShowering && overrideStyle)
+		if !(doOverride && overrideStyle)
 			return animStyle + mzinUtil.GetRandomFromNormalization(animList)
 		else
 			return overrideStyle ; to-do adjust when more showering styles are available
@@ -377,18 +355,10 @@ EndFunction
 
 Function GetSoapy()
 	If WashPropIsSoap
-		If BathingActorIsPlayer
-			If GetSoapyStyle.GetValue() == 1
-				BathingActor.AddSpell(SoapyAppearanceSpell, False)
-			ElseIf GetSoapyStyle.GetValue() == 2
-				BathingActor.AddSpell(SoapyAppearanceAnimatedSpell, False)
-			EndIf
-		Else
-			If GetSoapyStyleFollowers.GetValue() == 1
-				BathingActor.AddSpell(SoapyAppearanceSpell, False)
-			ElseIf GetSoapyStyleFollowers.GetValue() == 2
-				BathingActor.AddSpell(SoapyAppearanceAnimatedSpell, False)
-			EndIf
+		If GetSoapyStyle.GetValue() == 1
+			BathingActor.AddSpell(SoapyAppearanceSpell, False)
+		ElseIf GetSoapyStyle.GetValue() == 2
+			BathingActor.AddSpell(SoapyAppearanceAnimatedSpell, False)
 		EndIf
 	EndIf
 EndFunction
@@ -403,7 +373,7 @@ EndFunction
 Function StripActor()
 	Form[] EquippedItems = PO3_SKSEFunctions.AddAllEquippedItemsToArray(BathingActor)
 	EquippedItems = SPE_Utility.FilterFormsByKeyword(EquippedItems, Init.KeywordIgnoreItem, false, true)
-	If BathingActorIsPlayer
+	If TargetIsPlayer
 		Clothing = SPE_Utility.FilterBySlotMask(EquippedItems, mzinUtil.GetCombinedSlotMask(Menu.ArmorSlotArray), false)
 	Else
 		Clothing = SPE_Utility.FilterBySlotMask(EquippedItems, mzinUtil.GetCombinedSlotMask(Menu.ArmorSlotArrayFollowers), false)
@@ -455,8 +425,7 @@ Function StripActor()
     endIf
 EndFunction
 Function DressActor()
-	If (BathingActorIsPlayer == True  && GetDressedAfterBathingEnabled.GetValue() As Bool) \
-	|| (BathingActorIsPlayer == False && GetDressedAfterBathingEnabledFollowers.GetValue() As Bool)
+	If GetDressedAfterBathingEnabled.GetValue() As Bool
 		
 		Int Index = Clothing.Length
 		While Index
@@ -487,7 +456,7 @@ Function DressActor()
 EndFunction
 
 Function RinseOn()
-	if !BathingActorIsShowering
+	if !SwrOverride
 		Debug.SendAnimationEvent(BathingActor, "IdleSearchingChest")
 		Utility.Wait(3)
 		Debug.SendAnimationEvent(BathingActor, "IdleStop")
@@ -495,7 +464,7 @@ Function RinseOn()
 	endIf
 EndFunction
 Function RinseOff()
-	if BathingActorIsShowering
+	if SwrOverride
 		Debug.SendAnimationEvent(BathingActor, "IdleWarmArms")
 	else
 		Debug.SendAnimationEvent(BathingActor, "IdleSearchingChest")
@@ -506,7 +475,7 @@ Function RinseOff()
 	Debug.SendAnimationEvent(BathingActor, "IdleStop")
 	Utility.Wait(0.7)
 
-	if !BathingActorIsShowering
+	if !SwrOverride
 		Debug.SendAnimationEvent(BathingActor, "IdleWipeBrow")
 		Utility.Wait(3)
 	endIf
@@ -527,6 +496,7 @@ Function SetFreeCam(bool toggle)
 		if Game.GetCameraState() != 3
 			MiscUtil.SetFreeCameraState(true, 5.0)
 		endIf
+		Game.DisablePlayerControls(false, True, True, False, True, True, True, 0)
 	else
 		if Game.GetCameraState() == 3
 			MiscUtil.SetFreeCameraState(false)
