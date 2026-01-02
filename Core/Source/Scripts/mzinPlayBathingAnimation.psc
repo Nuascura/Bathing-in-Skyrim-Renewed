@@ -391,27 +391,19 @@ Function StripActor()
 	Objects = new Form[3]
 	ObjectsID = new Int[3]
 	Objects[0] = PO3_SKSEFunctions.GetEquippedAmmo(BathingActor) ; Ammo
-	ObjectsID[0] = BathingActor.GetEquippedItemID(0)
 	if Objects[0]
+		ObjectsID[0] = 0
 		BathingActor.UnequipItemEX(Objects[0], 0, False) ; Ammo
 	endIf
-	Objects[1] = BathingActor.GetEquippedObject(1) ; right hand
-	ObjectsID[1] = BathingActor.GetEquippedItemID(1)
+	Objects[1] = BathingActor.GetEquippedWeapon(false) ; right hand
 	if Objects[1]
-		if Objects[1] as spell
-			BathingActor.UnequipSpell(Objects[1] as spell, 1)
-		else
-			BathingActor.UnequipItemEX(Objects[1], 1, False) ; right hand
-		endIf
+		ObjectsID[1] = BathingActor.GetEquippedItemID(1)
+		BathingActor.UnequipItemEX(Objects[1], 1, False) ; right hand
 	endIf
-	Objects[2] = BathingActor.GetEquippedObject(0) ; left hand
-	ObjectsID[2] = BathingActor.GetEquippedItemID(0)
+	Objects[2] = BathingActor.GetEquippedWeapon(true) ; left hand
 	if Objects[2]
-		if Objects[2] as spell
-			BathingActor.UnequipSpell(Objects[2] as spell, 0)
-		else
-			BathingActor.UnequipItemEX(Objects[2], 2, False) ; left hand
-		endIf
+		ObjectsID[2] = BathingActor.GetEquippedItemID(0)
+		BathingActor.UnequipItemEX(Objects[2], 2, False) ; left hand
 	endIf
 	
 	if BathingActor.isWeaponDrawn()
@@ -426,33 +418,29 @@ Function StripActor()
 EndFunction
 Function DressActor()
 	If GetDressedAfterBathingEnabled.GetValue() As Bool
-		
 		Int Index = Clothing.Length
 		While Index
 			Index -= 1
 			If Clothing[Index]
-				BathingActor.EquipItemByID(Clothing[Index], ClothingID[Index], 0)
+				EquipItemByIDEx(BathingActor, Clothing[Index], ClothingID[Index])
 			EndIf
 		EndWhile
 
-		if Objects[0]
-			BathingActor.EquipItemByID(Objects[0], ObjectsID[0], 0) ; Ammo
-		endIf
-		if Objects[1]
-			if Objects[1] as spell
-				BathingActor.EquipSpell(Objects[1] as spell, 1)
-			else
-				BathingActor.EquipItemByID(Objects[1], ObjectsID[1], 1) ; right hand
-			endIf
-		endIf
-		if Objects[2]
-			if Objects[2] as spell
-				BathingActor.EquipSpell(Objects[2] as spell, 0)
-			else
-				BathingActor.EquipItemByID(Objects[2], ObjectsID[2], 2) ; left hand
-			endIf
-		endIf
+		Index = Objects.Length
+		While Index
+			Index -= 1
+			If Objects[Index]
+				EquipItemByIDEx(BathingActor, Objects[Index], ObjectsID[Index], Index)
+			EndIf
+		EndWhile
 	EndIf
+EndFunction
+Function EquipItemByIDEx(Actor aTarget, Form aItem, int aItemID = 0, int aEquipSlot = 0)
+	if aItemID
+		aTarget.EquipItemByID(aItem, aItemID, aEquipSlot)
+	else
+		aTarget.EquipItemEx(aItem, aEquipSlot)
+	endIf
 EndFunction
 
 Function RinseOn()
