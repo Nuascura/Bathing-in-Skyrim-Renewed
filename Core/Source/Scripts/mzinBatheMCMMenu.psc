@@ -107,11 +107,10 @@ Int Property AnimCustomTierCondFollowers = 1 Auto
 
 Int Property cachedSoftCheck = 0 Auto Hidden
 
-string config = "BathingInSkyrim/Settings.json"
-
 ; constants
 String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
+String config = "../../../Interface/Bathing in Skyrim/Settings.json"
 
 Bool Property ShowTierCondConfig
 	Bool Function Get()
@@ -124,7 +123,7 @@ String Function GetModVersion()
 EndFunction
 
 Int Function GetVersion()
-	Return 18
+	Return 19
 EndFunction
 
 Event OnConfigOpen()
