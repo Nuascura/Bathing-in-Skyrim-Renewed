@@ -4,60 +4,31 @@ ScriptName mzinPlayBathingAnimation Extends ActiveMagicEffect
 mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinUtility Property mzinUtil Auto
-
 Keyword Property SoapKeyword Auto
-
 Spell Property PlayBathingAnimation Auto
-
+Spell Property SoapyAppearanceSpell Auto
+Spell Property SoapyAppearanceAnimatedSpell Auto
 FormList Property DirtinessSpellList Auto
 FormList Property BathingAnimationLoopCountList Auto
 FormList Property PlayerHouseLocationList Auto
 FormList Property DungeonLocationList Auto
 FormList Property SettlementLocationList Auto
-
 GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property BathingAnimationStyle Auto
 GlobalVariable Property ShoweringAnimationStyle Auto
 GlobalVariable Property GetDressedAfterBathingEnabled Auto
-
 GlobalVariable Property ForceCustomAnimationDuration Auto
-
-Spell Property SoapyAppearanceSpell Auto
-Spell Property SoapyAppearanceAnimatedSpell Auto
-
-Idle Property mzinBatheA1_S1_Soap Auto
-Idle Property mzinBatheA1_S1_Cloth Auto
-
-Idle Property mzinBatheA2_S1_Soap Auto
-Idle Property mzinBatheA2_S1_Cloth Auto
-
-Idle Property mzinBatheA3_S1_Soap Auto
-Idle Property mzinBatheA3_S1_Cloth Auto
-
-Idle Property mzinBatheA4_S0 Auto
-
-Idle Property mzinBatheA5_T1 Auto
-Idle Property mzinBatheA5_T2 Auto
-Idle Property mzinBatheA5_T3 Auto
-Idle Property mzinBatheA5_T4 Auto
-
-Idle Property mzinBatheMA1_S1_Soap Auto
-Idle Property mzinBatheMA1_S1_Cloth Auto
-
-Idle Property mzinBatheMA2_S1_Soap Auto
-Idle Property mzinBatheMA2_S1_Cloth Auto
-
-Idle Property mzinBatheMA3_S1_Soap Auto
-Idle Property mzinBatheMA3_S1_Cloth Auto
-
 Message Property BathingCompleteMessage Auto
-
 Package Property StopMovementPackage Auto
-
+Idle[] Property mzinBathe_Baka_S Auto
+Idle[] Property mzinBathe_Baka_C Auto
+Idle[] Property mzinBathe_Krzp Auto
+Idle[] Property mzinBathe_JVRaven Auto
+Idle[] Property mzinBathe_Tweens_S Auto
+Idle[] Property mzinBathe_Tweens_C Auto
+String[] Property mzinAnimEvent Auto
 Bool Property TargetIsPlayer Auto
-
 Actor      BathingActor
-Float[]    AnimSet
 Armor[]    Clothing
 Int[]      ClothingID
 Form[]     Objects
@@ -65,44 +36,13 @@ Int[]      ObjectsID
 Idle       SelectedStyle
 MiscObject WashProp
 Bool       WashPropIsSoap
-Bool       SwrOverride
-String[]   AnimEvents
-
-Int Property DirtinessTier
-	Int Function Get()
-		Int DirtinessTierIndex = DirtinessSpellList.GetSize()
-		While DirtinessTierIndex
-			DirtinessTierIndex -= 1
-			If BathingActor.HasSpell(DirtinessSpellList.GetAt(DirtinessTierIndex) As Spell)
-				return DirtinessTierIndex
-			EndIf
-		EndWhile
-	EndFunction
-EndProperty
-Int Property DangerTier
-	Int Function Get()
-		Location CurrentLocation = BathingActor.GetCurrentLocation()
-		Location[] LocationList = SPE_Cell.GetExteriorLocations(BathingActor.GetParentCell())
-		if CurrentLocation
-			If BathingActor.IsInInterior() && mzinUtil.LocationHasKeyWordInList(CurrentLocation, PlayerHouseLocationList)
-				return 4
-			ElseIf mzinUtil.LocationHasKeyWordInList(CurrentLocation, SettlementLocationList) \
-				|| (BathingActor.IsInInterior() && mzinUtil.ExteriorHasKeyWordInList(LocationList, SettlementLocationList))
-				return 3
-			ElseIf mzinUtil.LocationHasKeyWordInList(CurrentLocation, DungeonLocationList) \
-				|| (BathingActor.IsInInterior() && mzinUtil.ExteriorHasKeyWordInList(LocationList, DungeonLocationList))
-				return 1
-			endIf
-		endIf
-		return 2
-	EndFunction
-EndProperty
+Bool       IsShowering
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	BathingActor = Target
 	ForbidSex(BathingActor, Forbid = true)
 
-	SwrOverride = StorageUtil.PluckIntValue(BathingActor, "mzin_LastWashState") as Bool
+	IsShowering = StorageUtil.PluckIntValue(BathingActor, "mzin_LastWashState") as Bool
 	WashProp = StorageUtil.PluckFormValue(BathingActor, "mzin_LastWashProp") as MiscObject
 	WashPropIsSoap = (WashProp && WashProp.HasKeyWord(SoapKeyword))
 	
@@ -115,47 +55,34 @@ EndEvent
 
 State StartSequence
 	Event OnBeginState()
-		Int AnimStyle
-		Int AnimStyleSwr
-		String AnimState = ""
-		Int AnimTierCond
-		Bool AnimActorSex = BathingActor.GetActorBase().GetSex()
 		LockActor()
 		StripActor()
+		RegisterForEvents()
 
-		AnimStyle = BathingAnimationStyle.GetValue() as int
-		AnimStyleSwr = ShoweringAnimationStyle.GetValue() as int
+		Int AnimStyle
+		If IsShowering
+			AnimStyle = ShoweringAnimationStyle.GetValue() as int
+		else
+			AnimStyle = BathingAnimationStyle.GetValue() as int
+		endIf
 
 		If AnimStyle > 0
 			if TargetIsPlayer
-				SetFreeCam(Menu.AutoPlayerTFC && true)
-				if AnimActorSex
-					AnimSet = Menu.AnimCustomFSet
+				if BathingActor.GetActorBase().GetSex()
+					GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSet, AnimStyle, Menu.AnimCustomTierCond))
 				else
-					AnimSet = Menu.AnimCustomMSet
+					GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSet, AnimStyle, Menu.AnimCustomTierCond))
 				endIf
-				AnimTierCond = Menu.AnimCustomTierCond
 			else
-				if AnimActorSex
-					AnimSet = Menu.AnimCustomFSetFollowers
+				if BathingActor.GetActorBase().GetSex()
+					GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSetFollowers, AnimStyle, Menu.AnimCustomTierCondFollowers))
 				else
-					AnimSet = Menu.AnimCustomMSetFollowers
+					GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSetFollowers, AnimStyle, Menu.AnimCustomTierCondFollowers))
 				endIf
-				AnimTierCond = Menu.AnimCustomTierCondFollowers
 			endIf
-			if AnimActorSex
-				AnimState = StartAnimationFemale(GetPresetSequence(AnimSet, AnimStyle, SwrOverride, AnimStyleSwr), SwrOverride, AnimTierCond)
-			else 
-				AnimState = StartAnimationMale(GetPresetSequence(AnimSet, AnimStyle, SwrOverride, AnimStyleSwr), SwrOverride, AnimTierCond)
-			endIf
-		EndIf
-
-		if AnimState == ""
+		Else
 			GoToState("FinishSequence")
-		else
-			RegisterForEvents()
-			GoToState("InSequence" + AnimState)
-		endIf
+		EndIf
 	EndEvent
 EndState
 State FinishSequence
@@ -163,9 +90,6 @@ State FinishSequence
 		OnUpdate()
 	EndEvent
 	Event OnUpdate()
-		if TargetIsPlayer
-			SetFreeCam(Menu.AutoPlayerTFC && false)
-		endIf
 		DressActor()
 		UnlockActor()
 		ForbidSex(BathingActor, Forbid = false)
@@ -176,13 +100,13 @@ State FinishSequence
 		; Keep empty
 	EndEvent
 EndState
-State InSequenceDefault
+State InSequence
 	Event OnBeginState()
 		Int AnimationCyclesRemaining = 0
 
 		RinseOn()
 
-		AnimationCyclesRemaining = (BathingAnimationLoopCountList.GetAt(DirtinessTier) As GlobalVariable).GetValue() As Int
+		AnimationCyclesRemaining = (BathingAnimationLoopCountList.GetAt(mzinUtil.GetDirtinessTier(BathingActor, DirtinessSpellList)) As GlobalVariable).GetValue() As Int
 
 		GetSoapy()
 
@@ -200,15 +124,13 @@ EndState
 State InSequenceCustom
 	Event OnBeginState()
 		if BathingActor.PlayIdle(SelectedStyle)
-			SetAutoTerminate(75.0)
+			RegisterForSingleUpdate(75.0)
 		else
-			SetAutoTerminate(2.5)
+			RegisterForSingleUpdate(2.5)
 		endIf
 	EndEvent
 EndState
-
-; Debug Bathing
-Function PresetSequenceDebug(Idle anim, Float animDuration)
+Function InSequenceDebug(Idle anim, Float animDuration)
 	if ForceCustomAnimationDuration.GetValue() > 0
 		animDuration = ForceCustomAnimationDuration.GetValue()
 	endIf
@@ -226,20 +148,21 @@ Function LockActor()
 		if Game.GetCameraState() == 0
 			Game.ForceThirdPerson()
 		endIf
-		if Menu.AutoHideUI
-			UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", false)
-		endIf
+		mzinUtil.SetHUDInstanceFlag(false)
+		mzinUtil.SetFreeCam(true)
 	else
 		BathingActor.AllowPCDialogue(false)
 		ActorUtil.AddPackageOverride(BathingActor, StopMovementPackage, 1)
 		BathingActor.EvaluatePackage()
 	EndIf
 EndFunction
+
 Function UnlockActor()
 	If TargetIsPlayer
+		mzinUtil.SetFreeCam(false)
 		Game.EnablePlayerControls(abLooking = false)
 		Game.SetPlayerAIDriven(false)
-		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", true)
+		mzinUtil.SetHUDInstanceFlag(true)
 		mzinUtil.GameMessage(BathingCompleteMessage)
 	else
 		BathingActor.AllowPCDialogue(true)
@@ -247,96 +170,55 @@ Function UnlockActor()
 		BathingActor.EvaluatePackage()
 	EndIf
 	BathingActor.SetHeadTracking(true)
-EndFUnction
+EndFunction
 
-int Function GetPresetSequence(float[] animList, int animStyle, bool doOverride, int overrideStyle)
-	; Vanilla Animations
-	If animStyle == 1 || (doOverride && overrideStyle == 1)
-		return 1
+String Function GetAnimationFemale(float[] IdleWeight, int aiIdleSet, int aiTierCond)
 
-	; Custom Animations
-	else
-		if !(doOverride && overrideStyle)
-			return animStyle + mzinUtil.GetRandomFromNormalization(animList)
+	If aiIdleSet > 1
+		aiIdleSet += mzinUtil.GetRandomFromNormalization(IdleWeight)
+	endIf
+
+	If aiIdleSet == 2
+		if WashPropIsSoap
+			SelectedStyle = GetIdleByCondition(mzinBathe_Baka_S)
 		else
-			return overrideStyle ; to-do adjust when more showering styles are available
+			SelectedStyle = GetIdleByCondition(mzinBathe_Baka_C)
 		endIf
+		RinseOn()
+	elseIf aiIdleSet == 3
+		SelectedStyle = mzinBathe_Krzp[0]
+	elseIf aiIdleSet == 4
+		SelectedStyle = GetIdleByCondition(mzinBathe_JVRaven, aiTierCond)
 	endIf
+	
+	if SelectedStyle
+		return "Custom"
+	endIf
+
+	return ""
 EndFunction
 
-String Function StartAnimationFemale(int aiPreset, bool abOverride = false, int aiTierCond)
-	if aiPreset == 1
-		return "Default"
-	else
-		If aiPreset == 2
-			Idle[] BathingStyle = new Idle[3]
-			if WashPropIsSoap
-				BathingStyle[0] = mzinBatheA1_S1_Soap
-				BathingStyle[1] = mzinBatheA2_S1_Soap
-				BathingStyle[2] = mzinBatheA3_S1_Soap
-			else
-				BathingStyle[0] = mzinBatheA1_S1_Cloth
-				BathingStyle[1] = mzinBatheA2_S1_Cloth
-				BathingStyle[2] = mzinBatheA3_S1_Cloth
-			endIf
-			if abOverride
-				SelectedStyle = BathingStyle[0]
-			else
-				SelectedStyle = BathingStyle[Utility.RandomInt(0, BathingStyle.Length - 1)]
-			endIf
-			RinseOn()
-		elseIf aiPreset == 3
-			SelectedStyle = mzinBatheA4_S0
-		elseIf aiPreset == 4
-			Idle[] BathingStyle = new Idle[4]
-			BathingStyle[0] = mzinBatheA5_T1
-			BathingStyle[1] = mzinBatheA5_T2
-			BathingStyle[2] = mzinBatheA5_T3
-			BathingStyle[3] = mzinBatheA5_T4
-			if aiTierCond == 1
-				SelectedStyle = BathingStyle[DirtinessTier]
-			elseIf aiTierCond == 2
-				SelectedStyle = BathingStyle[DangerTier]
-			else
-				SelectedStyle = BathingStyle[Utility.RandomInt(0, BathingStyle.Length - 1)]
-			endIf
+String Function GetAnimationMale(float[] IdleWeight, int aiIdleSet, int aiTierCond)
+
+	If aiIdleSet > 1
+		aiIdleSet += mzinUtil.GetRandomFromNormalization(IdleWeight)
+	endIf
+
+	If aiIdleSet == 2
+		if WashPropIsSoap
+			SelectedStyle = GetIdleByCondition(mzinBathe_Tweens_S)
+		else
+			SelectedStyle = GetIdleByCondition(mzinBathe_Tweens_C)
 		endIf
-		
-		if SelectedStyle
-			return "Custom"
-		endIf
+		RinseOn()
+	endIf
+
+	if SelectedStyle
+		return "Custom"
 	endIf
 	return ""
 EndFunction
-String Function StartAnimationMale(int aiPreset, bool abOverride = false, int aiTierCond)
-	If aiPreset == 1
-		return "Default"
-	else
-		If aiPreset == 2
-			Idle[] BathingStyle = new Idle[3]
-			if WashPropIsSoap
-				BathingStyle[0] = mzinBatheMA1_S1_Soap
-				BathingStyle[1] = mzinBatheMA2_S1_Soap
-				BathingStyle[2] = mzinBatheMA3_S1_Soap
-			else
-				BathingStyle[0] = mzinBatheMA1_S1_Cloth
-				BathingStyle[1] = mzinBatheMA2_S1_Cloth
-				BathingStyle[2] = mzinBatheMA3_S1_Cloth
-			endIf
-			if abOverride
-				SelectedStyle = BathingStyle[0]
-			else
-				SelectedStyle = BathingStyle[Utility.RandomInt(0, BathingStyle.Length - 1)]
-			endIf
-			RinseOn()
-		endIf
 
-		if SelectedStyle
-			return "Custom"
-		endIf
-	endIf
-	return ""
-EndFunction
 Function StopAnimation(bool PlayRinseOff = false, bool ResetState = true)
 	if ResetState
 		UnregisterForEvents()
@@ -353,6 +235,19 @@ Function StopAnimation(bool PlayRinseOff = false, bool ResetState = true)
 	GoToState("FinishSequence")
 EndFunction
 
+Idle Function GetIdleByCondition(Idle[] IdleList, int aiArg = 0)
+	if IsShowering
+		if aiArg == 0
+			return IdleList[Utility.RandomInt(0, IdleList.Length - 1)]
+		elseIf aiArg == 1
+			return IdleList[mzinUtil.GetDirtinessTier(BathingActor, DirtinessSpellList)]
+		elseIf aiArg == 2
+			return IdleList[mzinUtil.GetDangerTier(BathingActor, PlayerHouseLocationList, SettlementLocationList, DungeonLocationList)]
+		endIf
+	endIf
+	return IdleList[0]
+EndFunction
+
 Function GetSoapy()
 	If WashPropIsSoap
 		If GetSoapyStyle.GetValue() == 1
@@ -362,6 +257,7 @@ Function GetSoapy()
 		EndIf
 	EndIf
 EndFunction
+
 Function GetUnsoapy()
 	If BathingActor.HasSpell(SoapyAppearanceSpell)
 		BathingActor.RemoveSpell(SoapyAppearanceSpell)
@@ -371,80 +267,25 @@ Function GetUnsoapy()
 EndFunction
 
 Function StripActor()
-	Form[] EquippedItems = PO3_SKSEFunctions.AddAllEquippedItemsToArray(BathingActor)
-	EquippedItems = SPE_Utility.FilterFormsByKeyword(EquippedItems, Init.KeywordIgnoreItem, false, true)
-	If TargetIsPlayer
-		Clothing = SPE_Utility.FilterBySlotMask(EquippedItems, mzinUtil.GetCombinedSlotMask(Menu.ArmorSlotArray), false)
-	Else
-		Clothing = SPE_Utility.FilterBySlotMask(EquippedItems, mzinUtil.GetCombinedSlotMask(Menu.ArmorSlotArrayFollowers), false)
-	EndIf
-	ClothingID = Utility.CreateIntArray(Clothing.Length, 0)
-	
-	Int Index = Clothing.Length
-	While Index
-		Index -= 1
-		ClothingID[Index] = BathingActor.GetWornItemID(Clothing[Index].GetSlotMask())
-		BathingActor.UnequipItemEX(Clothing[Index], 0, False)
-	EndWhile
+	; clothes
+	Clothing = mzinUtil.GetActorClothing(BathingActor, TargetIsPlayer, Init.KeywordIgnoreItem)
+	ClothingID = mzinUtil.StripActorClothing(BathingActor, Clothing)
 	
 	; weapons
-	Objects = new Form[3]
-	ObjectsID = new Int[3]
-	Objects[0] = PO3_SKSEFunctions.GetEquippedAmmo(BathingActor) ; Ammo
-	if Objects[0]
-		ObjectsID[0] = 0
-		BathingActor.UnequipItemEX(Objects[0], 0, False) ; Ammo
-	endIf
-	Objects[1] = BathingActor.GetEquippedWeapon(false) ; right hand
-	if Objects[1]
-		ObjectsID[1] = BathingActor.GetEquippedItemID(1)
-		BathingActor.UnequipItemEX(Objects[1], 1, False) ; right hand
-	endIf
-	Objects[2] = BathingActor.GetEquippedWeapon(true) ; left hand
-	if Objects[2]
-		ObjectsID[2] = BathingActor.GetEquippedItemID(0)
-		BathingActor.UnequipItemEX(Objects[2], 2, False) ; left hand
-	endIf
+	Objects = mzinUtil.GetActorWeapons(BathingActor)
+	ObjectsID = mzinUtil.StripActorWeapons(BathingActor, Objects)
 	
-	if BathingActor.isWeaponDrawn()
-        float break
-        while BathingActor.IsWeaponDrawn() && break < 5
-			BathingActor.SheatheWeapon()
-			Utility.Wait(0.25)
-            break += 0.25
-		endWhile
-		Utility.Wait(0.5)
-    endIf
+	; sheathe
+	mzinUtil.ExitWieldState(BathingActor)
 EndFunction
 Function DressActor()
 	If GetDressedAfterBathingEnabled.GetValue() As Bool
-		Int Index = Clothing.Length
-		While Index
-			Index -= 1
-			If Clothing[Index]
-				EquipItemByIDEx(BathingActor, Clothing[Index], ClothingID[Index])
-			EndIf
-		EndWhile
-
-		Index = Objects.Length
-		While Index
-			Index -= 1
-			If Objects[Index]
-				EquipItemByIDEx(BathingActor, Objects[Index], ObjectsID[Index], Index)
-			EndIf
-		EndWhile
+		mzinUtil.DressActorEx(BathingActor, Clothing, ClothingID, Objects, ObjectsID)
 	EndIf
-EndFunction
-Function EquipItemByIDEx(Actor aTarget, Form aItem, int aItemID = 0, int aEquipSlot = 0)
-	if aItemID
-		aTarget.EquipItemByID(aItem, aItemID, aEquipSlot)
-	else
-		aTarget.EquipItemEx(aItem, aEquipSlot)
-	endIf
 EndFunction
 
 Function RinseOn()
-	if !SwrOverride
+	if !IsShowering
 		Debug.SendAnimationEvent(BathingActor, "IdleSearchingChest")
 		Utility.Wait(3)
 		Debug.SendAnimationEvent(BathingActor, "IdleStop")
@@ -452,7 +293,7 @@ Function RinseOn()
 	endIf
 EndFunction
 Function RinseOff()
-	if SwrOverride
+	if IsShowering
 		Debug.SendAnimationEvent(BathingActor, "IdleWarmArms")
 	else
 		Debug.SendAnimationEvent(BathingActor, "IdleSearchingChest")
@@ -463,7 +304,7 @@ Function RinseOff()
 	Debug.SendAnimationEvent(BathingActor, "IdleStop")
 	Utility.Wait(0.7)
 
-	if !SwrOverride
+	if !IsShowering
 		Debug.SendAnimationEvent(BathingActor, "IdleWipeBrow")
 		Utility.Wait(3)
 	endIf
@@ -479,23 +320,6 @@ Function ForbidSex(Actor akTarget, Bool Forbid)
 	EndIf
 EndFunction
 
-Function SetFreeCam(bool toggle)
-	if toggle
-		if Game.GetCameraState() != 3
-			MiscUtil.SetFreeCameraState(true, 5.0)
-		endIf
-		Game.DisablePlayerControls(false, True, True, False, True, True, True, 0)
-	else
-		if Game.GetCameraState() == 3
-			MiscUtil.SetFreeCameraState(false)
-		endIf
-	endIf
-EndFunction
-
-Function SetAutoTerminate(float afSeconds)
-	RegisterForSingleUpdate(afSeconds)
-EndFunction
-
 Function SendWashActorFinishModEvent(Form akBathingActor, Form akWashProp, Bool abUsingSoap)
     int BiS_WashActorFinishModEvent = ModEvent.Create("BiS_WashActorFinish")
     If (BiS_WashActorFinishModEvent)
@@ -507,26 +331,18 @@ Function SendWashActorFinishModEvent(Form akBathingActor, Form akWashProp, Bool 
 EndFunction
 
 Function RegisterForEvents()
-	AnimEvents = new String[7]
-	AnimEvents[0] = "mzin_GetSoapy"
-	AnimEvents[1] = "mzin_GetUnsoapy"
-	AnimEvents[2] = "mzin_StopAnimationWithIdle"
-	AnimEvents[3] = "mzin_StopAnimation"
-	AnimEvents[4] = "MTState"
-	AnimEvents[5] = "SoundPlay.FSTSwimSwim"
-	AnimEvents[6] = "SoundPlay"
-	int i = AnimEvents.Length
+	int i = mzinAnimEvent.Length
 	while i
 		i -= 1
-		RegisterForAnimationEvent(BathingActor, AnimEvents[i])
+		RegisterForAnimationEvent(BathingActor, mzinAnimEvent[i])
 	endWhile
 EndFunction
 
 Function UnregisterForEvents()
-	int i = AnimEvents.Length
+	int i = mzinAnimEvent.Length
 	while i
 		i -= 1
-		UnregisterForAnimationEvent(BathingActor, AnimEvents[i])
+		UnregisterForAnimationEvent(BathingActor, mzinAnimEvent[i])
 	endWhile
 EndFunction
 
