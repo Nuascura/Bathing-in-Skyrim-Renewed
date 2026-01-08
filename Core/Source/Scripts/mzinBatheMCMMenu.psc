@@ -34,6 +34,7 @@ Bool Property TexSetOverride = False Auto Hidden
 Bool Property GameMessage = True Auto Hidden
 Bool Property LogNotification = True Auto Hidden
 Bool Property LogTrace = False Auto Hidden
+Bool Property SkipItemHash = False Auto Hidden
 
 Float[] Property AnimCustomMSet Auto
 Float Property AnimCustomMSet1Freq = 0.00 Auto
@@ -115,11 +116,11 @@ String config = "../../../Interface/Bathing in Skyrim/Settings.json"
 Bool Property ShowTierCondConfig
 	Bool Function Get()
 		return Init.IsMalignisAnimInstalled
-	EndFUnction
+	EndFunction
 EndProperty
 
 String Function GetModVersion()
-	return "2.6.4"
+	return "2.7.0"
 EndFunction
 
 Int Function GetVersion()
@@ -558,6 +559,7 @@ Function DisplayAuxiliaryPage()
 	GameMessageID_T = AddToggleOption("$BIS_L_GAMEMESSAGE", GameMessage)
 	LogNotificationID_T = AddToggleOption("$BIS_L_LOGNOTIFICATION", LogNotification)
 	LogTraceID_T = AddToggleOption("$BIS_L_LOGTRACE", LogTrace)
+	SkipItemHashID_T = AddToggleOption("$BIS_L_SKIPITEMHASH", SkipItemHash)
 	
 	SetCursorPosition(1)
 
@@ -827,6 +829,9 @@ Function HandleOnOptionDefaultAuxiliaryPage(Int OptionID)
 	ElseIf OptionID == LogTraceID_T
 		LogTrace = false
 		SetToggleOptionValue(OptionID, LogTrace)
+	ElseIf OptionID == SkipItemHashID_T
+		SkipItemHash = false
+		SetToggleOptionValue(OptionID, SkipItemHash)
 	Endif
 EndFunction
 
@@ -859,23 +864,23 @@ Function HandleOnOptionHighlightAnimationsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_AUTOHIDEUI")
 	ElseIf OptionID == AutoPlayerTFCID
 		SetInfoText("$BIS_DESC_AUTOPLAYERTFC")
-	ElseIf OptionId == BathingAnimationLoopsTier0SliderID
+	ElseIf OptionID == BathingAnimationLoopsTier0SliderID
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER0")
-	ElseIf OptionId == BathingAnimationLoopsTier1SliderID
+	ElseIf OptionID == BathingAnimationLoopsTier1SliderID
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER1")
-	ElseIf OptionId == BathingAnimationLoopsTier2SliderID
+	ElseIf OptionID == BathingAnimationLoopsTier2SliderID
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER2")
-	ElseIf OptionId == BathingAnimationLoopsTier3SliderID
+	ElseIf OptionID == BathingAnimationLoopsTier3SliderID
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER3")
-	ElseIf OptionId == AnimCustomMSet1SliderID
+	ElseIf OptionID == AnimCustomMSet1SliderID
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_MSet1")
-	ElseIf OptionId == AnimCustomFSet1SliderID
+	ElseIf OptionID == AnimCustomFSet1SliderID
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet1")
-	ElseIf OptionId == AnimCustomFSet2SliderID
+	ElseIf OptionID == AnimCustomFSet2SliderID
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet2")
-	ElseIf OptionId == AnimCustomFSet3SliderID
+	ElseIf OptionID == AnimCustomFSet3SliderID
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet3")
-	ElseIf OptionId == AnimCustomTierCondMenuID
+	ElseIf OptionID == AnimCustomTierCondMenuID
 		SetInfoText("$BIS_DESC_ANIM_TIERCOND")
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleID
 		SetInfoText("$BIS_DESC_GET_DRESSED")
@@ -898,23 +903,23 @@ Function HandleOnOptionHighlightAnimationsPageFollowers(Int OptionID)
 		SetInfoText("$BIS_DESC_SHOWER_OVERRIDE")
 	ElseIf OptionID == GetSoapyStyleMenuIDFollowers
 		SetInfoText("$BIS_DESC_SOAP_STYLE")
-	ElseIf OptionId == BathingAnimationLoopsTier0SliderIDFollowers
+	ElseIf OptionID == BathingAnimationLoopsTier0SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER0")
-	ElseIf OptionId == BathingAnimationLoopsTier1SliderIDFollowers
+	ElseIf OptionID == BathingAnimationLoopsTier1SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER1")
-	ElseIf OptionId == BathingAnimationLoopsTier2SliderIDFollowers
+	ElseIf OptionID == BathingAnimationLoopsTier2SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER2")
-	ElseIf OptionId == BathingAnimationLoopsTier3SliderIDFollowers
+	ElseIf OptionID == BathingAnimationLoopsTier3SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER3")
-	ElseIf OptionId == AnimCustomMSet1SliderIDFollowers
+	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_MSet1")
-	ElseIf OptionId == AnimCustomFSet1SliderIDFollowers
+	ElseIf OptionID == AnimCustomFSet1SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet1")
-	ElseIf OptionId == AnimCustomFSet2SliderIDFollowers
+	ElseIf OptionID == AnimCustomFSet2SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet2")
-	ElseIf OptionId == AnimCustomFSet3SliderIDFollowers
+	ElseIf OptionID == AnimCustomFSet3SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_FSet3")
-	ElseIf OptionId == AnimCustomTierCondMenuIDFollowers
+	ElseIf OptionID == AnimCustomTierCondMenuIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_TIERCOND")
 	ElseIf OptionID == GetDressedAfterBathingEnabledToggleIDFollowers
 		SetInfoText("$BIS_DESC_GET_DRESSED")
@@ -954,59 +959,59 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_RATE_IN_DUNGEON")
 	ElseIf OptionID == DirtinessPerHourWildernessSliderID
 		SetInfoText("$BIS_DESC_RATE_IN_WILDERNESS")
-	ElseIf OptionId == DirtinessThresholdTier1SliderID
+	ElseIf OptionID == DirtinessThresholdTier1SliderID
 		SetInfoText("$BIS_DESC_THRESHOLD_1")
-	ElseIf OptionId == DirtinessThresholdTier2SliderID
+	ElseIf OptionID == DirtinessThresholdTier2SliderID
 		SetInfoText("$BIS_DESC_THRESHOLD_2")
-	ElseIf OptionId == DirtinessThresholdTier3SliderID
+	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		SetInfoText("$BIS_DESC_THRESHOLD_3")
-	ElseIf OptionId == OverlayProgressOID_T
+	ElseIf OptionID == OverlayProgressOID_T
 		SetInfoText("$BIS_DESC_OVERLAYPROGRESS")
-	ElseIf OptionId == OverlayApplyAtOID_S
+	ElseIf OptionID == OverlayApplyAtOID_S
 		SetInfoText("$BIS_DESC_OVERLAYAPPLY")
-	ElseIf OptionId == StartingAlphaOID_S
+	ElseIf OptionID == StartingAlphaOID_S
 		SetInfoText("$BIS_DESC_OVERLAYALPHA")
-	ElseIf OptionId == OverlayTintOID_C
+	ElseIf OptionID == OverlayTintOID_C
 		SetInfoText("$BIS_DESC_OVERLAYTINT")
 	ElseIf OptionID == TexSetOverrideID
 		SetInfoText("$BIS_DESC_TEXSETOVERRIDE")
 		
-	ElseIf OptionId == TexSetCountOID_T
+	ElseIf OptionID == TexSetCountOID_T
 		SetInfoText("$BIS_DESC_OVERLAYTEXSETCOUNT")
-	ElseIf OptionId == RedetectDirtSetsOID_T
+	ElseIf OptionID == RedetectDirtSetsOID_T
 		SetInfoText("$BIS_DESC_OVERLAYREDETECT")
-	ElseIf OptionId == RemoveAllOverlaysOID_T
+	ElseIf OptionID == RemoveAllOverlaysOID_T
 		SetInfoText("$BIS_DESC_OVERLAYREMOVEALL")
-	ElseIf OptionId == PapSetSaveOID_T
+	ElseIf OptionID == PapSetSaveOID_T
 		SetInfoText("$BIS_DESC_PAPSETSAVE")
-	ElseIf OptionId == PapSetLoadOID_T
+	ElseIf OptionID == PapSetLoadOID_T
 		SetInfoText("$BIS_DESC_PAPSETLOAD")
 	
-	ElseIf OptionId == TimeToCleanOID_S
+	ElseIf OptionID == TimeToCleanOID_S
 		SetInfoText("$BIS_DESC_TIMETOCLEAN")
-	ElseIf OptionId == TimeToCleanIntervalOID_S
+	ElseIf OptionID == TimeToCleanIntervalOID_S
 		SetInfoText("$BIS_DESC_TIMETOCLEANINTERVAL")
-	ElseIf OptionId == ShynessToggleID
+	ElseIf OptionID == ShynessToggleID
 		SetInfoText("$BIS_DESC_SHYNESSTOGGLE")
-	ElseIf OptionId == ShynessDistanceOID_S
+	ElseIf OptionID == ShynessDistanceOID_S
 		SetInfoText("$BIS_DESC_SHYNESSDISTANCE")
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightIntegrationsPage(int OptionID)
-	If OptionId == DirtinessPerSexOID_S
+	If OptionID == DirtinessPerSexOID_S
 		SetInfoText("$BIS_DESC_DIRTPERSEX")
-	ElseIf OptionId == VictimMultOID_S
+	ElseIf OptionID == VictimMultOID_S
 		SetInfoText("$BIS_DESC_VICTIMMULT")
-	ElseIf OptionId == FadeDirtSexToggleID
+	ElseIf OptionID == FadeDirtSexToggleID
 		SetInfoText("$BIS_DESC_FADEDIRTSEX")
-	ElseIf OptionId == SexIntervalDirtOID_S
+	ElseIf OptionID == SexIntervalDirtOID_S
 		SetInfoText("$BIS_DESC_SEXINTERVALDIRT")
-	ElseIf OptionId == SexIntervalOID_S
+	ElseIf OptionID == SexIntervalOID_S
 		SetInfoText("$BIS_DESC_SEXINTERVAL")
 
-	ElseIf OptionId == FadeTatsFadeTimeOID_S
+	ElseIf OptionID == FadeTatsFadeTimeOID_S
 		SetInfoText("$BIS_DESC_FADETATSADVANCE")
-	ElseIf OptionId == FadeTatsSoapMultOID_S
+	ElseIf OptionID == FadeTatsSoapMultOID_S
 		SetInfoText("$BIS_DESC_FADETATSMULT")
 	EndIf
 EndFunction
@@ -1017,8 +1022,10 @@ Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightAuxiliaryPage(Int OptionID)
-	If OptionId == UnForbidOID_T
+	If OptionID == UnForbidOID_T
 		SetInfoText("$BIS_DESC_UNFORBID")
+	ElseIf OptionID == SkipItemHashID_T
+		SetInfoText("$BIS_DESC_SKIPITEMHASH")
 	endIf
 EndFunction
 
@@ -1220,6 +1227,9 @@ Function HandleOnOptionSelectAuxiliaryPage(Int OptionID)
 	ElseIf OptionID == LogTraceID_T
 		LogTrace = !LogTrace
 		SetToggleOptionValue(OptionID, LogTrace)
+	ElseIf OptionID == SkipItemHashID_T
+		SkipItemHash = !SkipItemHash
+		SetToggleOptionValue(OptionID, SkipItemHash)
 	Endif
 EndFunction
 
@@ -2000,6 +2010,7 @@ Bool Function SavePapyrusSettings()
 	SetIntValue(config, "GameMessage", GameMessage as int)
 	SetIntValue(config, "LogNotification", LogNotification as int)
 	SetIntValue(config, "LogTrace", LogTrace as int)
+	SetIntValue(config, "SkipItemHash", SkipItemHash as int)
 	
 	Save(config)
 
@@ -2103,6 +2114,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	GameMessage = GetIntValue(config, "GameMessage", GameMessage as int)
 	LogNotification = GetIntValue(config, "LogNotification", LogNotification as int)
 	LogTrace = GetIntValue(config, "LogTrace", LogTrace as int)
+	SkipItemHash = GetIntValue(config, "SkipItemHash", SkipItemHash as int)
 	
 	SetLocalArrays()
 	BatheQuest.RegisterHotKeys()
@@ -2237,5 +2249,6 @@ Int UnForbidOID_T
 Int GameMessageID_T
 Int LogNotificationID_T
 Int LogTraceID_T
+Int SkipItemHashID_T
 
 ; --------------------------------------------
