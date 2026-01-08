@@ -89,16 +89,11 @@ Int Function GetCombinedSlotMask(int[] slotArray)
 EndFunction
 
 int Function GetRandomFromNormalization(float[] fList)
-	float setTotal = 0
-	float setRange = 0
+	float setTotal = PapyrusUtil.AddFloatValues(fList)
 	float f = Utility.RandomFloat(0, 1)
-	int i = 0
-	while i < fList.length
-		setTotal += fList[i]
-		i += 1
-	endWhile
 	If setTotal > 0
-		i = 0
+		int i = 0
+		float setRange = 0
 		while i < fList.length
 			setRange += (fList[i] / setTotal)
 			if f < setRange
@@ -132,4 +127,138 @@ Int[] Function RenewSlotState(int[] array1, bool[] array2)
 		endIf
 	endWhile
 	return array1
+EndFunction
+
+Armor[] Function GetActorClothing(Actor TargetActor, Bool bIsPlayer, Keyword[] kwBlacklist)
+	Form[] EquippedItems = SPE_Utility.FilterFormsByKeyword(PO3_SKSEFunctions.AddAllEquippedItemsToArray(TargetActor), kwBlacklist, false, true)
+	If bIsPlayer
+		return SPE_Utility.FilterBySlotMask(EquippedItems, GetCombinedSlotMask(Menu.ArmorSlotArray), false)
+	Else
+		return SPE_Utility.FilterBySlotMask(EquippedItems, GetCombinedSlotMask(Menu.ArmorSlotArrayFollowers), false)
+	EndIf
+EndFunction
+
+Int[] Function StripActorClothing(Actor TargetActor, Armor[] aArr)
+	Int iIndex = aArr.Length
+	Int[] iArr = Utility.CreateIntArray(aArr.Length, 0)
+	While iIndex
+		iIndex -= 1
+		iArr[iIndex] = TargetActor.GetWornItemID(aArr[iIndex].GetSlotMask())
+		TargetActor.UnequipItemEX(aArr[iIndex], 0, False)
+	EndWhile
+	return iArr
+EndFunction
+
+Form[] Function GetActorWeapons(Actor TargetActor)
+	Form[] arr = new Form[3]
+	arr[0] = PO3_SKSEFunctions.GetEquippedAmmo(TargetActor) ; Ammo
+	arr[1] = TargetActor.GetEquippedWeapon(false) ; right hand
+	arr[2] = TargetActor.GetEquippedWeapon(true) ; left hand
+	return arr
+EndFunction
+
+Int[] Function StripActorWeapons(Actor TargetActor, Form[] aArr)
+	Int[] iArr = new Int[3]
+	if aArr[0]
+		iArr[0] = 0
+		TargetActor.UnequipItemEX(aArr[0], 0, False) ; Ammo
+	endIf
+	if aArr[1]
+		iArr[1] = TargetActor.GetEquippedItemID(1)
+		TargetActor.UnequipItemEX(aArr[1], 1, False) ; right hand
+	endIf
+	if aArr[2]
+		iArr[2] = TargetActor.GetEquippedItemID(0)
+		TargetActor.UnequipItemEX(aArr[2], 2, False) ; left hand
+	endIf
+	return iArr
+EndFunction
+
+Function ExitWieldState(Actor TargetActor)
+	if TargetActor.isWeaponDrawn()
+        float break
+        while TargetActor.IsWeaponDrawn() && break < 5
+			TargetActor.SheatheWeapon()
+			Utility.Wait(0.25)
+            break += 0.25
+		endWhile
+		Utility.Wait(0.5)
+    endIf
+EndFunction
+
+Function DressActorEx(Actor TargetActor, Armor[] Clothing, Int[] ClothingID, Form[] Objects, Int[] ObjectsID)
+	If menu.SkipItemHash
+		ClothingID = Utility.CreateIntArray(Clothing.Length, 0)
+		ObjectsID = Utility.CreateIntArray(Objects.Length, 0)
+	EndIf
+
+	Int Index = Clothing.Length
+	While Index
+		Index -= 1
+		If Clothing[Index]
+			EquipItemByIDEx(TargetActor, Clothing[Index], 0)
+		EndIf
+	EndWhile
+
+	Index = Objects.Length
+	While Index
+		Index -= 1
+		If Objects[Index]
+			EquipItemByIDEx(TargetActor, Objects[Index], ObjectsID[Index], Index)
+		EndIf
+	EndWhile
+EndFunction
+
+Function EquipItemByIDEx(Actor TargetActor, Form uItem, int iItemID = 0, int iEquipSlot = 0)
+	if iItemID
+		TargetActor.EquipItemByID(uItem, iItemID, iEquipSlot)
+	else
+		TargetActor.EquipItemEx(uItem, iEquipSlot)
+	endIf
+EndFunction
+
+Function SetFreeCam(bool bToggle)
+	bToggle = Menu.AutoPlayerTFC && bToggle
+	if bToggle
+		if Game.GetCameraState() != 3
+			MiscUtil.SetFreeCameraState(true, 5.0)
+		endIf
+		Game.DisablePlayerControls(false, True, True, False, True, True, True, 0)
+	else
+		if Game.GetCameraState() == 3
+			MiscUtil.SetFreeCameraState(false)
+		endIf
+	endIf
+EndFunction
+
+Function SetHUDInstanceFlag(bool bToggle)
+	bToggle = Menu.AutoHideUI && bToggle
+	UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", bToggle)
+EndFunction
+
+Int Function GetDangerTier(Actor TargetActor, FormList kwListSafe, FormList kwListCivil, FormList kwListHostile)
+	Location CurrentLocation = TargetActor.GetCurrentLocation()
+	Location[] LocationList = SPE_Cell.GetExteriorLocations(TargetActor.GetParentCell())
+	if CurrentLocation
+		If TargetActor.IsInInterior() && LocationHasKeyWordInList(CurrentLocation, kwListSafe)
+			return 4
+		ElseIf LocationHasKeyWordInList(CurrentLocation, kwListCivil) \
+			|| (TargetActor.IsInInterior() && ExteriorHasKeyWordInList(LocationList, kwListCivil))
+			return 3
+		ElseIf LocationHasKeyWordInList(CurrentLocation, kwListHostile) \
+			|| (TargetActor.IsInInterior() && ExteriorHasKeyWordInList(LocationList, kwListHostile))
+			return 1
+		endIf
+	endIf
+	return 2
+EndFunction
+
+Int Function GetDirtinessTier(Actor TargetActor, FormList TargetSpellList)
+	Int DirtinessTierIndex = TargetSpellList.GetSize()
+	While DirtinessTierIndex
+		DirtinessTierIndex -= 1
+		If TargetActor.HasSpell(TargetSpellList.GetAt(DirtinessTierIndex) As Spell)
+			return DirtinessTierIndex
+		EndIf
+	EndWhile
 EndFunction
