@@ -128,7 +128,9 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	If DirtyActorIsPlayer
 		UnregisterForAllKeys()
 		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0)
-		OlUtil.SendBathePlayerModEvent()
+		SendModEvent("BiS_BatheEvent_Player")
+	Else
+		SendModEvent("BiS_BatheEvent_" + DirtyActor.GetFormID())
 	EndIf
 	If DoPlayerTeammates
 		PlayerAlias.RunCycleHelper()
@@ -446,9 +448,8 @@ Function UpdateActorDirtPercent(Actor akActor, float afNewValue)
 EndFunction
 
 Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
-	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt")
+	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt_" + akTarget.GetFormID())
     If (BiS_CleanActorDirtEvent)
-		ModEvent.PushForm(BiS_CleanActorDirtEvent, akTarget)
 		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToClean)
 		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToCleanInterval)
 		ModEvent.PushBool(BiS_CleanActorDirtEvent, UsedSoap)
