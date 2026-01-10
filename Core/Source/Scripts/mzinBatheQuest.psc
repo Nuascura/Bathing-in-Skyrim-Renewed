@@ -352,19 +352,26 @@ Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 			Return False
 		EndIf
 
-		If !akGawker
-			akGawker = GetGawker(akTarget)
-		EndIf
-		
-		If akGawker
-			if akTarget == PlayerRef
+		If akTarget == PlayerRef
+			If !akGawker
+				akGawker = GetGawker(akTarget)
+			EndIf
+			If akGawker
 				mzinUtil.LogNotification("No way am I bathing in front of " + akGawker.GetBaseObject().GetName() + "!")
-			elseIf akTarget.IsPlayerTeammate()
+				Return True
+			EndIf
+		ElseIf akTarget.IsPlayerTeammate()
+			If !akGawker
+				akGawker = GetGawker(akTarget)
+			EndIf
+			If akGawker
 				mzinUtil.LogNotification(akTarget.GetBaseObject().GetName() + ": You're joking, right? I'm not bathing in front of " +  akGawker.GetBaseObject().GetName() + "!")
-			else
-				mzinUtil.LogNotification(akTarget.GetBaseObject().GetName() + " refuses to bathe in front of " + akGawker.GetBaseObject().GetName() + ".")
-			endIf
-			Return True
+				Return True
+			EndIf
+		Else
+			If SPE_Actor.GetDetectedActors(akTarget)
+				Return True
+			EndIf
 		EndIf
 	EndIf
 	Return False
