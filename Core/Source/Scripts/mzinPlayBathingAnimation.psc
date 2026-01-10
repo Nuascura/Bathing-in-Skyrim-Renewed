@@ -146,8 +146,9 @@ Function LockActor()
 		Game.DisablePlayerControls(False, True, True, False, True, True, True, 0)
 		Game.SetPlayerAIDriven(true)
 		if Game.GetCameraState() == 0
-			Game.ForceThirdPerson()
+			Game.ForceFirstPerson()
 		endIf
+		Game.ForceThirdPerson()
 		mzinUtil.SetHUDInstanceFlag(false)
 		mzinUtil.SetFreeCam(true)
 	else
