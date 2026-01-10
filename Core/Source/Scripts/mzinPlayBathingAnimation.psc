@@ -55,8 +55,8 @@ EndEvent
 
 State StartSequence
 	Event OnBeginState()
-		LockActor()
 		StripActor()
+		LockActor()
 		RegisterForEvents()
 
 		Int AnimStyle
