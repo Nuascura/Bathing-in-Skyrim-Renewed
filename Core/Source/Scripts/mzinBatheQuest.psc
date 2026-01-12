@@ -28,6 +28,7 @@ FormList Property WaterfallList Auto
 FormList Property SoapBonusMessageList Auto
 FormList Property GetDirtyOverTimeSpellList Auto
 
+Keyword Property WashPropKeyword Auto
 Keyword Property SoapKeyword Auto
 Keyword Property AnimationKeyword Auto
 
@@ -130,7 +131,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 
 	SendModEvent("BiS_BatheEvent_" + DirtyActor.GetFormID())
 
-	if DoAnimate && (DirtyActor.IsSwimming() || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor))
+	if DoAnimate && !(DirtyActor.IsSwimming() || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor))
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
 			DoFullClean = true
 			DirtyActor.RemoveItem(WashProp, 1, True, None)
@@ -195,11 +196,23 @@ EndFunction
 
 Function ApplySoapBonus(Actor DirtyActor, MiscObject WashProp)
 	If WashProp
-		Int Index = GetWashPropIndex(WashProp)
-		Spell SoapBonusSpell = SoapBonusSpellList.GetAt(Index) As Spell
-		DirtyActor.AddSpell(SoapBonusSpell, False)
+		Int Index = GetSoapIndex(WashProp)
+		DirtyActor.AddSpell(SoapBonusSpellList.GetAt(Index) As Spell, False)
 		If DirtyActor == PlayerRef
 			mzinUtil.GameMessage(SoapBonusMessageList.GetAt(Index) As Message)
+		EndIf
+	EndIf
+EndFunction
+
+Int Function GetSoapIndex(MiscObject WashProp)
+	Int Index = WashPropList.Find(WashProp)
+	If Index != -1
+		return Index
+	Else
+		If WashProp.HasKeyword(SoapKeyword)
+			return 1
+		Else
+			return 0
 		EndIf
 	EndIf
 EndFunction
@@ -213,29 +226,16 @@ Function RemoveSpells(Actor DirtyActor, FormList SpellsFormList)
 EndFunction
 
 MiscObject Function TryFindWashProp(Actor DirtyActor)
-	Int WashPropIndex = WashPropList.GetSize()
-
-	While WashPropIndex
-		WashPropIndex -= 1
-		MiscObject WashProp = WashPropList.GetAt(WashPropIndex) As MiscObject
-		If DirtyActor.GetItemCount(WashProp) > 0
-			Return WashProp
-		EndIf		
-	EndWhile
+	Keyword[] kwWashPropValid = new Keyword[2]
+	kwWashPropValid[0] = SoapKeyword
+	kwWashPropValid[1] = WashPropKeyword
+	Form[] MiscObjects = PO3_SKSEfunctions.AddItemsOfTypeToArray(DirtyActor, 32)
+	Form[] WashPropArray = SPE_Utility.FilterFormsByKeyword(MiscObjects, kwWashPropValid, true, false)
+	if WashPropArray
+		return WashPropArray[0] as MiscObject
+	endIf
 	
-	Return None
-EndFunction
-Int Function GetWashPropIndex(MiscObject Soap)
-	Int WashPropIndex = WashPropList.GetSize()
-
-	While WashPropIndex
-		WashPropIndex -= 1		
-		If WashPropList.GetAt(WashPropIndex) As MiscObject == Soap
-			Return WashPropIndex
-		EndIf		
-	EndWhile
-	
-	Return -1
+	Return SPE_Utility.FilterFormsByKeyword(MiscObjects, kwWashPropValid, false, false)[0] as MiscObject
 EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
