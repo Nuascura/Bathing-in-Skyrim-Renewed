@@ -225,10 +225,10 @@ MiscObject Function TryFindWashProp(Actor DirtyActor)
 	Form[] MiscObjects = PO3_SKSEfunctions.AddItemsOfTypeToArray(DirtyActor, 32)
 	Form[] WashPropArray = SPE_Utility.FilterFormsByKeyword(MiscObjects, kwWashPropValid, true, false)
 	if WashPropArray
-		return WashPropArray[0] as MiscObject
+		return WashPropArray[Utility.RandomInt(0, WashPropArray.Length)] as MiscObject
 	endIf
 	
-	Return SPE_Utility.FilterFormsByKeyword(MiscObjects, kwWashPropValid, false, false)[0] as MiscObject
+	Return SPE_Utility.FilterFormsByKeyword(MiscObjects, kwWashPropValid, false, false)[Utility.RandomInt(0, WashPropArray.Length)] as MiscObject
 EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
