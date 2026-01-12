@@ -190,14 +190,6 @@ Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint)
 	BeginOverlay(akTarget, Alpha, Tint)
 EndFunction
 
-Function SendBatheModEvent(Form akBatheActor)
-    int BiS_BatheModEvent = ModEvent.Create("BiS_BatheEvent")
-    If (BiS_BatheModEvent)
-        ModEvent.PushForm(BiS_BatheModEvent, akBatheActor)
-        ModEvent.Send(BiS_BatheModEvent)
-    EndIf
-EndFunction
-
 Function SendAlphaUpdateEvent(Form akTarget)
     int BiS_UpdateAlphaModEvent = ModEvent.Create("BiS_UpdateAlpha_" + akTarget.GetFormID())
     If (BiS_UpdateAlphaModEvent)

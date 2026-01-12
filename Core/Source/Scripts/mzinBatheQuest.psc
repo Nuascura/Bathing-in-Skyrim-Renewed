@@ -32,8 +32,6 @@ Keyword Property SoapKeyword Auto
 Keyword Property AnimationKeyword Auto
 
 Spell Property PlayBathingAnimation Auto
-Spell Property SoapyAppearanceSpell Auto
-Spell Property SoapyAppearanceAnimatedSpell Auto
 
 Message Property BathingNeedsWaterMessage Auto
 Message Property BathingWithSoapMessage Auto
@@ -128,13 +126,9 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	If DirtyActorIsPlayer
 		UnregisterForAllKeys()
 		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0)
-		SendModEvent("BiS_BatheEvent_Player")
-	Else
-		SendModEvent("BiS_BatheEvent_" + DirtyActor.GetFormID())
 	EndIf
-	If DoPlayerTeammates
-		PlayerAlias.RunCycleHelper()
-	endIf
+
+	SendModEvent("BiS_BatheEvent_" + DirtyActor.GetFormID())
 
 	if DoAnimate
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
@@ -159,10 +153,8 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 		StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
 		StorageUtil.SetIntValue(DirtyActor, "mzin_LastWashState", DoShower as int)
 		DirtyActor.AddSpell(PlayBathingAnimation, False)
-	else
-		If DoSoap
-			GetSoapy(DirtyActor)
-		EndIf
+	Else
+		WashActorFinish(DirtyActor, WashProp, DoFullClean)
 	endIf
 
 	DirtyActor.ClearExtraArrows()
@@ -170,19 +162,13 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	mzinInterfaceSexLab.ClearCum(Init.SL_API, DirtyActor)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor)
 	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
-	
+
 	SendCleanDirtEvent(DirtyActor, DoFullClean)
+	SendBatheModEvent(DirtyActor as Form)
 
-	; ----
-
-	if !DoAnimate
-		If DoSoap
-			GetUnsoapy(DirtyActor)
-		EndIf
-		WashActorFinish(DirtyActor, WashProp, DoFullClean)
+	If DoPlayerTeammates
+		PlayerAlias.RunCycleHelper()
 	endIf
-	
-	OlUtil.SendBatheModEvent(DirtyActor as Form)
 EndFunction
 
 Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFullClean = false)
@@ -391,30 +377,6 @@ Actor Function GetGawker(Actor akActor)
 	return none
 EndFunction
 
-Function GetSoapy(Actor akActor)
-	If akActor == PlayerRef
-		If GetSoapyStyle.GetValue() == 1
-			akActor.AddSpell(SoapyAppearanceSpell, False)
-		ElseIf GetSoapyStyle.GetValue() == 2
-			akActor.AddSpell(SoapyAppearanceAnimatedSpell, False)
-		EndIf
-	Else
-		If GetSoapyStyleFollowers.GetValue() == 1
-			akActor.AddSpell(SoapyAppearanceSpell, False)
-		ElseIf GetSoapyStyleFollowers.GetValue() == 2
-			akActor.AddSpell(SoapyAppearanceAnimatedSpell, False)
-		EndIf
-	EndIf
-EndFunction
-
-Function GetUnsoapy(Actor akActor)
-	If akActor.HasSpell(SoapyAppearanceSpell)
-		akActor.RemoveSpell(SoapyAppearanceSpell)
-	ElseIf akActor.HasSpell(SoapyAppearanceAnimatedSpell)
-		akActor.RemoveSpell(SoapyAppearanceAnimatedSpell)
-	EndIf
-EndFunction
-
 Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	if abRemoveOverlays
 		OlUtil.ClearDirtGameLoad(DirtyActor)
@@ -454,5 +416,13 @@ Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
 		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToCleanInterval)
 		ModEvent.PushBool(BiS_CleanActorDirtEvent, UsedSoap)
         ModEvent.Send(BiS_CleanActorDirtEvent)
+    EndIf
+EndFunction
+
+Function SendBatheModEvent(Form akBatheActor)
+    int BiS_BatheModEvent = ModEvent.Create("BiS_BatheEvent")
+    If (BiS_BatheModEvent)
+        ModEvent.PushForm(BiS_BatheModEvent, akBatheActor)
+        ModEvent.Send(BiS_BatheModEvent)
     EndIf
 EndFunction
