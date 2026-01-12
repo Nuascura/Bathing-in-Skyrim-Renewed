@@ -6,35 +6,43 @@ GlobalVariable Property AutomateFollowerBathing Auto
 
 Actor Property PlayerRef Auto
 
-Bool Reapplying
-
 Event OnPlayerLoadGame() ; run only when mod is "enabled"
 	BatheQuest.RegisterHotKeys()
 	BatheQuest.RegForEvents()
+	RegisterForModEvent("BiS_BatheEvent_" + PlayerRef.GetFormID(), "OnBatheEvent")
 EndEvent
 
-Event OnUpdate()
-	CycleFollowers()
+Event OnBatheEvent(Bool abArg)
+	if abArg
+		Utility.Wait(1.0)
+		CycleTeammate(PO3_SKSEfunctions.GetPlayerFollowers(), BatheQuest.GetGawker(PlayerRef))
+	endIf
 EndEvent
 
-Function RunCycleHelper()
-	RegisterForSingleUpdate(1.0)
+Function CycleTeammate(Actor[] PlayerFollowers, Actor LastGawker)
+	int i = 0
+	if AutomateFollowerBathing.GetValue() == 1.0 ; Tracked Only
+		while i < PlayerFollowers.Length
+			if DirtyActors.HasForm(PlayerFollowers[i])
+				TryWashTeammate(PlayerFollowers[i], LastGawker)
+			endIf
+			i += 1
+		endWhile
+	elseIf AutomateFollowerBathing.GetValue() == 2.0 ; All Teammates
+		while i < PlayerFollowers.Length
+			TryWashTeammate(PlayerFollowers[i], LastGawker)
+			i += 1
+		endWhile
+	endIf
 EndFunction
 
-Function CycleFollowers()
-	Actor[] PlayerFollowers = PO3_SKSEfunctions.GetPlayerFollowers()
-	int i = 0
-	while i < PlayerFollowers.Length
-		if DirtyActors.Find(PlayerFollowers[i]) != -1 || AutomateFollowerBathing.GetValue() > 1
-			MiscObject WashProp = BatheQuest.TryFindWashProp(PlayerFollowers[i])
-			if WashProp && !(BatheQuest.IsConditionallyRestricted(PlayerFollowers[i]))
-				if BatheQuest.IsInWater(PlayerFollowers[i])
-					BatheQuest.WashActor(PlayerFollowers[i], WashProp, DoShower = false)
-				ElseIf BatheQuest.IsUnderWaterfall(PlayerFollowers[i])
-					BatheQuest.WashActor(PlayerFollowers[i], WashProp, DoShower = true)
-				EndIf
-			EndIf
-		endIf
-		i += 1
-	endWhile
+Function TryWashTeammate(Actor akTarget, Actor akGawker)
+	MiscObject WashProp = BatheQuest.TryFindWashProp(akTarget)
+	if WashProp && !(BatheQuest.IsRestricted(akTarget, akGawker))
+		if BatheQuest.IsInWater(akTarget)
+			BatheQuest.WashActor(akTarget, WashProp, DoShower = false)
+		ElseIf BatheQuest.IsUnderWaterfall(akTarget)
+			BatheQuest.WashActor(akTarget, WashProp, DoShower = true)
+		EndIf
+	EndIf
 EndFunction

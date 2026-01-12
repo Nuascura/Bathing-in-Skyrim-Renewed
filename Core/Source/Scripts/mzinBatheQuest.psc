@@ -5,7 +5,6 @@ mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinOverlayUtility Property OlUtil Auto
 mzinUtility Property mzinUtil Auto
-mzinBathePlayerAlias Property PlayerAlias Auto
 
 GlobalVariable Property WaterRestrictionEnabled Auto
 GlobalVariable Property GetSoapyStyle Auto
@@ -129,8 +128,6 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0)
 	EndIf
 
-	SendModEvent("BiS_BatheEvent_" + DirtyActor.GetFormID())
-
 	if DoAnimate && !(DirtyActor.IsSwimming() || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor))
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
 			DoFullClean = true
@@ -165,11 +162,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
 
 	SendCleanDirtEvent(DirtyActor, DoFullClean)
-	SendBatheModEvent(DirtyActor as Form)
-
-	If DoPlayerTeammates
-		PlayerAlias.RunCycleHelper()
-	endIf
+	SendBatheModEvent(DirtyActor as Form, DoPlayerTeammates)
 EndFunction
 
 Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFullClean = false)
@@ -362,9 +355,9 @@ Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 EndFunction
 
 Actor Function GetGawker(Actor akActor)
-	mzinGawkers.Stop()
 	if mzinGawkers.Start()
 		Actor Gawker = (mzinGawkers.GetNthAlias(0) as ReferenceAlias).GetReference() as Actor
+		mzinGawkers.Reset()
 		mzinGawkers.Stop()
 		If Gawker && Gawker != akActor
 			return Gawker
@@ -415,10 +408,10 @@ Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
     EndIf
 EndFunction
 
-Function SendBatheModEvent(Form akBatheActor)
-    int BiS_BatheModEvent = ModEvent.Create("BiS_BatheEvent")
+Function SendBatheModEvent(Form akBatheActor, Bool abDoPlayerTeammates)
+    int BiS_BatheModEvent = ModEvent.Create("BiS_BatheEvent_" + akBatheActor.GetFormID())
     If (BiS_BatheModEvent)
-        ModEvent.PushForm(BiS_BatheModEvent, akBatheActor)
+        ModEvent.PushBool(BiS_BatheModEvent, abDoPlayerTeammates)
         ModEvent.Send(BiS_BatheModEvent)
     EndIf
 EndFunction
