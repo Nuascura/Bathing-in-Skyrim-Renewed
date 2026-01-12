@@ -130,7 +130,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 
 	SendModEvent("BiS_BatheEvent_" + DirtyActor.GetFormID())
 
-	if DoAnimate
+	if DoAnimate && (DirtyActor.IsSwimming() || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor))
 		If WashProp && WashProp.HasKeyWord(SoapKeyword)
 			DoFullClean = true
 			DirtyActor.RemoveItem(WashProp, 1, True, None)
@@ -277,15 +277,11 @@ Bool Function IsUnderWaterfall(Actor DirtyActor)
 EndFunction
 
 Bool Function IsRestricted(Actor DirtyActor, Actor PotentialGawker = None)
-	return IsInCommmonRestriction(DirtyActor) || IsTooShy(DirtyActor, PotentialGawker)
+	return IsConditionallyRestricted(DirtyActor) || IsTooShy(DirtyActor, PotentialGawker)
 EndFunction
 
-Bool Function IsInCommmonRestriction(Actor DirtyActor)
-	return (IsDeviceBlocked(DirtyActor) || IsNotPermitted(DirtyActor) || IsInInvalidCondition(DirtyActor))
-EndFunction
-
-Bool Function IsInInvalidCondition(Actor DirtyActor)
-	return DirtyActor.IsSwimming() || IsActorAnimating(DirtyActor) || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor) || DirtyActor.GetSitState()
+Bool Function IsConditionallyRestricted(Actor DirtyActor)
+	return IsDeviceBlocked(DirtyActor) || IsActorAnimating(DirtyActor) || DirtyActor.GetSitState() || IsNotPermitted(DirtyActor)
 EndFunction
 
 Bool Function IsActorAnimating(Actor DirtyActor)
@@ -344,7 +340,7 @@ Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 			If !akGawker
 				akGawker = GetGawker(akTarget)
 			EndIf
-			If akGawker
+			If akGawker && akGawker.HasLOS(akTarget)
 				mzinUtil.LogNotification("No way am I bathing in front of " + akGawker.GetBaseObject().GetName() + "!")
 				Return True
 			EndIf
@@ -352,7 +348,7 @@ Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 			If !akGawker
 				akGawker = GetGawker(akTarget)
 			EndIf
-			If akGawker
+			If akGawker && akGawker.HasLOS(akTarget)
 				mzinUtil.LogNotification(akTarget.GetBaseObject().GetName() + ": You're joking, right? I'm not bathing in front of " +  akGawker.GetBaseObject().GetName() + "!")
 				Return True
 			EndIf

@@ -27,7 +27,7 @@ Function CycleFollowers()
 	while i < PlayerFollowers.Length
 		if DirtyActors.Find(PlayerFollowers[i]) != -1 || AutomateFollowerBathing.GetValue() > 1
 			MiscObject WashProp = BatheQuest.TryFindWashProp(PlayerFollowers[i])
-			if WashProp && !BatheQuest.IsInCommmonRestriction(PlayerFollowers[i])
+			if WashProp && !(BatheQuest.IsConditionallyRestricted(PlayerFollowers[i]))
 				if BatheQuest.IsInWater(PlayerFollowers[i])
 					BatheQuest.WashActor(PlayerFollowers[i], WashProp, DoShower = false)
 				ElseIf BatheQuest.IsUnderWaterfall(PlayerFollowers[i])
