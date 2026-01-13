@@ -9,10 +9,11 @@ Actor Property PlayerRef Auto
 Event OnPlayerLoadGame() ; run only when mod is "enabled"
 	BatheQuest.RegisterHotKeys()
 	BatheQuest.RegForEvents()
-	RegisterForModEvent("BiS_BatheEvent_" + PlayerRef.GetFormID(), "OnBatheEvent")
+
+	RegisterForModEvent("BiS_BatheEvent_" + PlayerRef.GetFormID(), "OnBiS_BatheEvent")
 EndEvent
 
-Event OnBatheEvent(Bool abArg)
+Event OnBiS_BatheEvent(Bool abArg)
 	if abArg
 		Utility.Wait(1.0)
 		CycleTeammate(PO3_SKSEfunctions.GetPlayerFollowers(), BatheQuest.GetGawker(PlayerRef))

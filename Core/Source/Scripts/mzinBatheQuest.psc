@@ -122,6 +122,8 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 EndFunction
 
 Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false, Bool DoPlayerTeammates = false, Bool DoAnimate = true, Bool DoFullClean = false, Bool DoSoap = false)
+	mzinUtil.Send_TargetedEvent(DirtyActor, "PauseActorDirt")
+
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
 	If DirtyActorIsPlayer
 		UnregisterForAllKeys()
@@ -152,6 +154,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 		StorageUtil.SetIntValue(DirtyActor, "mzin_LastWashState", DoShower as int)
 		DirtyActor.AddSpell(PlayBathingAnimation, False)
 	Else
+		mzinUtil.Send_ResetActorDirt(DirtyActor, DoFullClean)
 		WashActorFinish(DirtyActor, WashProp, DoFullClean)
 	endIf
 
@@ -160,31 +163,42 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 	mzinInterfaceSexLab.ClearCum(Init.SL_API, DirtyActor)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor)
 	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
-
-	SendCleanDirtEvent(DirtyActor, DoFullClean)
-	SendBatheModEvent(DirtyActor as Form, DoPlayerTeammates)
+	
+	mzinUtil.Send_BatheEvent(DirtyActor as Form, DoPlayerTeammates)
 EndFunction
 
 Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFullClean = false)
 	if (DirtyActor == PlayerRef || DirtyActors.Find(DirtyActor) != -1) \
 	&& (DoFullClean || !DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell))
-		RemoveSpells(DirtyActor, SoapBonusSpellList)
-		RemoveSpells(DirtyActor, DirtinessSpellList)
-		RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
+		mzinUtil.RemoveSpells(DirtyActor, SoapBonusSpellList)
+		mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
 		If DoFullClean
-			UpdateActorDirtPercent(DirtyActor, 0.0)
 			ApplySoapBonus(DirtyActor, WashProp)
-			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
-		Else
-			UpdateActorDirtPercent(DirtyActor, (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
-			DirtyActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
 		EndIf
 	endIf
+EndFunction
 
-	if DirtyActor == PlayerRef
+Function ResetGDOTSpell(Actor targetActor, Float targetValue)
+	mzinUtil.RemoveSpells(targetActor, GetDirtyOverTimeSpellList)
+	Int index = 0
+	if targetValue != GetActorDirtPercent(targetActor)
+		UpdateActorDirtPercent(targetActor, targetValue)
+	endIf
+	targetActor.AddSpell(GetGDOTSpell(targetValue, GetDirtyOverTimeSpellList.GetSize()), False)
+	StorageUtil.SetFloatValue(targetActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
+	if targetActor == PlayerRef
 		RegisterHotKeys()
 	EndIf
+EndFunction
+
+Spell Function GetGDOTSpell(Float targetValue, int iMax, int iInit = 0)
+	While iInit < iMax
+		if targetValue <= (DirtinessThresholdList.GetAt(iInit) As GlobalVariable).GetValue()
+			return GetDirtyOverTimeSpellList.GetAt(iInit) As Spell
+		endIf
+		iInit += 1
+	EndWhile
+	return GetDirtyOverTimeSpellList.GetAt(iInit) As Spell
 EndFunction
 
 Function ApplySoapBonus(Actor DirtyActor, MiscObject WashProp)
@@ -208,14 +222,6 @@ Int Function GetSoapIndex(MiscObject WashProp)
 			return 0
 		EndIf
 	EndIf
-EndFunction
-
-Function RemoveSpells(Actor DirtyActor, FormList SpellsFormList)
-	Int Index = SpellsFormList.GetSize()
-	While Index
-		Index -= 1
-		DirtyActor.RemoveSpell(SpellsFormList.GetAt(Index) As Spell)	
-	EndWhile
 EndFunction
 
 MiscObject Function TryFindWashProp(Actor DirtyActor)
@@ -371,9 +377,9 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 		OlUtil.ClearDirtGameLoad(DirtyActor)
 	endIf
 
-	RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
-	RemoveSpells(DirtyActor, DirtinessSpellList)
-	RemoveSpells(DirtyActor, SoapBonusSpellList)
+	mzinUtil.RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
+	mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
+	mzinUtil.RemoveSpells(DirtyActor, SoapBonusSpellList)
 
 	DirtyActors.RemoveAddedForm(DirtyActor)
 
@@ -398,20 +404,10 @@ Function UpdateActorDirtPercent(Actor akActor, float afNewValue)
 	EndIf
 EndFunction
 
-Function SendCleanDirtEvent(Form akTarget, Bool UsedSoap)
-	int BiS_CleanActorDirtEvent = ModEvent.Create("BiS_CleanActorDirt_" + akTarget.GetFormID())
-    If (BiS_CleanActorDirtEvent)
-		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToClean)
-		ModEvent.PushFloat(BiS_CleanActorDirtEvent, Menu.TimeToCleanInterval)
-		ModEvent.PushBool(BiS_CleanActorDirtEvent, UsedSoap)
-        ModEvent.Send(BiS_CleanActorDirtEvent)
-    EndIf
-EndFunction
-
-Function SendBatheModEvent(Form akBatheActor, Bool abDoPlayerTeammates)
-    int BiS_BatheModEvent = ModEvent.Create("BiS_BatheEvent_" + akBatheActor.GetFormID())
-    If (BiS_BatheModEvent)
-        ModEvent.PushBool(BiS_BatheModEvent, abDoPlayerTeammates)
-        ModEvent.Send(BiS_BatheModEvent)
-    EndIf
+Float Function GetActorDirtPercent(Actor akActor)
+	If akActor == PlayerRef
+		return DirtinessPercentage.GetValue()
+	ElseIf DirtyActors.Find(akActor) != -1
+		StorageUtil.GetFloatValue(akActor, "BiS_Dirtiness")
+	EndIf
 EndFunction

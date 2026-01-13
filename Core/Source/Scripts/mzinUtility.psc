@@ -44,6 +44,14 @@ Int Function GameMessage(Message LogMessage, float afArg1 = 0.0, float afArg2 = 
     return 0
 EndFunction
 
+Function RemoveSpells(Actor targetActor, FormList SpellFormList)
+	Int SpellListIndex = SpellFormList.GetSize()
+	While SpellListIndex
+		SpellListIndex -= 1
+		targetActor.RemoveSpell(SpellFormList.GetAt(SpellListIndex) As Spell)	
+	EndWhile
+EndFunction
+
 Bool Function ExteriorHasKeyWordInList(Location[] ExteriorLocation, FormList KeyWordList)
 	if !ExteriorLocation
 		return false
@@ -261,4 +269,35 @@ Int Function GetDirtinessTier(Actor TargetActor, FormList TargetSpellList)
 			return DirtinessTierIndex
 		EndIf
 	EndWhile
+EndFunction
+
+Function Send_ResetActorDirt(Form akTarget, Bool UsedSoap)
+	int BiS_EventID = ModEvent.Create("BiS_ResetActorDirt_" + akTarget.GetFormID())
+    If (BiS_EventID)
+		ModEvent.PushFloat(BiS_EventID, Menu.TimeToClean)
+		ModEvent.PushFloat(BiS_EventID, Menu.TimeToCleanInterval)
+		ModEvent.PushBool(BiS_EventID, UsedSoap)
+        ModEvent.Send(BiS_EventID)
+	Else
+		ModEvent.Release(BiS_EventID)
+    EndIf
+EndFunction
+
+Function Send_BatheEvent(Form akBatheActor, Bool abDoPlayerTeammates)
+    int BiS_EventID = ModEvent.Create("BiS_BatheEvent_" + akBatheActor.GetFormID())
+    If (BiS_EventID)
+        ModEvent.PushBool(BiS_EventID, abDoPlayerTeammates)
+        ModEvent.Send(BiS_EventID)
+	Else
+		ModEvent.Release(BiS_EventID)
+    EndIf
+EndFunction
+
+Function Send_TargetedEvent(Form akTarget, String EventName)
+	int BiS_EventID = ModEvent.Create("BiS_" + EventName + "_" + akTarget.GetFormID())
+	If (BiS_EventID)
+		ModEvent.Send(BiS_EventID)
+	Else
+		ModEvent.Release(BiS_EventID)
+	EndIf
 EndFunction
