@@ -290,7 +290,6 @@ Function ModDirtState(Float ModChange, Float ModRate, Float ModThreshold = 0.0)
 	elseIf ModChange < LocalDirtinessPercentage
 		ModDirtState_Decrease(ModChange, (LocalDirtinessPercentage - ModChange) / ModRate, ModRate, ModThreshold)
 	endIf
-	RenewDirtSpell()
 EndFunction
 
 Function ModDirtState_Increase(Float ModTarget, Float ModIncrement, Float ModRate, Float ModThreshold)
@@ -305,6 +304,7 @@ Function ModDirtState_Increase(Float ModTarget, Float ModIncrement, Float ModRat
 		EndIf
 		Utility.Wait(ModRate)
 	EndWhile
+	RenewDirtSpell(false)
 EndFunction
 
 Function ModDirtState_Decrease(Float ModTarget, Float ModDecrement, Float ModRate, Float ModThreshold)
@@ -319,6 +319,7 @@ Function ModDirtState_Decrease(Float ModTarget, Float ModDecrement, Float ModRat
 		EndIf
 		Utility.Wait(ModRate)
 	EndWhile
+	RenewDirtSpell(true)
 EndFunction
 
 Function RunDirtCycleUpdate()
@@ -350,7 +351,7 @@ Function ApplyDirt()
 	RenewDirtSpell()
 EndFunction
 
-Int Function ApplyDirtSpell(bool abReverse = false)
+Int Function ApplyDirtSpell(bool abReverse)
 	if abReverse
 		Int Index = 0
 		While Index < DirtinessSpellList.GetSize() - 1
@@ -395,9 +396,9 @@ Function ApplyDirtLeadIn(Float targetAlpha)
 	EndIf
 EndFunction
 
-Function RenewDirtSpell()
+Function RenewDirtSpell(bool abReverse = false)
 	BatheQuest.UpdateActorDirtPercent(DirtyActor, LocalDirtinessPercentage)
-	ApplyDirtSpell()
+	ApplyDirtSpell(abReverse)
 	ApplyDirtLeadIn(Menu.StartingAlpha)
 EndFunction
 
