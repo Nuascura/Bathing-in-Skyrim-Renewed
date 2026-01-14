@@ -294,6 +294,9 @@ Function Send_BatheEvent(Form akBatheActor, Bool abDoPlayerTeammates)
 EndFunction
 
 Function Send_TargetedEvent(Form akTarget, String EventName)
+	; Possible strings:
+		; BiS_UpdateAlpha_
+		; BiS_BatheEvent_
 	int BiS_EventID = ModEvent.Create("BiS_" + EventName + "_" + akTarget.GetFormID())
 	If (BiS_EventID)
 		ModEvent.Send(BiS_EventID)

@@ -82,6 +82,21 @@ Function UpdateAlpha(Actor akTarget, Float Alpha)
 	EndWhile
 EndFunction
 
+String Function GetLastNode(Actor akTarget, Int aiArea)
+	String Node
+	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
+	String MatchString = (StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix") + "DirtFX" + Areas[aiArea] + ".dds")
+	Int i = GetNumSlots(Areas[aiArea])
+	While i > 0
+		i -= 1
+		Node = Areas[aiArea] + " [ovl" + i + "]"
+		If NiOverride.GetNodeOverrideString(akTarget, Gender, Node, 9, 0) == MatchString
+			return Node
+		EndIf
+	EndWhile
+	Return ""
+EndFunction
+
 Int Function GetEmptySlot(Actor akTarget, Bool Gender, String Area)
 	Int i = GetNumSlots(Area)
 	String TexPath
@@ -140,9 +155,10 @@ Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all s
 		i += 1
 	EndWhile
 	NiOverride.ApplyNodeOverrides(akTarget)
+	StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
 EndFunction
 
-Function ClearDirt(Actor akTarget) ; Clears the first dirt overlay it finds from each overlay area - faster
+Function ClearDirt(Actor akTarget, Bool UnsetPrefix) ; Clears the first dirt overlay it finds from each overlay area - faster
 	mzinUtil.LogTrace("Clearing dirt from " + akTarget.GetBaseObject().GetName())
 	;StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
@@ -170,7 +186,9 @@ Function ClearDirt(Actor akTarget) ; Clears the first dirt overlay it finds from
 		i += 1
 	EndWhile
 	NiOverride.ApplyNodeOverrides(akTarget)
-	StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
+	if UnsetPrefix
+		StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
+	endIf
 EndFunction
 
 Function RemoveOverlay(Actor akTarget, Bool Gender, String Node)
@@ -185,14 +203,15 @@ Function RemoveOverlay(Actor akTarget, Bool Gender, String Node)
 	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 3, -1)
 EndFunction
 
-Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint)
-	ClearDirt(akTarget)
+Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint, Bool UnsetPrefix = true)
+	ClearDirt(akTarget, UnsetPrefix)
 	BeginOverlay(akTarget, Alpha, Tint)
 EndFunction
 
-Function SendAlphaUpdateEvent(Form akTarget)
-    int BiS_UpdateAlphaModEvent = ModEvent.Create("BiS_UpdateAlpha_" + akTarget.GetFormID())
-    If (BiS_UpdateAlphaModEvent)
-        ModEvent.Send(BiS_UpdateAlphaModEvent)
-    EndIf
+Function ReapplyDirt(Actor akTarget)
+	String Node = GetLastNode(akTarget, 0)
+	ApplyDirt(akTarget, \
+	NiOverride.GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 8, -1), \
+	NiOverride.GetNodeOverrideInt(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 7, -1), \
+	false)
 EndFunction

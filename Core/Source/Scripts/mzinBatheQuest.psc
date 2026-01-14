@@ -171,7 +171,6 @@ Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFu
 	if (DirtyActor == PlayerRef || DirtyActors.Find(DirtyActor) != -1) \
 	&& (DoFullClean || !DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell))
 		mzinUtil.RemoveSpells(DirtyActor, SoapBonusSpellList)
-		mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
 		If DoFullClean
 			ApplySoapBonus(DirtyActor, WashProp)
 		EndIf
@@ -179,6 +178,7 @@ Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFu
 EndFunction
 
 Function ResetGDOTSpell(Actor targetActor, Float targetValue)
+	mzinUtil.RemoveSpells(targetActor, DirtinessSpellList)
 	mzinUtil.RemoveSpells(targetActor, GetDirtyOverTimeSpellList)
 	Int index = 0
 	if targetValue != GetActorDirtPercent(targetActor)
@@ -375,6 +375,8 @@ EndFunction
 Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	if abRemoveOverlays
 		OlUtil.ClearDirtGameLoad(DirtyActor)
+	else
+		StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 	endIf
 
 	mzinUtil.RemoveSpells(DirtyActor, GetDirtyOverTimeSpellList)
@@ -385,7 +387,6 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
-	StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 	StorageUtil.UnSetFormValue(DirtyActor, "mzin_LastWashProp")
 	StorageUtil.UnSetIntValue(DirtyActor, "mzin_LastWashState")
 
