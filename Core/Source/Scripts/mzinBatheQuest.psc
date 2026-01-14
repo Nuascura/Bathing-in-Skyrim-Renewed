@@ -51,15 +51,15 @@ Function RegForEvents()
 	RegisterForModEvent("BiS_WashActorFinish", "OnBiS_WashActorFinish")
 EndFunction
 
-Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp, Bool abDoShower, bool abDoPlayerTeammates = false, Bool abDoAnimate = false, Bool abFullClean = false, Bool abDoSoap = false)
+Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp = none, Bool abDoShower = false, bool abDoPlayerTeammates = false, Bool abDoAnimate = false, Bool abFullClean = false)
 	If akDirtyActor as Actor
-		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, abDoShower, abDoPlayerTeammates, abDoAnimate, abFullClean, abDoSoap)
+		WashActor(akDirtyActor as Actor, akWashProp as MiscObject, abDoShower, abDoPlayerTeammates, abDoAnimate, abFullClean)
 	Else
 		mzinUtil.LogTrace("OnBiS_WashActor(): Received invalid actor: " + akDirtyActor)
 	EndIf
 EndEvent
 
-Event OnBiS_WashActorFinish(Form akBathingActor, Form akWashProp, Bool abFullClean = false)
+Event OnBiS_WashActorFinish(Form akBathingActor, Form akWashProp = none, Bool abFullClean = false)
 	If akBathingActor as Actor
 		WashActorFinish(akBathingActor as Actor, akWashProp as MiscObject, abFullClean)
 	Else
@@ -121,7 +121,7 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 	return false
 EndFunction
 
-Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false, Bool DoPlayerTeammates = false, Bool DoAnimate = true, Bool DoFullClean = false, Bool DoSoap = false)
+Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower = false, Bool DoPlayerTeammates = false, Bool DoAnimate = true, Bool DoFullClean = false)
 	mzinUtil.Send_TargetedEvent(DirtyActor, "PauseActorDirt")
 
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
@@ -130,11 +130,12 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0)
 	EndIf
 
+	If WashProp && WashProp.HasKeyWord(SoapKeyword) && DirtyActor.GetItemCount(WashProp) > 0
+		DirtyActor.RemoveItem(WashProp, 1, True, None)
+		DoFullClean = True
+	EndIf
+
 	if DoAnimate && !(DirtyActor.IsSwimming() || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor))
-		If WashProp && WashProp.HasKeyWord(SoapKeyword)
-			DoFullClean = true
-			DirtyActor.RemoveItem(WashProp, 1, True, None)
-		EndIf
 		if DirtyActorIsPlayer
 			If DoShower
 				if DoFullClean
@@ -154,16 +155,15 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp, Bool DoShower = false,
 		StorageUtil.SetIntValue(DirtyActor, "mzin_LastWashState", DoShower as int)
 		DirtyActor.AddSpell(PlayBathingAnimation, False)
 	Else
-		mzinUtil.Send_ResetActorDirt(DirtyActor, DoFullClean)
 		WashActorFinish(DirtyActor, WashProp, DoFullClean)
 	endIf
 
+	mzinUtil.Send_ResetActorDirt(DirtyActor, DoFullClean)
 	DirtyActor.ClearExtraArrows()
 	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
 	mzinInterfaceSexLab.ClearCum(Init.SL_API, DirtyActor)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor)
 	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
-	
 	mzinUtil.Send_BatheEvent(DirtyActor as Form, DoPlayerTeammates)
 EndFunction
 

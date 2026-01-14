@@ -45,8 +45,6 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	IsShowering = StorageUtil.PluckIntValue(BathingActor, "mzin_LastWashState") as Bool
 	WashProp = StorageUtil.PluckFormValue(BathingActor, "mzin_LastWashProp") as MiscObject
 	WashPropIsSoap = (WashProp && WashProp.HasKeyWord(SoapKeyword))
-
-	mzinUtil.Send_ResetActorDirt(BathingActor, WashPropIsSoap)
 	
 	GoToState("StartSequence")
 EndEvent
