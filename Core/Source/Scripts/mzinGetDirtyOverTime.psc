@@ -156,22 +156,28 @@ Event OnBiS_ResetActorDirt(Float TimeToClean, Float TimeToCleanInterval, Bool Us
 EndEvent
 
 Event OnBiS_PauseActorDirt()
-	If GetState() == ""
-		GoToState("PAUSED")
+	If GetState() != ""
+		Return
 	EndIf
+	GoToState("PAUSED")
 EndEvent
 
 Event OnBiS_ResumeActorDirt()
-	If GetState() == "PAUSED"
-		GoToState("")
-		RegisterForSingleUpdate(0.5)
+	If GetState() != "PAUSED"
+		Return
 	EndIf
+	GoToState("")
+	RegisterForSingleUpdate(0.5)
 EndEvent
 
-Event OnBiS_ModActorDirt(Float afTargetLevel, Float afModRate)
-	If GetState() == ""
-		ModDirtState(afTargetLevel, afModRate)
+Event OnBiS_ModActorDirt(Float afTargetLevel, Float afModRate, Float afModThreshold, Bool abPushUpdate)
+	If GetState() != ""
+		Return
 	EndIf
+	GoToState("PAUSED")
+	ModDirtState(afTargetLevel, afModRate, afModThreshold)
+	GoToState("")
+	RegisterForSingleUpdate(0.5)
 EndEvent
 
 ; ---------- Common Functions ----------
@@ -276,7 +282,7 @@ Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanI
 	EndWhile
 EndFunction
 
-Function ModDirtState(Float ModChange, Float ModRate, Float ModThreshold = 0.0)
+Function ModDirtState(Float ModChange, Float ModRate, Float ModThreshold)
 	; Lowers or raises the dirt percentage and overlay alpha of a target actor
 
 	If !ModRate
