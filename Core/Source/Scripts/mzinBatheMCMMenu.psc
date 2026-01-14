@@ -476,9 +476,9 @@ Function DisplaySettingsPage()
 	DirtinessPerHourDungeonSliderID = AddSliderOption("$BIS_L_IN_DUNGEONS", DirtinessPerHourDungeon.GetValue() * 100, DisplayFormatPercentage)
 	DirtinessPerHourWildernessSliderID = AddSliderOption("$BIS_L_IN_WILDERNESS", DirtinessPerHourWilderness.GetValue() * 100, DisplayFormatPercentage)
 	AddHeaderOption("$BIS_HEADER_DIRT_THRESHOLDS")
-	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_DIRTY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	AddHeaderOption("$BIS_HEADER_OVERLAYS")
 	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY_{}")
 	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DisplayFormatPercentage)
@@ -772,14 +772,14 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 		DirtinessPerHourWilderness.SetValue(0.015)
 		SetSliderOptionValue(OptionID, DirtinessPerHourWilderness.GetValue() * 100, DisplayFormatPercentage)
 	ElseIf OptionID == DirtinessThresholdTier1SliderID
-		(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(0.20)
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	ElseIf OptionID == DirtinessThresholdTier2SliderID
-		(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(0.60)
+		(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(0.20)
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	ElseIf OptionID == DirtinessThresholdTier2SliderID
+		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(0.60)
+		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
-		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(0.98)
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)	
+		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(0.98)
+		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)	
 	ElseIf OptionID == OverlayTintOID_C
 		OverlayTint = 0xFFFFFF
 		SetColorOptionValue(OptionID, 0xFFFFFF)
@@ -1458,8 +1458,8 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		SliderValue = OptionValue / 100.0
 
 		; clamp threshold
-		If SliderValue > (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
-			SliderValue = (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
+		If SliderValue > (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
+			SliderValue = (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
 		EndIf
 		
 		(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(SliderValue)
@@ -1470,13 +1470,13 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		SliderValue = OptionValue / 100.0
 
 		; clamp threshold
-		If SliderValue > (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
-			SliderValue = (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
-		ElseIf SliderValue < (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue()
-			SliderValue = (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue()
+		If SliderValue > (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue()
+			SliderValue = (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue()
+		ElseIf SliderValue < (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
+			SliderValue = (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
 		EndIf
 
-		(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(SliderValue)
+		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(SliderValue)
 		
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 	
@@ -1484,11 +1484,11 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		SliderValue = OptionValue / 100.0
 
 		; clamp threshold
-		If SliderValue < (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
-			SliderValue = (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
+		If SliderValue < (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
+			SliderValue = (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
 		EndIf
 	
-		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(SliderValue)
+		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(SliderValue)
 	
 	ElseIf OptionID == OverlayApplyAtOID_S
 		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
@@ -1723,23 +1723,23 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(20.0)
-		SliderValue = ((DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue() * 100.0)
+		SliderValue = ((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier2SliderID
 		DisplayFormat = DisplayFormatPercentage
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(60.0)
-		SliderValue = ((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100.0)
+		SliderValue = ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		DisplayFormat = DisplayFormatPercentage
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(98.0)
-		SliderValue = ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0)
+		SliderValue = ((DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == OverlayApplyAtOID_S
 		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
 		SetSliderDialogDefaultValue(40.0)
-		SetSliderDialogRange(0.0, ((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100.0))
+		SetSliderDialogRange(0.0, ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0))
 		SetSliderDialogInterval(1.0)
 		SliderValue = OverlayApplyAt * 100.0	
 	ElseIf OptionID == StartingAlphaOID_S
@@ -1960,9 +1960,9 @@ Bool Function SavePapyrusSettings()
 	SetFloatValue(config, "DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue())
 	SetFloatValue(config, "DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue())
 	
-	SetFloatValue(config, "DirtinessThreshold0", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
 	SetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue())
 	SetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue())
+	SetFloatValue(config, "DirtinessThreshold3", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue())
 	
 	SetIntValue(config, "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue() as int)
 	SetIntValue(config, "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue() as int)
@@ -2064,9 +2064,9 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	DirtinessPerHourDungeon.SetValue(GetFloatValue(config, "DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue()))
 	DirtinessPerHourWilderness.SetValue(GetFloatValue(config, "DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue()))
 	
-	(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold0", (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue()))
-	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()))
-	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold0", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue()))
 	
 	(BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue() as int))
 	(BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue() as int))
