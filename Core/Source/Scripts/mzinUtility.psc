@@ -298,9 +298,7 @@ Function Send_TargetedEvent(Form akTarget, String EventName)
 		; BiS_UpdateAlpha_
 		; BiS_BatheEvent_
 	int BiS_EventID = ModEvent.Create("BiS_" + EventName + "_" + akTarget.GetFormID())
-	If (BiS_EventID)
-		ModEvent.Send(BiS_EventID)
-	Else
+	If !(BiS_EventID && ModEvent.Send(BiS_EventID))
 		ModEvent.Release(BiS_EventID)
 	EndIf
 EndFunction
