@@ -1,6 +1,8 @@
 ScriptName mzinBatheQuest Extends Quest
 { this script handles some functions needed by other scripts }
 
+import PO3_SKSEFunctions
+
 mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinOverlayUtility Property OlUtil Auto
@@ -135,7 +137,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower =
 		DoFullClean = True
 	EndIf
 
-	if DoAnimate && !(DirtyActor.IsSwimming() || PO3_SKSEfunctions.IsActorUnderwater(DirtyActor))
+	if DoAnimate && !IsSubmerged(DirtyActor)
 		if DirtyActorIsPlayer
 			If DoShower
 				if DoFullClean
@@ -228,7 +230,7 @@ MiscObject Function TryFindWashProp(Actor DirtyActor)
 	Keyword[] kwWashPropValid = new Keyword[2]
 	kwWashPropValid[0] = SoapKeyword
 	kwWashPropValid[1] = WashPropKeyword
-	Form[] MiscObjects = PO3_SKSEfunctions.AddItemsOfTypeToArray(DirtyActor, 32)
+	Form[] MiscObjects = AddItemsOfTypeToArray(DirtyActor, 32)
 	Form[] WashPropArray = SPE_Utility.FilterFormsByKeyword(MiscObjects, kwWashPropValid, true, false)
 	if WashPropArray
 		return WashPropArray[Utility.RandomInt(0, WashPropArray.Length)] as MiscObject
@@ -241,7 +243,7 @@ Bool Function IsInWater(Actor DirtyActor)
 	if Init.IsWadeInWaterInstalled
 		return !(WaterRestrictionEnabled.GetValue() As Bool) || DirtyActor.HasMagicEffect(Init.LokiWaterSlowdownEffect)
 	else
-		return !(WaterRestrictionEnabled.GetValue() As Bool) || PO3_SKSEfunctions.IsActorInWater(DirtyActor)
+		return !(WaterRestrictionEnabled.GetValue() As Bool) || IsActorInWater(DirtyActor)
 	endIf
 EndFunction
 
@@ -358,6 +360,10 @@ Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 		EndIf
 	EndIf
 	Return False
+EndFunction
+
+Bool Function IsSubmerged(Actor akTarget)
+	Return (akTarget.IsSwimming() || IsActorUnderwater(akTarget))
 EndFunction
 
 Actor Function GetGawker(Actor akActor)

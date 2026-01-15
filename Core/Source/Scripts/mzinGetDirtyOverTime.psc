@@ -378,6 +378,10 @@ Function RunDirtCycleUpdate()
 EndFunction
 
 Function ApplyDirt()
+	If BatheQuest.IsSubmerged(DirtyActor)
+		Return
+	EndIf
+
 	Float HoursPassed = (GameDaysPassed.GetValue() - LocalLastUpdateTime) * 24
 	Float DirtPerHour = GetDirtPerHour()
 
