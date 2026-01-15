@@ -150,8 +150,8 @@ Event OnBiS_ResetActorDirt(Float TimeToClean, Float TimeToCleanInterval, Bool Us
 		ResetDirtState(0.0, TimeToClean, TimeToCleanInterval)
 		BatheQuest.ResetGDOTSpell(DirtyActor, 0.0)
 	else
-		ResetDirtState((DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue(), TimeToClean, TimeToCleanInterval)
-		BatheQuest.ResetGDOTSpell(DirtyActor, (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue())
+		ResetDirtState((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue(), TimeToClean, TimeToCleanInterval)
+		BatheQuest.ResetGDOTSpell(DirtyActor, (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue())
 	endIf
 EndEvent
 
