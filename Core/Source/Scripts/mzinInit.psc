@@ -15,6 +15,7 @@ Bool Property IsFrostFallInstalled = false Auto Hidden
 Bool Property IsOCumInstalled = false Auto Hidden
 Bool Property IsOStimInstalled = false Auto Hidden
 
+Keyword Property BatheIgnoreItem Auto
 Keyword Property zad_DeviousHeavyBondage Auto Hidden
 Keyword Property zad_DeviousSuit Auto Hidden
 
@@ -127,12 +128,13 @@ Int Function DoSoftCheck()
 EndFunction
 
 Function SetInternalVariables()
-	KeywordIgnoreItem = new Keyword[5]
-	KeywordIgnoreItem[0] = Keyword.GetKeyword("zad_QuestItem")
-	KeywordIgnoreItem[1] = Keyword.GetKeyword("zad_Lockable")
-	KeywordIgnoreItem[2] = Keyword.GetKeyword("zad_InventoryDevice")
-	KeywordIgnoreItem[3] = Keyword.GetKeyword("zbfWornDevice")
-	KeywordIgnoreItem[4] = Keyword.GetKeyword("SexLabNoStrip")
+	KeywordIgnoreItem = new Keyword[6]
+	KeywordIgnoreItem[0] = BatheIgnoreItem
+	KeywordIgnoreItem[1] = Keyword.GetKeyword("zad_QuestItem")
+	KeywordIgnoreItem[2] = Keyword.GetKeyword("zad_Lockable")
+	KeywordIgnoreItem[3] = Keyword.GetKeyword("zad_InventoryDevice")
+	KeywordIgnoreItem[4] = Keyword.GetKeyword("zbfWornDevice")
+	KeywordIgnoreItem[5] = Keyword.GetKeyword("SexLabNoStrip")
 
 	If IsWadeInWaterInstalled
 		If Game.GetModByName("WadeInWater.esp") != 255
