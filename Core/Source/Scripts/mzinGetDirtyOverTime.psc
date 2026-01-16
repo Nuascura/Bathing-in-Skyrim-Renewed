@@ -76,7 +76,7 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	EndIf
 
 	BatheQuest.UpdateActorDirtPercent(Target, LocalDirtinessPercentage)
-	CheckAlpha()
+	ProgressAlpha()
 	
 	Float LastUpdate = StorageUtil.GetFloatValue(DirtyActor, "BiS_LastUpdate", -100.0)
 	Float CurrentGameTime = GameDaysPassed.GetValue()
@@ -131,7 +131,7 @@ EndEvent
 ; ---------- Mod Events ----------
 
 Event OnBiS_UpdateAlpha()
-	CheckAlpha()
+	ProgressAlpha()
 EndEvent
 
 Event OnBiS_UpdateActorsAll()
@@ -393,47 +393,57 @@ Function ApplyDirt()
 		LocalDirtinessPercentage = 1.0
 	EndIf
 
-	CheckAlpha()
+	ProgressAlpha()
 	RenewDirtSpell()
 EndFunction
 
-Int Function ApplyDirtSpell(bool abReverse)
-	if abReverse
-		Int Index = 0
-		While Index < DirtinessSpellList.GetSize() - 1
-			If LocalDirtinessPercentage < (DirtinessThresholdList.GetAt(Index) As GlobalVariable).GetValue()
-				if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
-					Return 0
-				else
-					If DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index + 1) As Spell) && DirtyActorIsPlayer
-						mzinUtil.GameMessage(ExitTierMessageList.GetAt(Index + 1) As Message)
-					EndIf
-					mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
-					DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
-					Return Index
-				endIf
-			EndIf
-			Index += 1
-		EndWhile
-	else
-		Int Index = DirtinessSpellList.GetSize()
-		While Index > 0
-			Index -= 1
-			If LocalDirtinessPercentage >= (DirtinessThresholdList.GetAt(Index - 1) As GlobalVariable).GetValue()
-				if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
-					Return 0
-				else
-					mzinUtil.RemoveSpells(DirtyActor, SoapBonusSpellList)
-					mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
-					If DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False) && DirtyActorIsPlayer
-						mzinUtil.GameMessage(EnterTierMessageList.GetAt(Index) As Message)
-					EndIf
-					Return Index
-				endIf
-			EndIf
-		EndWhile
-	endIf
+Int Function GetCurrentDirtSpellIndex(Int Index, Int Constraint)
+	While Index <= Constraint
+		If DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
+			Return Index
+		EndIf
+		Index += 1
+	EndWhile
 	Return -1
+EndFunction
+
+Bool Function RegressDirtSpell()
+	Int Index = 0
+	While Index < DirtinessSpellList.GetSize() - 1
+		If LocalDirtinessPercentage < (DirtinessThresholdList.GetAt(Index + 1) As GlobalVariable).GetValue()
+			if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
+				Return True
+			else
+				If DirtyActorIsPlayer
+					mzinUtil.GameMessage(ExitTierMessageList.GetAt(GetCurrentDirtSpellIndex(Index + 1, DirtinessSpellList.GetSize())) As Message)
+				EndIf
+				mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
+				Return DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
+			endIf
+		EndIf
+		Index += 1
+	EndWhile
+	Return False
+EndFunction
+
+Bool Function ProgressDirtSpell()
+	Int Index = DirtinessSpellList.GetSize()
+	While Index > 0
+		Index -= 1
+		If LocalDirtinessPercentage >= (DirtinessThresholdList.GetAt(Index) As GlobalVariable).GetValue()
+			if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
+				Return True
+			else
+				mzinUtil.RemoveSpells(DirtyActor, SoapBonusSpellList)
+				mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
+				If DirtyActorIsPlayer
+					mzinUtil.GameMessage(EnterTierMessageList.GetAt(Index) As Message)
+				EndIf
+				Return DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
+			endIf
+		EndIf
+	EndWhile
+	Return False
 EndFunction
 
 Function ApplyDirtLeadIn(Float targetAlpha)
@@ -442,10 +452,14 @@ Function ApplyDirtLeadIn(Float targetAlpha)
 	EndIf
 EndFunction
 
-Function RenewDirtSpell(bool abReverse = false)
+Function RenewDirtSpell(bool abRegress = false)
 	BatheQuest.UpdateActorDirtPercent(DirtyActor, LocalDirtinessPercentage)
-	ApplyDirtSpell(abReverse)
 	ApplyDirtLeadIn(Menu.StartingAlpha)
+	if abRegress
+		RegressDirtSpell()
+	else
+		ProgressDirtSpell()
+	endIf
 EndFunction
 
 Float Function GetDirtPerHour()
@@ -465,7 +479,7 @@ Float Function GetDirtPerHour()
 	return DirtinessPerHourWilderness.GetValue() ; default case
 EndFunction
 
-Function CheckAlpha()
+Function ProgressAlpha()
 	if (StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") != "")
 		Float Alpha = Menu.StartingAlpha + (LocalDirtinessPercentage * LocalDirtinessPercentage * LocalDirtinessPercentage)
 		If Alpha > 1.0
@@ -575,7 +589,7 @@ State Animation_SexLab
 	Event OnUpdate()
 		if LocalDirtinessPercentage != 1.0
 			IncrementDirtFromSex(SexDirt / Menu.SexIntervalDirt)
-			CheckAlpha()
+			ProgressAlpha()
 			RegisterForSingleUpdate(Menu.SexInterval)
 		endIf
 	EndEvent
@@ -598,7 +612,7 @@ State Animation_OStim
 	Event OnUpdate()
 		if LocalDirtinessPercentage < 1.0
 			IncrementDirtFromSex(SexDirt / Menu.SexIntervalDirt)
-			CheckAlpha()
+			ProgressAlpha()
 			if mzinAnimationInProcList.HasForm(DirtyActor)
 				RegisterForSingleUpdate(Menu.SexInterval)
 			endIf
