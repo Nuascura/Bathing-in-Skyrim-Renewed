@@ -291,15 +291,19 @@ Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanI
 	EndIf
 	
 	Bool BreakCondition = !(DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword))
-	Float DirtToClean = ((LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval))
+	Float DirtToClean = (LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval)
 	if (StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") == "") || !(DirtToClean > 0)
 		return
 	endIf
 	
 	Utility.Wait(3.0)
 
-	While (LocalDirtinessPercentage > TargetLevel) || (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
-		LocalDirtinessPercentage -= DirtToClean
+	While (LocalDirtinessPercentage != TargetLevel) || (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
+		if TargetLevel > LocalDirtinessPercentage - DirtToClean
+			LocalDirtinessPercentage = TargetLevel
+		Else
+			LocalDirtinessPercentage -= DirtToClean
+		endIf
 		OlUtil.UpdateAlpha(DirtyActor, LocalDirtinessPercentage)
 		Utility.Wait(TimeToCleanInterval)
 	EndWhile
@@ -333,7 +337,11 @@ Function ModDirtState_Increase(Float ModTarget, Float ModIncrement, Float ModRat
 		ModThreshold = Menu.OverlayApplyAt
 	EndIf
 	While LocalDirtinessPercentage < ModTarget
-		LocalDirtinessPercentage += ModIncrement
+		If ModTarget > LocalDirtinessPercentage + ModIncrement
+			LocalDirtinessPercentage = ModTarget
+		Else
+			LocalDirtinessPercentage += ModIncrement
+		EndIf
 		If bFlag
 			OlUtil.UpdateAlpha(DirtyActor, LocalDirtinessPercentage)
 		ElseIf LocalDirtinessPercentage >= ModThreshold
@@ -352,7 +360,11 @@ Function ModDirtState_Decrease(Float ModTarget, Float ModDecrement, Float ModRat
 		ModThreshold = Menu.OverlayApplyAt
 	EndIf
 	While LocalDirtinessPercentage > ModTarget
-		LocalDirtinessPercentage -= ModDecrement
+		If ModTarget < LocalDirtinessPercentage - ModDecrement
+			LocalDirtinessPercentage = ModTarget
+		Else
+			LocalDirtinessPercentage -= ModDecrement
+		EndIf
 		If LocalDirtinessPercentage < ModThreshold
 			OlUtil.ClearDirt(DirtyActor, true)
 			bFlag = !bFlag
