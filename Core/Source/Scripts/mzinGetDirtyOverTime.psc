@@ -162,7 +162,6 @@ Event OnBiS_ResumeActorDirt()
 		Return
 	EndIf
 	GoToState("")
-	RegisterForSingleUpdate(0.5)
 EndEvent
 
 Event OnBiS_ModActorDirt(Float afModAmount, Float afModRate, Float afModThreshold, Bool abAutoResume)
@@ -173,7 +172,6 @@ Event OnBiS_ModActorDirt(Float afModAmount, Float afModRate, Float afModThreshol
 	ModDirtState(afModAmount, afModRate, afModThreshold)
 	if abAutoResume
 		GoToState("")
-		RegisterForSingleUpdate(0.5)
 	endIf
 EndEvent
 
@@ -185,7 +183,6 @@ Event OnBiS_IncreaseActorDirt(Float afTargetLevel, Float afModRate, Float afModT
 	ModDirtState_Increase(afTargetLevel, (afTargetLevel - LocalDirtinessPercentage) / afModRate, afModRate, afModThreshold)
 	if abAutoResume
 		GoToState("")
-		RegisterForSingleUpdate(0.5)
 	endIf
 EndEvent
 
@@ -197,7 +194,6 @@ Event OnBiS_DecreaseActorDirt(Float afTargetLevel, Float afModRate, Float afModT
 	ModDirtState_Decrease(afTargetLevel, (LocalDirtinessPercentage - afTargetLevel) / afModRate, afModRate, afModThreshold)
 	if abAutoResume
 		GoToState("")
-		RegisterForSingleUpdate(0.5)
 	endIf
 EndEvent
 
@@ -275,6 +271,7 @@ State PAUSED
 	Event OnBiS_UpdateActorsAll()
 	EndEvent
 	Event OnEndState()
+		RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
 	EndEvent
 EndState
 
