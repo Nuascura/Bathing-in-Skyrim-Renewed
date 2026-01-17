@@ -18,7 +18,7 @@ State Condition_Swimming
         targetEvent = Create("BiS_DecreaseActorDirt_" + targetActor.GetFormID())
         If targetEvent
             PushFloat(targetEvent, targetTier.GetValue())
-            PushFloat(targetEvent, 2.0)
+            PushFloat(targetEvent, 4.2)
             PushFloat(targetEvent, 0.0)
             PushBool(targetEvent, true)
             Send(targetEvent)
