@@ -290,16 +290,16 @@ Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanI
 		TimeToClean = TimeToCleanInterval
 	EndIf
 	
-	Bool BreakCondition = !(DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword))
-	Float DirtToClean = (LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval)
+	Bool BreakCondition = DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
+	Float DirtToClean = ((LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval))
 	if (StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") == "") || !(DirtToClean > 0)
 		return
 	endIf
 	
 	Utility.Wait(3.0)
 
-	While (LocalDirtinessPercentage != TargetLevel) || (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
-		if TargetLevel > LocalDirtinessPercentage - DirtToClean
+	While (LocalDirtinessPercentage != TargetLevel) && (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
+		if TargetLevel > (LocalDirtinessPercentage - DirtToClean)
 			LocalDirtinessPercentage = TargetLevel
 		Else
 			LocalDirtinessPercentage -= DirtToClean
@@ -331,13 +331,13 @@ Function ModDirtState(Float ModAmount, Float ModRate, Float ModThreshold)
 EndFunction
 
 Function ModDirtState_Increase(Float ModTarget, Float ModIncrement, Float ModRate, Float ModThreshold)
-	Bool bFlag = StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "")
+	Bool bFlag = StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 
 	If !(ModThreshold as int)
 		ModThreshold = Menu.OverlayApplyAt
 	EndIf
-	While LocalDirtinessPercentage < ModTarget
-		If ModTarget > LocalDirtinessPercentage + ModIncrement
+	While LocalDirtinessPercentage != ModTarget
+		If ModTarget > (LocalDirtinessPercentage + ModIncrement)
 			LocalDirtinessPercentage = ModTarget
 		Else
 			LocalDirtinessPercentage += ModIncrement
@@ -354,21 +354,28 @@ Function ModDirtState_Increase(Float ModTarget, Float ModIncrement, Float ModRat
 EndFunction
 
 Function ModDirtState_Decrease(Float ModTarget, Float ModDecrement, Float ModRate, Float ModThreshold)
-	Bool bFlag = StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "")
+	Bool bFlag = StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 
+	Debug.Trace("MZIN ModDirtState_Decrease: ModTarget ("+ModTarget+"), ModDecrement ("+ModDecrement+"), ModRate ("+ModRate+"), ModThreshold ("+ModThreshold+")")
+	
 	If !(ModThreshold as int)
 		ModThreshold = Menu.OverlayApplyAt
 	EndIf
-	While LocalDirtinessPercentage > ModTarget
-		If ModTarget < LocalDirtinessPercentage - ModDecrement
+
+	Debug.Trace("MZIN ModDirtState_Decrease: ModThreshold ("+ModThreshold+")")
+
+	While LocalDirtinessPercentage != ModTarget
+		If ModTarget < (LocalDirtinessPercentage - ModDecrement)
 			LocalDirtinessPercentage = ModTarget
 		Else
 			LocalDirtinessPercentage -= ModDecrement
 		EndIf
 		If LocalDirtinessPercentage < ModThreshold
+			Debug.Trace("MZIN ModDirtState_Decrease: cleared dirt at " + LocalDirtinessPercentage)
 			OlUtil.ClearDirt(DirtyActor, true)
 			bFlag = !bFlag
 		ElseIf bFlag
+			Debug.Trace("MZIN ModDirtState_Decrease: updated alpha at " + LocalDirtinessPercentage)
 			OlUtil.UpdateAlpha(DirtyActor, LocalDirtinessPercentage)
 		EndIf
 		Utility.Wait(ModRate)
