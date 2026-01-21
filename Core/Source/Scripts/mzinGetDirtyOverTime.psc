@@ -97,14 +97,14 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	EndIf
 EndEvent
 
-Event OnObjectEquipped(Form WashProp, ObjectReference WashPropReference)
-	If WashProp.HasKeyWord(WashPropKeyword) && !BatheQuest.IsRestricted(DirtyActor)
+Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
+	If akBaseObject.HasKeyWord(WashPropKeyword) && !BatheQuest.IsRestricted(DirtyActor)
 		if BatheQuest.IsInWater(DirtyActor)
 			CloseInventory()
-			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, false, DirtyActorIsPlayer)
+			BatheQuest.WashActor(DirtyActor, akBaseObject as MiscObject, false, DirtyActorIsPlayer)
 		elseIf BatheQuest.IsUnderWaterfall(DirtyActor)
 			CloseInventory()
-			BatheQuest.WashActor(DirtyActor, WashProp as MiscObject, true, DirtyActorIsPlayer)
+			BatheQuest.WashActor(DirtyActor, akBaseObject as MiscObject, true, DirtyActorIsPlayer)
 		endIf
 	EndIf
 EndEvent
@@ -260,7 +260,7 @@ State PAUSED
 	Event OnBeginState()
 		UnregisterEvents(false)
 	EndEvent
-	Event OnObjectEquipped(Form WashProp, ObjectReference WashPropReference)
+	Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 	EndEvent
 	Event OnUpdate()
 	EndEvent
@@ -621,6 +621,8 @@ State Animation_SexLab
 		SexTID = 0
 		RegisterForSingleUpdate(0.5)
 	EndEvent
+	Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
+	EndEvent
 EndState
 
 State Animation_OStim
@@ -645,6 +647,8 @@ State Animation_OStim
 		SexDirt = 0.0
 		SexTID = 0
 		RegisterForSingleUpdate(0.5)
+	EndEvent
+	Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 	EndEvent
 EndState
 
