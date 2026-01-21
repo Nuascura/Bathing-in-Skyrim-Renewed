@@ -1,3 +1,41 @@
+2.7.0
+Primary
+- Add: Option to auto hide UI (enabled by default).
+- Add: Option to skip item hash (disabled by default).
+- Add: General non-follower NPC shyness condition.
+- Add: Third-party soap detection.
+- Add: Automatically clear dirt while swimming.
+- Add: mzinBatheIgnoreItem keyword form; tag items with this keyword to prevent them from being removed, regardless of your equip slot settings.
+- Add: Dirt speck shader; texture by HanShotFirst.
+- Change: Allow non-animated manual bathing while swimming, if conditions don't satisfy for animated bathing.
+- Change: Move settings directory SKSE/Plugins/StorageUtilData/BathingInSkyrim to Interface/Bathing in Skyrim.
+- Change: Check shyness condition per follower during Automated Follower Bathing procedure.
+- Change: Detach dirt lead-in application from threshold tiers.
+- Change: Do not apply dirt while actor is submerged in water.
+- Fix: Improved Camera SE 2.0 beta compatibility when using IC's default first person mode.
+
+Secondary
+- Add: BiS_ModActorDirt, BiS_IncreaseActorDirt, and BiS_DecreaseActorDirt mod events.
+- Fix: Potential divide by zero error when calculating dirt fade.
+- Optimize: Bathing sequence mid-effect condition checks.
+- Optimize: Event send and reception; append target actor's FormID to event string rather than submit actor form as pushed form.
+- Optimize: Dirt application on game load and during gameplay.
+- Change: Run dirt fade parallel to and separate of bathing animation.
+- Change: Migrate helper functions from bathing MGEF script to Utility script for easy API access.
+- Change: Use EquipItemEx in absence of itemID.
+- Change: Disable movement only by player AI flag.
+- Change: Hide Tween Menu if able; workaround issues with persistent Tween Menu.
+- Change: Pre-cache array items under plugin properties rather than fill arrays in-script on-demand.
+- Change: Get random washprop rather than miscobject at index 0 if object is untargeted. 
+- Change: Adjust Dirt Percentage Threshold formlist consistency.
+- Change: Move batheplayeralias from MCM to Bathe Quest script.
+- Remove: Spell unequip when bathing.
+- Remove: mzinBatheQuest GetSoapy() GetUnsoapy().
+- Remove: Overlay MGEF scripts.
+- Update: Localization files.
+
+
+
 2.6.3.1
 Primary
 - Regress: Disable actor collision when bathing.
