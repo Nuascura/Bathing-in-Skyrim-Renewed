@@ -6,6 +6,8 @@ Bool IsConfigOpen = false
 import JsonUtil
 
 ; Modified
+mzinBathePlayerAlias Property BathePlayer Auto
+mzinBatheQuest Property BatheQuest Auto
 mzinTextureUtility Property TexUtil Auto
 mzinOverlayUtility Property OlUtil Auto
 mzinUtility Property mzinUtil Auto
@@ -62,7 +64,6 @@ GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property GetSoapyStyleFollowers Auto
 
 ; hotkey settings
-mzinBatheQuest Property BatheQuest Auto
 GlobalVariable Property CheckStatusKeyCode Auto
 GlobalVariable Property BatheKeyCode Auto
 GlobalVariable Property ModifierKeyCode Auto
@@ -794,11 +795,11 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	; hotkeys
 	ElseIf OptionID == CheckStatusKeyMapID
 		CheckStatusKeyCode.Value = 0
-		BatheQuest.RegisterHotKeys()
+		BathePlayer.RegisterHotKeys()
 		SetKeymapOptionValue(OptionID, CheckStatusKeyCode.Value as int)
 	ElseIf OptionID == BatheKeyMapID
 		BatheKeyCode.Value = 0
-		BatheQuest.RegisterHotKeys()
+		BathePlayer.RegisterHotKeys()
 		SetKeymapOptionValue(OptionID, BatheKeyCode.Value as int)
 	ElseIf OptionID == ModifierKeyMapID
 		ModifierKeyCode.Value = 0
@@ -1830,8 +1831,8 @@ Function EnableBathingInSkyrim(Bool abAutoLoad)
 	VersionUpdate()
 
 	BatheQuest.Start()
-	BatheQuest.RegisterHotKeys()
 	BatheQuest.RegForEvents()
+	BathePlayer.RegisterHotKeys()
 	mzinBatheFollowerDialogQuest.Start()
 
 	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)
@@ -2117,7 +2118,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	SkipItemHash = GetIntValue(config, "SkipItemHash", SkipItemHash as int)
 	
 	SetLocalArrays()
-	BatheQuest.RegisterHotKeys()
+	BathePlayer.RegisterHotKeys()
 
 	CorrectInvalidSettings()
 	

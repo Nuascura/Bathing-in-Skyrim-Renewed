@@ -12,10 +12,6 @@ GlobalVariable Property WaterRestrictionEnabled Auto
 GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property GetSoapyStyleFollowers Auto
 
-GlobalVariable Property BatheKeyCode Auto
-GlobalVariable Property ModifierKeyCode Auto
-GlobalVariable Property CheckStatusKeyCode Auto
-
 GlobalVariable Property DirtinessPercentage Auto
 
 GlobalVariable Property GameDaysPassed Auto
@@ -38,11 +34,9 @@ Spell Property PlayBathingAnimation Auto
 Message Property BathingNeedsWaterMessage Auto
 Message Property BathingWithSoapMessage Auto
 Message Property BathingWithoutSoapMessage Auto
+Message Property ShoweringNeedsWaterMessage Auto
 Message Property ShoweringWithSoapMessage Auto
 Message Property ShoweringWithoutSoapMessage Auto
-
-Message Property ShoweringNeedsWaterMessage Auto
-Message Property DirtinessStatusMessage Auto
 
 Actor Property PlayerRef Auto
 
@@ -68,38 +62,6 @@ Event OnBiS_WashActorFinish(Form akBathingActor, Form akWashProp = none, Bool ab
 		mzinUtil.LogTrace("OnBiS_WashActorFinish(): Received invalid actor: " + akBathingActor)
 	EndIf
 EndEvent
-
-Event OnKeyDown(Int KeyCode)
-	If Utility.IsInMenuMode() || SPE_Actor.GetPlayerSpeechTarget() || UI.IsTextInputEnabled()
-		return
-	EndIf
-	
-	UnregisterForAllKeys()
-	If KeyCode == CheckStatusKeyCode.GetValue() as int
-		mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
-	ElseIf KeyCode == BatheKeyCode.GetValue() as int
-		if Input.IsKeyPressed(ModifierKeyCode.GetValue() as int) 
-			if TryWashActor(PlayerRef, None, true, true)
-				return
-			endIf
-		else
-			if TryWashActor(PlayerRef, None, false, true)
-				return
-			endIf
-		endIf
-	EndIf
-	RegisterHotKeys()
-EndEvent
-
-Function RegisterHotKeys()
-	UnregisterForAllKeys()
-	If BatheKeyCode.GetValue() as int != 0
-		RegisterForKey(BatheKeyCode.GetValue() as int)
-	EndIf
-	If CheckStatusKeyCode.GetValue() as int != 0
-		RegisterForKey(CheckStatusKeyCode.GetValue() as int)
-	EndIf
-EndFunction
 
 Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = false, Bool PlayerTeammates = false)
 	If WashProp == None
@@ -190,9 +152,6 @@ Function ResetGDOTSpell(Actor targetActor, Float targetValue)
 	endIf
 	targetActor.AddSpell(GetGDOTSpell(targetValue, GetDirtyOverTimeSpellList.GetSize()), False)
 	StorageUtil.SetFloatValue(targetActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
-	if targetActor == PlayerRef
-		RegisterHotKeys()
-	EndIf
 EndFunction
 
 Spell Function GetGDOTSpell(Float targetValue, int iMax, int iInit = 0)

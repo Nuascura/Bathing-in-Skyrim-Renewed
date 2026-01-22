@@ -52,6 +52,7 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	DirtyActor = Target
 	DirtyActorIsPlayer = (Target == PlayerRef)
 	RegisterForEvents()
+	Send_GDOTStateChange()
 
 	Int InitialDirtinessTier = (Self.GetMagnitude() As Int)
 	If DirtyActorIsPlayer
@@ -254,10 +255,15 @@ Function CloseInventory()
 	EndIf
 EndFunction
 
+Function Send_GDOTStateChange(string StateName = "")
+	SendModEvent("BiS_GDOTStateChange_" + DirtyActor.GetFormID(), StateName)
+EndFunction
+
 ; ---------- Core States ----------
 
 State PAUSED
 	Event OnBeginState()
+		Send_GDOTStateChange("PAUSED")
 		UnregisterEvents(false)
 	EndEvent
 	Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
@@ -271,6 +277,7 @@ State PAUSED
 	Event OnBiS_UpdateActorsAll()
 	EndEvent
 	Event OnEndState()
+		Send_GDOTStateChange()
 		RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
 	EndEvent
 EndState
@@ -598,6 +605,7 @@ EndFunction
 
 State Animation_SexLab
 	Event OnBeginState()
+		Send_GDOTStateChange("Animation_SexLab")
 		UnregisterEvents(false)
 		if Menu.FadeDirtSex
 			mzinAnimationInProcList.AddForm(DirtyActor)
@@ -617,6 +625,7 @@ State Animation_SexLab
 		endIf
 	EndEvent
 	Event OnEndState()
+		Send_GDOTStateChange()
 		SexDirt = 0.0
 		SexTID = 0
 		RegisterForSingleUpdate(0.5)
@@ -627,6 +636,7 @@ EndState
 
 State Animation_OStim
 	Event OnBeginState()
+		Send_GDOTStateChange("Animation_OStim")
 		UnregisterEvents(false)
 	EndEvent
 	Event OnUpdate()
@@ -644,6 +654,7 @@ State Animation_OStim
 		endIf
 	EndEvent
 	Event OnEndState()
+		Send_GDOTStateChange()
 		SexDirt = 0.0
 		SexTID = 0
 		RegisterForSingleUpdate(0.5)

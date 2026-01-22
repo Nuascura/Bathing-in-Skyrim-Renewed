@@ -1,19 +1,28 @@
 ScriptName mzinBathePlayerAlias Extends ReferenceAlias
 
+mzinUtility Property mzinUtil Auto
 mzinBatheQuest Property BatheQuest Auto
 FormList Property DirtyActors Auto
 GlobalVariable Property AutomateFollowerBathing Auto
+GlobalVariable Property BatheKeyCode Auto
+GlobalVariable Property ModifierKeyCode Auto
+GlobalVariable Property CheckStatusKeyCode Auto
+GlobalVariable Property DirtinessPercentage Auto
+Message Property DirtinessStatusMessage Auto
 
 Actor Property PlayerRef Auto
 
 Event OnPlayerLoadGame() ; run only when mod is "enabled"
-	BatheQuest.RegisterHotKeys()
 	BatheQuest.RegForEvents()
+	RegisterHotKeys()
 
-	RegisterForModEvent("BiS_BatheEvent_" + PlayerRef.GetFormID(), "OnBiS_BatheEvent")
+	RegisterForModEvent("BiS_BatheEvent_" + PlayerRef.GetFormID(), "OnBiS_BatheEvent_Player")
+	RegisterForModEvent("BiS_GDOTStateChange_" + PlayerRef.GetFormID(), "OnBiS_GDOTStateChange_Player")
 EndEvent
 
-Event OnBiS_BatheEvent(Bool abArg)
+; ---------- Bathing Event ----------
+
+Event OnBiS_BatheEvent_Player(Bool abArg)
 	if abArg
 		Utility.Wait(1.0)
 		CycleTeammate(PO3_SKSEfunctions.GetPlayerFollowers(), BatheQuest.GetGawker(PlayerRef))
@@ -45,5 +54,58 @@ Function TryWashTeammate(Actor akTarget, Actor akGawker)
 		ElseIf BatheQuest.IsUnderWaterfall(akTarget)
 			BatheQuest.WashActor(akTarget, WashProp, DoShower = true)
 		EndIf
+	EndIf
+EndFunction
+
+; ---------- Hotkey Event ----------
+
+Event OnBiS_GDOTStateChange_Player(string eventName, string strArg, float numArg, Form sender)
+	if strArg
+		GoToState("PauseKeyCheck")
+	endIf
+EndEvent
+
+State PauseKeyCheck
+	Event OnKeyDown(Int KeyCode)
+		If Utility.IsInMenuMode() || SPE_Actor.GetPlayerSpeechTarget() || UI.IsTextInputEnabled()
+			mzinUtil.LogTrace("Received OnKeyDown event, but player state was toggled.")
+		EndIf
+	EndEvent
+	Event OnBiS_GDOTStateChange_Player(string eventName, string strArg, float numArg, Form sender)
+		if !strArg
+			GoToState("")
+		endIf
+	EndEvent
+EndState
+
+Event OnKeyDown(Int KeyCode)
+	If Utility.IsInMenuMode() || SPE_Actor.GetPlayerSpeechTarget() || UI.IsTextInputEnabled()
+		return
+	EndIf
+	
+	UnregisterForAllKeys()
+	If KeyCode == CheckStatusKeyCode.GetValue() as int
+		mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
+	ElseIf KeyCode == BatheKeyCode.GetValue() as int
+		if Input.IsKeyPressed(ModifierKeyCode.GetValue() as int) 
+			if BatheQuest.TryWashActor(PlayerRef, None, true, true)
+				return
+			endIf
+		else
+			if BatheQuest.TryWashActor(PlayerRef, None, false, true)
+				return
+			endIf
+		endIf
+	EndIf
+	RegisterHotKeys()
+EndEvent
+
+Function RegisterHotKeys()
+	UnregisterForAllKeys()
+	If BatheKeyCode.GetValue() as int != 0
+		RegisterForKey(BatheKeyCode.GetValue() as int)
+	EndIf
+	If CheckStatusKeyCode.GetValue() as int != 0
+		RegisterForKey(CheckStatusKeyCode.GetValue() as int)
 	EndIf
 EndFunction
