@@ -37,6 +37,8 @@ Faction Property CreatureFaction Auto
 
 Actor Property PlayerRef Auto
 
+String Property DefaultState = "" Auto Hidden
+
 ; local variables
 Actor DirtyActor
 Bool  DirtyActorIsPlayer
@@ -49,53 +51,7 @@ Int SexTID
 ; ---------- Events ----------
 
 Event OnEffectStart(Actor Target, Actor Caster)
-	DirtyActor = Target
-	DirtyActorIsPlayer = (Target == PlayerRef)
-	RegisterForEvents()
-	Send_GDOTStateChange()
-
-	Int InitialDirtinessTier = (Self.GetMagnitude() As Int)
-	If DirtyActorIsPlayer
-		LocalDirtinessPercentage = DirtinessPercentage.GetValue()
-		if !(LocalDirtinessPercentage as int)
-			LocalDirtinessPercentage = (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue()
-		endIf
-	Else
-		If DirtyActors.Find(DirtyActor) == -1
-			DirtyActors.AddForm(DirtyActor)
-		EndIf
-		LocalDirtinessPercentage = StorageUtil.GetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue())
-	EndIf
-
-	If !DirtyActor.HasMagicEffectWithKeyword(DirtinessTierKeyword)
-		If InitialDirtinessTier > 0
-			ApplyDirtLeadIn(Menu.StartingAlpha)
-		Else
-			LocalDirtinessPercentage = 0.0
-		EndIf
-		DirtyActor.AddSpell(DirtinessSpellList.GetAt(InitialDirtinessTier) As Spell, False)
-	EndIf
-
-	BatheQuest.UpdateActorDirtPercent(Target, LocalDirtinessPercentage)
-	ProgressAlpha()
-	
-	Float LastUpdate = StorageUtil.GetFloatValue(DirtyActor, "BiS_LastUpdate", -100.0)
-	Float CurrentGameTime = GameDaysPassed.GetValue()
-	If LastUpdate == -100.0
-		LocalLastUpdateTime = CurrentGameTime
-		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", LocalLastUpdateTime)
-		RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
-	Else
-		LocalLastUpdateTime = LastUpdate
-		Float UpdateIntervalInGameTime = (DirtinessUpdateInterval.GetValue() / 24)
-		If CurrentGameTime > LocalLastUpdateTime + UpdateIntervalInGameTime
-			mzinUtil.LogTrace("Running update now on " + DirtyActor.GetBaseObject().GetName())
-			RegisterForSingleUpdate(0.1)
-		Else
-			mzinUtil.LogTrace("Running update in " + (UpdateIntervalInGameTime - (CurrentGameTime - LocalLastUpdateTime)) + " on " + DirtyActor.GetBaseObject().GetName())
-			RegisterForSingleUpdateGameTime(UpdateIntervalInGameTime - (CurrentGameTime - LocalLastUpdateTime))
-		EndIf
-	EndIf
+	StartDirtCycle(Target)
 EndEvent
 
 Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
@@ -111,11 +67,11 @@ Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 EndEvent
 
 Event OnUpdateGameTime()
-	RunDirtCycleUpdate()
+	RunDirtCycle()
 EndEvent
 
 Event OnUpdate()
-	RunDirtCycleUpdate()
+	RunDirtCycle()
 EndEvent
 
 Event OnDeath(actor akKiller)
@@ -123,7 +79,7 @@ Event OnDeath(actor akKiller)
 EndEvent
 
 Event OnPlayerLoadGame()
-	if GetState() == ""
+	if GetState() == DefaultState
 		RegisterForEvents()
 	endIf
 	ModEvent.Send(ModEvent.Create("BiS_UpdateActorsAll"))
@@ -152,7 +108,7 @@ Event OnBiS_ResetActorDirt(Float TimeToClean, Float TimeToCleanInterval, Bool Us
 EndEvent
 
 Event OnBiS_PauseActorDirt()
-	If GetState() != ""
+	If GetState() != DefaultState
 		Return
 	EndIf
 	GoToState("PAUSED")
@@ -162,45 +118,55 @@ Event OnBiS_ResumeActorDirt()
 	If GetState() != "PAUSED"
 		Return
 	EndIf
-	GoToState("")
+	GoToState(DefaultState)
 EndEvent
 
 Event OnBiS_ModActorDirt(Float afModAmount, Float afModRate, Float afModThreshold, Bool abAutoResume)
-	If GetState() != ""
+	If GetState() != DefaultState
 		Return
 	EndIf
 	GoToState("PAUSED")
 	ModDirtState(afModAmount, afModRate, afModThreshold)
 	if abAutoResume
-		GoToState("")
+		GoToState(DefaultState)
 	endIf
 EndEvent
 
 Event OnBiS_IncreaseActorDirt(Float afTargetLevel, Float afModRate, Float afModThreshold, Bool abAutoResume)
-	If (GetState() != "") || (LocalDirtinessPercentage >= afTargetLevel)
+	If (GetState() != DefaultState) || (LocalDirtinessPercentage >= afTargetLevel)
 		Return
 	EndIf
 	GoToState("PAUSED")
 	ModDirtState_Increase(afTargetLevel, (afTargetLevel - LocalDirtinessPercentage) / afModRate, afModRate, afModThreshold)
 	if abAutoResume
-		GoToState("")
+		GoToState(DefaultState)
 	endIf
 EndEvent
 
 Event OnBiS_DecreaseActorDirt(Float afTargetLevel, Float afModRate, Float afModThreshold, Bool abAutoResume)
-	If (GetState() != "") || (LocalDirtinessPercentage <= afTargetLevel)
+	If (GetState() != DefaultState) || (LocalDirtinessPercentage <= afTargetLevel)
 		Return
 	EndIf
 	GoToState("PAUSED")
 	ModDirtState_Decrease(afTargetLevel, (LocalDirtinessPercentage - afTargetLevel) / afModRate, afModRate, afModThreshold)
 	if abAutoResume
-		GoToState("")
+		GoToState(DefaultState)
 	endIf
+EndEvent
+
+Event OnBiS_SetDefaultState(String abStateName)
+	String CurrentState = GetState()
+	If !CurrentState || (CurrentState == DefaultState)
+		GoToState(abStateName)
+		RunDirtCycle(false)
+	EndIf
+	DefaultState = abStateName
 EndEvent
 
 ; ---------- Common Functions ----------
 
 Function RegisterForEvents()
+	RegisterForModEvent("BiS_SetDefaultState_" + DirtyActor.GetFormID(), "OnBiS_SetDefaultState")
 	RegisterForModEvent("BiS_UpdateAlpha_" + DirtyActor.GetFormID(), "OnBiS_UpdateAlpha")
 	RegisterForModEvent("BiS_ModActorDirt_" + DirtyActor.GetFormID(), "OnBiS_ModActorDirt")
 	RegisterForModEvent("BiS_IncreaseActorDirt_" + DirtyActor.GetFormID(), "OnBiS_IncreaseActorDirt")
@@ -256,7 +222,10 @@ Function CloseInventory()
 EndFunction
 
 Function Send_GDOTStateChange(string StateName = "")
-	SendModEvent("BiS_GDOTStateChange_" + DirtyActor.GetFormID(), StateName)
+	int targetEvent = ModEvent.Create("BiS_GDOTStateChange_" + DirtyActor.GetFormID())
+	ModEvent.PushString(targetEvent, StateName)
+	ModEvent.PushString(targetEvent, DefaultState)
+	ModEvent.Send(targetEvent)
 EndFunction
 
 ; ---------- Core States ----------
@@ -282,7 +251,68 @@ State PAUSED
 	EndEvent
 EndState
 
+State Wet
+	Event OnBeginState()
+		Send_GDOTStateChange(DefaultState)
+		UnregisterEvents(false)
+	EndEvent
+	Event OnUpdate()
+	EndEvent
+	Event OnUpdateGameTime()
+	EndEvent
+EndState
+
 ; ---------- Core Utilities ----------
+
+Function StartDirtCycle(Actor Target)
+	DirtyActor = Target
+	DirtyActorIsPlayer = (Target == PlayerRef)
+	RegisterForEvents()
+	Send_GDOTStateChange()
+
+	Int InitialDirtinessTier = (Self.GetMagnitude() As Int)
+	If DirtyActorIsPlayer
+		LocalDirtinessPercentage = DirtinessPercentage.GetValue()
+		if !(LocalDirtinessPercentage as int)
+			LocalDirtinessPercentage = (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue()
+		endIf
+	Else
+		If DirtyActors.Find(DirtyActor) == -1
+			DirtyActors.AddForm(DirtyActor)
+		EndIf
+		LocalDirtinessPercentage = StorageUtil.GetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue())
+	EndIf
+
+	If !DirtyActor.HasMagicEffectWithKeyword(DirtinessTierKeyword)
+		If InitialDirtinessTier > 0
+			ApplyDirtLeadIn(Menu.StartingAlpha)
+		Else
+			LocalDirtinessPercentage = 0.0
+		EndIf
+		DirtyActor.AddSpell(DirtinessSpellList.GetAt(InitialDirtinessTier) As Spell, False)
+	EndIf
+
+	BatheQuest.UpdateActorDirtPercent(Target, LocalDirtinessPercentage)
+	ProgressAlpha()
+
+	Float LastUpdate = StorageUtil.GetFloatValue(DirtyActor, "BiS_LastUpdate", -100.0)
+	Float CurrentGameTime = GameDaysPassed.GetValue()
+	If LastUpdate == -100.0
+		LocalLastUpdateTime = CurrentGameTime
+		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", LocalLastUpdateTime)
+		RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
+	Else
+		LocalLastUpdateTime = LastUpdate
+		Float UpdateIntervalInGameTime = (DirtinessUpdateInterval.GetValue() / 24)
+		If CurrentGameTime > LocalLastUpdateTime + UpdateIntervalInGameTime
+			mzinUtil.LogTrace("Running update now on " + DirtyActor.GetBaseObject().GetName())
+			RegisterForSingleUpdate(0.1)
+		Else
+			mzinUtil.LogTrace("Running update in " + (UpdateIntervalInGameTime - (CurrentGameTime - LocalLastUpdateTime)) + " on " + DirtyActor.GetBaseObject().GetName())
+			RegisterForSingleUpdateGameTime(UpdateIntervalInGameTime - (CurrentGameTime - LocalLastUpdateTime))
+		EndIf
+	EndIf
+EndFunction
 
 Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanInterval)
 	; Lowers the Alpha value of a target actor's dirt overlay to the Alpha value at which typical overlays begin applying
@@ -385,8 +415,10 @@ Function ModDirtState_Decrease(Float ModTarget, Float ModDecrement, Float ModRat
 	RenewDirtSpell(true)
 EndFunction
 
-Function RunDirtCycleUpdate()
-	ApplyDirt()
+Function RunDirtCycle(bool doDirt = true)
+	if doDirt
+		ApplyDirt()
+	endIf
 	SetLastUpdate()
 	RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
 EndFunction
@@ -398,10 +430,6 @@ Function SetLastUpdate()
 EndFunction
 
 Function ApplyDirt()
-	If BatheQuest.IsSubmerged(DirtyActor)
-		Return
-	EndIf
-
 	Float HoursPassed = (GameDaysPassed.GetValue() - LocalLastUpdateTime) * 24
 	Float DirtPerHour = GetDirtPerHour()
 
@@ -538,6 +566,7 @@ EndEvent
 Event OnAnimationEnd_SexLab(Form FormRef, int tid)
 	AnimationDirtNoFade()
 	EndAnimationState()
+	Send_GDOTStateChange()
 EndEvent
 
 Event OnAnimationStart_OStim(string EventName, string StrArg, float ThreadID, Form Sender)
@@ -580,6 +609,7 @@ Event OnAnimationEnd_OStim(string EventName, string Json, float ThreadID, Form S
 	if DirtyActorIsPlayer || (ThreadID as int) == SexTID
 		AnimationDirtNoFade(mzinInterfaceOStim.GetExcitementPercentage(DirtyActor))
 		EndAnimationState()
+		Send_GDOTStateChange()
 	endIf
 EndEvent
 
@@ -625,7 +655,6 @@ State Animation_SexLab
 		endIf
 	EndEvent
 	Event OnEndState()
-		Send_GDOTStateChange()
 		SexDirt = 0.0
 		SexTID = 0
 		RegisterForSingleUpdate(0.5)
@@ -654,7 +683,6 @@ State Animation_OStim
 		endIf
 	EndEvent
 	Event OnEndState()
-		Send_GDOTStateChange()
 		SexDirt = 0.0
 		SexTID = 0
 		RegisterForSingleUpdate(0.5)
@@ -679,7 +707,7 @@ EndFunction
 Function EndAnimationState()
 	mzinAnimationInProcList.RemoveAddedForm(DirtyActor)
 	BatheQuest.UpdateActorDirtPercent(DirtyActor, LocalDirtinessPercentage)
-	GoToState("")
+	GoToState(DefaultState)
 EndFunction
 
 Bool Function IsActorInSexAnimation(Actor[] actorList)

@@ -59,8 +59,8 @@ EndFunction
 
 ; ---------- Hotkey Event ----------
 
-Event OnBiS_GDOTStateChange_Player(string eventName, string strArg, float numArg, Form sender)
-	if strArg
+Event OnBiS_GDOTStateChange_Player(string NewState, string DefaultState)
+	if NewState && (NewState != DefaultState)
 		GoToState("PauseKeyCheck")
 	endIf
 EndEvent
@@ -71,8 +71,8 @@ State PauseKeyCheck
 			mzinUtil.LogTrace("Received OnKeyDown event, but player state was toggled.")
 		EndIf
 	EndEvent
-	Event OnBiS_GDOTStateChange_Player(string eventName, string strArg, float numArg, Form sender)
-		if !strArg
+	Event OnBiS_GDOTStateChange_Player(string NewState, string DefaultState)
+		if !NewState || (NewState == DefaultState)
 			GoToState("")
 		endIf
 	EndEvent

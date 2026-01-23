@@ -3,27 +3,37 @@ Scriptname mzinGetConditionTemplate extends activemagiceffect
 import ModEvent
 
 Actor targetActor
-Int targetEvent
 String Property hostState Auto
 GlobalVariable Property targetTier Auto
 
 Event OnEffectStart(Actor Target, Actor Caster)
-    GoToState(hostState)
-    RegisterForSingleUpdate(5.0)
     targetActor = Target
+    GoToState(hostState)
 EndEvent
 
-State Condition_Swimming
+State mzinCondition_Swimming
+    Event OnBeginState()
+        RegisterForSingleUpdate(3.0)
+    EndEvent
     Event OnUpdate()
-        targetEvent = Create("BiS_DecreaseActorDirt_" + targetActor.GetFormID())
-        If targetEvent
-            PushFloat(targetEvent, targetTier.GetValue())
-            PushFloat(targetEvent, 4.2)
-            PushFloat(targetEvent, 0.0)
-            PushBool(targetEvent, true)
-            Send(targetEvent)
-        Else
-            Release(targetEvent)
-        EndIf
+        int targetEvent = Create("BiS_DecreaseActorDirt_" + targetActor.GetFormID())
+        PushFloat(targetEvent, targetTier.GetValue())
+        PushFloat(targetEvent, 4.2)
+        PushFloat(targetEvent, 0.0)
+        PushBool(targetEvent, true)
+        Send(targetEvent)
+    EndEvent
+EndState
+
+State mzinCondition_Wet
+    Event OnBeginState()
+        int targetEvent = Create("BiS_SetDefaultState_" + targetActor.GetFormID())
+        PushString(targetEvent, "Wet")
+        Send(targetEvent)
+    EndEvent
+    Event OnEffectFinish(Actor Target, Actor Caster)
+        int targetEvent = Create("BiS_SetDefaultState_" + targetActor.GetFormID())
+        PushString(targetEvent, "")
+        Send(targetEvent)
     EndEvent
 EndState
