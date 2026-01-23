@@ -1045,13 +1045,13 @@ Event OnOptionKeyMapChange(Int OptionID, Int KeyCode, String ConflictControl, St
 	
 	If Continue
 		If OptionID == CheckStatusKeyMapID
-			BatheQuest.UnregisterForKey(CheckStatusKeyCode.Value as int)
+			BathePlayer.UnregisterForKey(CheckStatusKeyCode.Value as int)
 			CheckStatusKeyCode.Value = KeyCode
-			BatheQuest.RegisterForKey(KeyCode)
+			BathePlayer.RegisterForKey(KeyCode)
 		ElseIf OptionID == BatheKeyMapID
-			BatheQuest.UnregisterForKey(BatheKeyCode.Value as int)
+			BathePlayer.UnregisterForKey(BatheKeyCode.Value as int)
 			BatheKeyCode.Value = KeyCode
-			BatheQuest.RegisterForKey(KeyCode)
+			BathePlayer.RegisterForKey(KeyCode)
 		ElseIf OptionID == ModifierKeyMapID
 			ModifierKeyCode.Value = KeyCode
 		EndIf
