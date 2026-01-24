@@ -7,11 +7,12 @@ Primary
 - Add: Automatically clear dirt while swimming.
 - Add: mzinBatheIgnoreItem keyword form; tag items with this keyword to prevent them from being removed, regardless of your equip slot settings.
 - Add: Dirt speck shader; texture by HanShotFirst.
+- Add: Dirt immunity conditions; disable dirt gain when in swimming, in raining exterior, in snowing exterior.
+- Add: Check dirtiness percentage of actor under crosshair via Check Status hotkey.
 - Change: Allow non-animated manual bathing while swimming, if conditions don't satisfy for animated bathing.
 - Change: Move settings directory SKSE/Plugins/StorageUtilData/BathingInSkyrim to Interface/Bathing in Skyrim.
 - Change: Check shyness condition per follower during Automated Follower Bathing procedure.
 - Change: Detach dirt lead-in application from threshold tiers.
-- Change: Do not apply dirt while actor is submerged in water.
 - Fix: Improved Camera SE 2.0 beta compatibility when using IC's default first person mode.
 
 Secondary
@@ -29,6 +30,8 @@ Secondary
 - Change: Get random washprop rather than miscobject at index 0 if object is untargeted. 
 - Change: Adjust Dirt Percentage Threshold formlist consistency.
 - Change: Move batheplayeralias from MCM to Bathe Quest script.
+- Change: Improve hotkey event safety.
+- Change: NPC dirtiness percentage notification sentence consistency.
 - Remove: Spell unequip when bathing.
 - Remove: mzinBatheQuest GetSoapy() GetUnsoapy().
 - Remove: Overlay MGEF scripts.
