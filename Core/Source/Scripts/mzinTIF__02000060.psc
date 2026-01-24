@@ -6,7 +6,7 @@ Scriptname mzinTIF__02000060 Extends TopicInfo Hidden
 Function Fragment_3(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-mzinUtil.LogNotification(akSpeaker.GetBaseObject().GetName() + " is " + Math.Floor(StorageUtil.GetFloatValue(akSpeaker, "BiS_Dirtiness") * 100.0) + "% dirty")
+mzinUtil.LogNotification(akSpeaker.GetBaseObject().GetName() + " feels " + Math.Floor(StorageUtil.GetFloatValue(akSpeaker, "BiS_Dirtiness") * 100.0) + "% dirty.")
 ;END CODE
 EndFunction
 ;END FRAGMENT
