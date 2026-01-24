@@ -327,6 +327,18 @@ Bool Function IsSubmerged(Actor akTarget)
 	Return (akTarget.IsSwimming() || IsActorUnderwater(akTarget))
 EndFunction
 
+Bool Function IsWeatherWet(Actor akTarget)
+	; This function is able to differentiate functional interiors from functional exteriors using the following logic:
+		; Interior WorldSpace Cells flagged as Not Interior have an exterior location.
+		; Exterior WorldSpace Cells flagged as Not Interior lack an exterior location.
+		
+	if akTarget.GetWorldSpace() && (GetWeatherType() < 2)
+		Location[] ExteriorLocations = SPE_Cell.GetExteriorLocations(akTarget.GetParentCell())
+		return !(ExteriorLocations && ExteriorLocations[0])
+	endIf
+	Return !akTarget.IsInInterior() && (GetWeatherType() < 2)
+EndFunction
+
 Actor Function GetGawker(Actor akActor)
 	if mzinGawkers.Start()
 		Actor Gawker = (mzinGawkers.GetNthAlias(0) as ReferenceAlias).GetReference() as Actor

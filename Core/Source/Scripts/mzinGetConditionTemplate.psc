@@ -24,16 +24,3 @@ State mzinCondition_Swimming
         Send(targetEvent)
     EndEvent
 EndState
-
-State mzinCondition_Wet
-    Event OnBeginState()
-        int targetEvent = Create("BiS_SetDefaultState_" + targetActor.GetFormID())
-        PushString(targetEvent, "Wet")
-        Send(targetEvent)
-    EndEvent
-    Event OnEffectFinish(Actor Target, Actor Caster)
-        int targetEvent = Create("BiS_SetDefaultState_" + targetActor.GetFormID())
-        PushString(targetEvent, "")
-        Send(targetEvent)
-    EndEvent
-EndState

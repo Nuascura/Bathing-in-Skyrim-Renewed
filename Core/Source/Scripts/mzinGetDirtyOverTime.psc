@@ -67,11 +67,11 @@ Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 EndEvent
 
 Event OnUpdateGameTime()
-	RunDirtCycle()
+	RunDirtCycle(BatheQuest.IsSubmerged(DirtyActor) || BatheQuest.IsWeatherWet(DirtyActor))
 EndEvent
 
 Event OnUpdate()
-	RunDirtCycle()
+	RunDirtCycle(BatheQuest.IsSubmerged(DirtyActor) || BatheQuest.IsWeatherWet(DirtyActor))
 EndEvent
 
 Event OnDeath(actor akKiller)
@@ -158,7 +158,7 @@ Event OnBiS_SetDefaultState(String abStateName)
 	String CurrentState = GetState()
 	If !CurrentState || (CurrentState == DefaultState)
 		GoToState(abStateName)
-		RunDirtCycle(false)
+		RunDirtCycle(true)
 	EndIf
 	DefaultState = abStateName
 EndEvent
@@ -251,7 +251,7 @@ State PAUSED
 	EndEvent
 EndState
 
-State Wet
+State SILENT
 	Event OnBeginState()
 		Send_GDOTStateChange(DefaultState)
 		UnregisterEvents(false)
@@ -415,8 +415,8 @@ Function ModDirtState_Decrease(Float ModTarget, Float ModDecrement, Float ModRat
 	RenewDirtSpell(true)
 EndFunction
 
-Function RunDirtCycle(bool doDirt = true)
-	if doDirt
+Function RunDirtCycle(bool skipDirt = false)
+	if !skipDirt
 		ApplyDirt()
 	endIf
 	SetLastUpdate()
