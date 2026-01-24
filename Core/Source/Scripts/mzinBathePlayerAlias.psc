@@ -85,7 +85,12 @@ Event OnKeyDown(Int KeyCode)
 	
 	UnregisterForAllKeys()
 	If KeyCode == CheckStatusKeyCode.GetValue() as int
-		mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
+		ObjectReference crosshairRef = Game.GetCurrentCrosshairRef()
+		If crosshairRef as Actor
+			mzinUtil.LogNotification(crosshairRef.GetBaseObject().GetName() + " feels " + Math.Floor(StorageUtil.GetFloatValue(crosshairRef, "BiS_Dirtiness") * 100.0) + "% dirty.")
+		Else
+			mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
+		EndIf
 	ElseIf KeyCode == BatheKeyCode.GetValue() as int
 		if Input.IsKeyPressed(ModifierKeyCode.GetValue() as int) 
 			if BatheQuest.TryWashActor(PlayerRef, None, true, true)
