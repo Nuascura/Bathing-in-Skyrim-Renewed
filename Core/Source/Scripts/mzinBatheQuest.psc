@@ -191,13 +191,18 @@ MiscObject Function TryFindWashProp(Actor DirtyActor)
 	Keyword[] kwWashPropValid = new Keyword[2]
 	kwWashPropValid[0] = SoapKeyword
 	kwWashPropValid[1] = WashPropKeyword
-	Form[] MiscObjects = AddItemsOfTypeToArray(DirtyActor, 32)
-	Form[] WashPropArray = SPE_Utility.FilterFormsByKeyword(MiscObjects, kwWashPropValid, true, false)
-	if WashPropArray
-		return WashPropArray[Utility.RandomInt(0, WashPropArray.Length)] as MiscObject
+
+	Form[] WashPropArray = SPE_Utility.FilterFormsByKeyword(AddItemsOfTypeToArray(DirtyActor, 32), kwWashPropValid, false, false)
+	If !WashPropArray
+		Return none
+	EndIf
+
+	Form[] arr = SPE_Utility.IntersectArray_Form(AddItemsWithKeywordToArray(DirtyActor, SoapKeyword), WashPropArray)
+	if arr
+		arr[Utility.RandomInt(0, arr.Length)] as MiscObject
 	endIf
 	
-	Return SPE_Utility.FilterFormsByKeyword(MiscObjects, kwWashPropValid, false, false)[Utility.RandomInt(0, WashPropArray.Length)] as MiscObject
+	Return WashPropArray[Utility.RandomInt(0, WashPropArray.Length)] as MiscObject
 EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
