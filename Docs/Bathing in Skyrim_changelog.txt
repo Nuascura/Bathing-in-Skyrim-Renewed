@@ -1,3 +1,13 @@
+2.7.1
+Primary
+- Fix: Hotkeys fail to re-register if bathing via hotkey.
+- Fix: Wash prop filter unable to retrieve soap.
+- Fix: Wash prop filter uses array with invalid length.
+- Fix: Overlay starting alpha highlight text inconsistency.
+- Fix: Inverted condition causing dirt to only accumulate when weather is rainy or snowy.
+
+
+
 2.7.0
 Primary
 - Add: Option to auto hide UI (enabled by default).
