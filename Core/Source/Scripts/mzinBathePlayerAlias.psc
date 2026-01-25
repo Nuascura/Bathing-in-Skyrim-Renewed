@@ -62,17 +62,21 @@ EndFunction
 Event OnBiS_GDOTStateChange_Player(string NewState, string DefaultState)
 	if NewState && (NewState != DefaultState)
 		GoToState("PauseKeyCheck")
+	ElseIf !NewState && !DefaultState
+		RegisterHotKeys()
 	endIf
 EndEvent
 
 State PauseKeyCheck
 	Event OnKeyDown(Int KeyCode)
 		If Utility.IsInMenuMode() || SPE_Actor.GetPlayerSpeechTarget() || UI.IsTextInputEnabled()
-			mzinUtil.LogTrace("Received OnKeyDown event, but player state was toggled.")
+			return
 		EndIf
+		mzinUtil.LogTrace("Received OnKeyDown event, but hotkey process state was toggled off.")
 	EndEvent
 	Event OnBiS_GDOTStateChange_Player(string NewState, string DefaultState)
 		if !NewState || (NewState == DefaultState)
+			RegisterHotKeys()
 			GoToState("")
 		endIf
 	EndEvent
