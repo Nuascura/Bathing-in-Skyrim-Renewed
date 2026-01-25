@@ -337,11 +337,11 @@ Bool Function IsWeatherWet(Actor akTarget)
 		; Interior WorldSpace Cells flagged as Not Interior have an exterior location.
 		; Exterior WorldSpace Cells flagged as Not Interior lack an exterior location.
 		
-	if akTarget.GetWorldSpace() && (GetWeatherType() < 2)
+	if akTarget.GetWorldSpace() && (GetWeatherType() > 1)
 		Location[] ExteriorLocations = SPE_Cell.GetExteriorLocations(akTarget.GetParentCell())
 		return !(ExteriorLocations && ExteriorLocations[0])
 	endIf
-	Return !akTarget.IsInInterior() && (GetWeatherType() < 2)
+	Return !akTarget.IsInInterior() && (GetWeatherType() > 1)
 EndFunction
 
 Actor Function GetGawker(Actor akActor)
