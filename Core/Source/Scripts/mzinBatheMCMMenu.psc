@@ -774,13 +774,13 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 		SetSliderOptionValue(OptionID, DirtinessPerHourWilderness.GetValue() * 100, DisplayFormatPercentage)
 	ElseIf OptionID == DirtinessThresholdTier1SliderID
 		(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(0.20)
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+		UpdateDirtinessThresholdOV(true)
 	ElseIf OptionID == DirtinessThresholdTier2SliderID
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(0.60)
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+		UpdateDirtinessThresholdOV(true)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(0.98)
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)	
+		UpdateDirtinessThresholdOV(true)
 	ElseIf OptionID == OverlayTintOID_C
 		OverlayTint = 0xFFFFFF
 		SetColorOptionValue(OptionID, 0xFFFFFF)
@@ -1431,7 +1431,7 @@ Function HandleOnOptionSliderAcceptAnimationsPageFollowers(Int OptionID, Float O
 EndFunction
 Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 	Float SliderValue = OptionValue
-	String DisplayFormat = DisplayFormatPercentage
+	String DisplayFormat
 
 	If OptionID == UpdateIntervalSliderID
 		DisplayFormat = DisplayFormatDecimal
@@ -1448,49 +1448,25 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue / 100.0
 		DirtinessPerHourDungeon.SetValue(SliderValue)
-		DisplayFormat = DisplayFormatPercentage
 	ElseIf OptionID == DirtinessPerHourWildernessSliderID
+		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue / 100.0	
 		DirtinessPerHourWilderness.SetValue(SliderValue)
-
 	ElseIf OptionID == DirtinessThresholdTier1SliderID
-	
 		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue / 100.0
-
-		; clamp threshold
-		If SliderValue > (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
-			SliderValue = (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
-		EndIf
-		
-		(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(SliderValue)
-		
+		(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(SliderValue)
+		UpdateDirtinessThresholdOV(false)
 	ElseIf OptionID == DirtinessThresholdTier2SliderID
-	
 		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue / 100.0
-
-		; clamp threshold
-		If SliderValue > (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue()
-			SliderValue = (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue()
-		ElseIf SliderValue < (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
-			SliderValue = (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()
-		EndIf
-
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(SliderValue)
-		
+		UpdateDirtinessThresholdOV(false)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
-	
 		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue / 100.0
-
-		; clamp threshold
-		If SliderValue < (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
-			SliderValue = (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()
-		EndIf
-	
 		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(SliderValue)
-	
+		UpdateDirtinessThresholdOV(false)
 	ElseIf OptionID == OverlayApplyAtOID_S
 		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
 		SliderValue = OptionValue
@@ -1519,7 +1495,7 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 EndFunction
 Function HandleOnOptionSliderAcceptIntegrationsPage(Int OptionID, Float OptionValue)
 	Float SliderValue = OptionValue
-	String DisplayFormat = DisplayFormatPercentage
+	String DisplayFormat
 
 	If OptionID == DirtinessPerSexOID_S
 		DisplayFormat = DisplayFormatPercentage
@@ -1568,7 +1544,7 @@ Event OnOptionSliderOpen(Int OptionID)
 EndEvent
 Function HandleOnOptionSliderOpenAnimationsPage(Int OptionID)
 	Float SliderValue = 0.0
-	String DisplayFormat = "{0}"
+	String DisplayFormat
 
 	If OptionID == BathingAnimationLoopsTier0SliderID
 		DisplayFormat = "{0}"
@@ -1627,7 +1603,7 @@ Function HandleOnOptionSliderOpenAnimationsPage(Int OptionID)
 EndFunction
 Function HandleOnOptionSliderOpenAnimationsPageFollowers(Int OptionID)
 	Float SliderValue = 0.0
-	String DisplayFormat = "{0}"
+	String DisplayFormat
 
 	If OptionID == BathingAnimationLoopsTier0SliderIDFollowers
 		DisplayFormat = "{0}"
@@ -1686,7 +1662,7 @@ Function HandleOnOptionSliderOpenAnimationsPageFollowers(Int OptionID)
 EndFunction
 Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 	Float SliderValue = 0.0
-	String DisplayFormat = DisplayFormatPercentage
+	String DisplayFormat
 
 	; get slider value
 	If OptionID == UpdateIntervalSliderID
@@ -1721,26 +1697,26 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SliderValue = (DirtinessPerHourWilderness.GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier1SliderID
 		DisplayFormat = DisplayFormatPercentage
-		SetSliderDialogRange(0.0, 100.0)
+		SetSliderDialogRange(0.0, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(20.0)
 		SliderValue = ((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier2SliderID
 		DisplayFormat = DisplayFormatPercentage
-		SetSliderDialogRange(0.0, 100.0)
+		SetSliderDialogRange((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100.0, (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(60.0)
 		SliderValue = ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		DisplayFormat = DisplayFormatPercentage
-		SetSliderDialogRange(0.0, 100.0)
+		SetSliderDialogRange((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(98.0)
 		SliderValue = ((DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == OverlayApplyAtOID_S
 		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
 		SetSliderDialogDefaultValue(40.0)
-		SetSliderDialogRange(0.0, ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0))
+		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(1.0)
 		SliderValue = OverlayApplyAt * 100.0	
 	ElseIf OptionID == StartingAlphaOID_S
@@ -1775,7 +1751,7 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 EndFunction
 Function HandleOnOptionSliderOpenIntegrationsPage(int OptionID)
 	Float SliderValue = 0.0
-	String DisplayFormat = DisplayFormatPercentage
+	String DisplayFormat
 
 	If OptionID == DirtinessPerSexOID_S
 		DisplayFormat = DisplayFormatPercentage
@@ -2148,8 +2124,8 @@ Function UnForbidAllActor()
 EndFunction
 
 Function CorrectInvalidSettings()
-	float fDefault = 0.0
 	if !Init.IsMalignisAnimInstalled
+		float fDefault = 0.0
 		AnimCustomFSet3Freq = fDefault
 		AnimCustomFSet3FreqFollowers = fDefault
 		AnimCustomFSet[2] = fDefault
@@ -2158,6 +2134,32 @@ Function CorrectInvalidSettings()
 	if TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
 		TexSetOverride = false
 	endIf
+	ClampDirtinessThreshold()
+EndFunction
+
+Function ClampDirtinessThreshold()
+	int i = 1
+	if (DirtinessThresholdList.GetAt(0) As GlobalVariable).GetValue() != 0.0
+		(DirtinessThresholdList.GetAt(0) As GlobalVariable).SetValue(0.0)
+	endIf
+	if (DirtinessThresholdList.GetAt(DirtinessThresholdList.GetSize() - 1) As GlobalVariable).GetValue() != 100.0
+		(DirtinessThresholdList.GetAt(DirtinessThresholdList.GetSize() - 1) As GlobalVariable).SetValue(100.0)
+	endIf
+	while i < (DirtinessThresholdList.GetSize() - 2)
+		if (DirtinessThresholdList.GetAt(i) As GlobalVariable).GetValue() <= (DirtinessThresholdList.GetAt(i - 1) As GlobalVariable).GetValue()
+			(DirtinessThresholdList.GetAt(i) As GlobalVariable).SetValue((DirtinessThresholdList.GetAt(i - 1) As GlobalVariable).GetValue())
+		elseIf (DirtinessThresholdList.GetAt(i) As GlobalVariable).GetValue() >= (DirtinessThresholdList.GetAt(i + 1) As GlobalVariable).GetValue()
+			(DirtinessThresholdList.GetAt(i) As GlobalVariable).SetValue((DirtinessThresholdList.GetAt(i + 1) As GlobalVariable).GetValue())
+		endIf
+		i += 1
+	endWhile
+EndFunction
+
+Function UpdateDirtinessThresholdOV(Bool UpdateOV)
+	ClampDirtinessThreshold()
+	SetSliderOptionValue(DirtinessThresholdTier1SliderID, (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage, true)
+	SetSliderOptionValue(DirtinessThresholdTier2SliderID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage, true)
+	SetSliderOptionValue(DirtinessThresholdTier3SliderID, (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage, UpdateOV)
 EndFunction
 
 ; ---------- MCM Internal Variables ----------
