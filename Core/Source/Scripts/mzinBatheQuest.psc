@@ -199,10 +199,10 @@ MiscObject Function TryFindWashProp(Actor DirtyActor)
 
 	Form[] arr = SPE_Utility.IntersectArray_Form(AddItemsWithKeywordToArray(DirtyActor, SoapKeyword), WashPropArray)
 	if arr
-		arr[Utility.RandomInt(0, arr.Length)] as MiscObject
+		arr[Utility.RandomInt(0, arr.Length - 1)] as MiscObject
 	endIf
 	
-	Return WashPropArray[Utility.RandomInt(0, WashPropArray.Length)] as MiscObject
+	Return WashPropArray[Utility.RandomInt(0, WashPropArray.Length - 1)] as MiscObject
 EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
