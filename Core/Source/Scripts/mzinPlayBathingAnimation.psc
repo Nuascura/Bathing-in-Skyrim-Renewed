@@ -237,7 +237,7 @@ Function StopAnimation(bool PlayRinseOff = false, bool ResetState = true)
 EndFunction
 
 Idle Function GetIdleByCondition(Idle[] IdleList, int aiArg = 0)
-	if IsShowering
+	if !IsShowering
 		if aiArg == 0
 			return IdleList[Utility.RandomInt(0, IdleList.Length - 1)]
 		elseIf aiArg == 1
