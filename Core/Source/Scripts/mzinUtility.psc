@@ -240,8 +240,9 @@ Function SetFreeCam(bool bToggle)
 EndFunction
 
 Function SetHUDInstanceFlag(bool bToggle)
-	bToggle = Menu.AutoHideUI && bToggle
-	UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", bToggle)
+	if Menu.AutoHideUI
+		UI.SetBool("HUD Menu", "_root.HUDMovieBaseInstance._visible", bToggle)
+	endIf
 EndFunction
 
 Int Function GetDangerTier(Actor TargetActor, FormList kwListSafe, FormList kwListCivil, FormList kwListHostile)
