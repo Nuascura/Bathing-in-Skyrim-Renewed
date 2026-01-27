@@ -284,10 +284,10 @@ Function StartDirtCycle(Actor Target)
 	EndIf
 
 	If !DirtyActor.HasMagicEffectWithKeyword(DirtinessTierKeyword)
-		If InitialDirtinessTier > 0
-			ApplyDirtLeadIn(Menu.StartingAlpha)
-		Else
+		If !InitialDirtinessTier
 			LocalDirtinessPercentage = 0.0
+		Else
+			ApplyDirtLeadIn(Menu.StartingAlpha)
 		EndIf
 		DirtyActor.AddSpell(DirtinessSpellList.GetAt(InitialDirtinessTier) As Spell, False)
 	EndIf
