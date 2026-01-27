@@ -1,3 +1,11 @@
+2.7.3
+Primary
+- Fix: Dirtiness threshold incorrect import token.
+- Fix: Events fail to register on first load.
+- Fix: Wrong dirt percentage applied on first init.
+
+
+
 2.7.2
 Primary
 - Improve: Implement dedicated Dirtiness Threshold value clamp.
