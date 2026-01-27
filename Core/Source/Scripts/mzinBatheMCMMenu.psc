@@ -1808,7 +1808,6 @@ Function EnableBathingInSkyrim(Bool abAutoLoad)
 
 	BatheQuest.Start()
 	BatheQuest.RegForEvents()
-	BathePlayer.RegisterHotKeys()
 	mzinBatheFollowerDialogQuest.Start()
 
 	PlayerRef.AddSpell(GetDirtyOverTimeSpellList.GetAt(1) As Spell, False)

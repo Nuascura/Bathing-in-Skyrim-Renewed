@@ -3,6 +3,8 @@ ScriptName mzinBatheQuest Extends Quest
 
 import PO3_SKSEFunctions
 
+mzinUtilityPlayerAlias Property UtilityPlayer Auto
+mzinBathePlayerAlias Property BathePlayer Auto
 mzinInit Property Init Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinOverlayUtility Property OlUtil Auto
@@ -45,6 +47,13 @@ Quest Property mzinGawkers Auto
 Function RegForEvents()
 	RegisterForModEvent("BiS_WashActor", "OnBiS_WashActor")
 	RegisterForModEvent("BiS_WashActorFinish", "OnBiS_WashActorFinish")
+
+	BathePlayer.RegisterHotKeys()
+	BathePlayer.RegisterForModEvent("BiS_BatheEvent_" + PlayerRef.GetFormID(), "OnBiS_BatheEvent_Player")
+	BathePlayer.RegisterForModEvent("BiS_GDOTStateChange_" + PlayerRef.GetFormID(), "OnBiS_GDOTStateChange_Player")
+
+	UtilityPlayer.RegisterForModEvent("BiS_ForbidBathing", "OnBiS_ForbidBathing")
+	UtilityPlayer.RegisterForModEvent("BiS_PermitBathing", "OnBiS_PermitBathing")
 EndFunction
 
 Event OnBiS_WashActor(Form akDirtyActor, Form akWashProp = none, Bool abDoShower = false, bool abDoPlayerTeammates = false, Bool abDoAnimate = false, Bool abFullClean = false)

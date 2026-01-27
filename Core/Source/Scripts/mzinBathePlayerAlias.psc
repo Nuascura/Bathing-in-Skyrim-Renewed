@@ -12,14 +12,6 @@ Message Property DirtinessStatusMessage Auto
 
 Actor Property PlayerRef Auto
 
-Event OnPlayerLoadGame() ; run only when mod is "enabled"
-	BatheQuest.RegForEvents()
-	RegisterHotKeys()
-
-	RegisterForModEvent("BiS_BatheEvent_" + PlayerRef.GetFormID(), "OnBiS_BatheEvent_Player")
-	RegisterForModEvent("BiS_GDOTStateChange_" + PlayerRef.GetFormID(), "OnBiS_GDOTStateChange_Player")
-EndEvent
-
 ; ---------- Bathing Event ----------
 
 Event OnBiS_BatheEvent_Player(Bool abArg)
@@ -60,6 +52,7 @@ EndFunction
 ; ---------- Hotkey Event ----------
 
 Event OnBiS_GDOTStateChange_Player(string NewState, string DefaultState)
+	mzinUtil.LogTrace("Received default state GDOTStateChange event for player.")
 	if NewState && (NewState != DefaultState)
 		GoToState("PauseKeyCheck")
 	ElseIf !NewState && !DefaultState
@@ -75,6 +68,7 @@ State PauseKeyCheck
 		mzinUtil.LogTrace("Received OnKeyDown event, but hotkey process state was toggled off.")
 	EndEvent
 	Event OnBiS_GDOTStateChange_Player(string NewState, string DefaultState)
+		mzinUtil.LogTrace("Received in-state GDOTStateChange event for player.")
 		if !NewState || (NewState == DefaultState)
 			RegisterHotKeys()
 			GoToState("")

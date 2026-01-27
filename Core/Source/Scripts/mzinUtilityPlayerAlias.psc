@@ -2,8 +2,9 @@ Scriptname mzinUtilityPlayerAlias extends ReferenceAlias
 
 mzinInit Property Init Auto
 mzinUtility Property mzinUtil Auto
+mzinBatheQuest Property BatheQuest Auto
 
-Event OnPlayerLoadGame() ; run whenever possible
+Event OnPlayerLoadGame() ; runs only when mod is "enabled"
 	mzinUtil.LogTrace("PlayerLoadGame ============================")
 	if !Init.DoHardCheck()
 		mzinUtil.LogNotification("Crucial dependencies are missing. Check Auxiliary when initialized.", true)
@@ -13,9 +14,8 @@ Event OnPlayerLoadGame() ; run whenever possible
 		Init.SetInternalVariables()
 		mzinUtil.Menu.cachedSoftCheck = iSoftCheck
 	endIf
-	
-	RegisterForModEvent("BiS_ForbidBathing", "OnBiS_ForbidBathing")
-	RegisterForModEvent("BiS_PermitBathing", "OnBiS_PermitBathing")
+
+	BatheQuest.RegForEvents()
 EndEvent
 
 Event OnBiS_ForbidBathing(Form Sender, Form ForbiddenActor, String ForbiddenString)
