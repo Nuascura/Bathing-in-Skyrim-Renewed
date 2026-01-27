@@ -121,7 +121,7 @@ Bool Property ShowTierCondConfig
 EndProperty
 
 String Function GetModVersion()
-	return "2.7.2"
+	return "2.7.3"
 EndFunction
 
 Int Function GetVersion()
@@ -2041,9 +2041,9 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	DirtinessPerHourDungeon.SetValue(GetFloatValue(config, "DirtinessPerHourDungeon", DirtinessPerHourDungeon.GetValue()))
 	DirtinessPerHourWilderness.SetValue(GetFloatValue(config, "DirtinessPerHourWilderness", DirtinessPerHourWilderness.GetValue()))
 	
-	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold0", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()))
-	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()))
-	(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold3", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue()))
 	
 	(BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue() as int))
 	(BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue() as int))
