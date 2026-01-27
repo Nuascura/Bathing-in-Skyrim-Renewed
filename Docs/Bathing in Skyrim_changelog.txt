@@ -1,3 +1,12 @@
+2.7.2
+Primary
+- Improve: Implement dedicated Dirtiness Threshold value clamp.
+- Fix: AutoHideUI option not respected.
+- Fix: Off-by-one array index error under TryFindWashProp().
+- Fix: Animations unable to cycle by Condition or Randomization.
+
+
+
 2.7.1
 Primary
 - Fix: Hotkeys fail to re-register if bathing via hotkey.
