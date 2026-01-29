@@ -125,7 +125,7 @@ String Function GetModVersion()
 EndFunction
 
 Int Function GetVersion()
-	Return 20
+	Return 21
 EndFunction
 
 Event OnConfigOpen()
@@ -134,14 +134,15 @@ Event OnConfigOpen()
 
 	IsConfigOpen = true
 	If BathingInSkyrimEnabled.GetValue() == 1
-		Pages = new String[7]
+		Pages = new String[8]
 		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
 		Pages[1] = "$BIS_PAGE_SETTINGS"
-		Pages[2] = "$BIS_PAGE_ANIMATIONS"
-		Pages[3] = "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
-		Pages[4] = "$BIS_PAGE_TRACKED_ACTORS"
-		Pages[5] = "$BIS_PAGE_INTEGRATIONS"
-		Pages[6] = "$BIS_PAGE_AUXILIARY"
+		Pages[2] = "$BIS_PAGE_EFFECTS"
+		Pages[3] = "$BIS_PAGE_ANIMATIONS"
+		Pages[4] = "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
+		Pages[5] = "$BIS_PAGE_TRACKED_ACTORS"
+		Pages[6] = "$BIS_PAGE_INTEGRATIONS"
+		Pages[7] = "$BIS_PAGE_AUXILIARY"
 	else
 		Pages = new String[1]
 		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
@@ -254,6 +255,8 @@ Event OnPageReset(String Page)
 		DisplaySplashPage()
 	ElseIf Page == "$BIS_PAGE_SETTINGS"
 		DisplaySettingsPage()
+	ElseIf Page == "$BIS_PAGE_EFFECTS"
+		DisplayEffectsPage()
 	ElseIf Page == "$BIS_PAGE_ANIMATIONS"
 		DisplayAnimationsPage()
 	ElseIf Page == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
@@ -480,6 +483,9 @@ Function DisplaySettingsPage()
 	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_DIRTY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+EndFunction
+Function DisplayEffectsPage()
+	SetCursorPosition(1)
 	AddHeaderOption("$BIS_HEADER_OVERLAYS")
 	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY_{}")
 	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DisplayFormatPercentage)
@@ -603,6 +609,8 @@ EndFunction
 Event OnOptionDefault(Int OptionID)
 	If CurrentPage == "$BIS_PAGE_SETTINGS"
 		HandleOnOptionDefaultSettingsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_EFFECTS"
+		HandleOnOptionDefaultEffectsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS"
 		HandleOnOptionDefaultAnimationsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
@@ -781,13 +789,6 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(ClampDirtinessThreshold(3, 0.98))
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	ElseIf OptionID == OverlayTintOID_C
-		OverlayTint = 0xFFFFFF
-		SetColorOptionValue(OptionID, 0xFFFFFF)
-	; text
-	ElseIf OptionID == TexSetOverrideID
-		TexSetOverride = false
-		SetTextOptionValue(OptionID, TexSetOverride)
 	; menus
 	ElseIf OptionID == AutomateFollowerBathingMenuID
 		AutomateFollowerBathing.SetValue(1)
@@ -804,6 +805,15 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == ModifierKeyMapID
 		ModifierKeyCode.Value = 0
 		SetKeymapOptionValue(OptionID, ModifierKeyCode.Value as int)
+	EndIf
+EndFunction
+Function HandleOnOptionDefaultEffectsPage(Int OptionID)
+	If OptionID == OverlayTintOID_C
+		OverlayTint = 0xFFFFFF
+		SetColorOptionValue(OptionID, 0xFFFFFF)
+	ElseIf OptionID == TexSetOverrideID
+		TexSetOverride = false
+		SetTextOptionValue(OptionID, TexSetOverride)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultTrackedActorsPage(Int OptionID)
@@ -842,6 +852,8 @@ Event OnOptionHighlight(Int OptionID)
 		HandleOnOptionHighlightSystemOverviewPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_SETTINGS"
 		HandleOnOptionHighlightSettingsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_EFFECTS"
+		HandleOnOptionHighlightEffectsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS"
 		HandleOnOptionHighlightAnimationsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
@@ -966,36 +978,39 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_THRESHOLD_2")
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		SetInfoText("$BIS_DESC_THRESHOLD_3")
-	ElseIf OptionID == OverlayProgressOID_T
-		SetInfoText("$BIS_DESC_OVERLAYPROGRESS")
-	ElseIf OptionID == OverlayApplyAtOID_S
+	
+	ElseIf OptionID == PapSetSaveOID_T
+		SetInfoText("$BIS_DESC_PAPSETSAVE")
+	ElseIf OptionID == PapSetLoadOID_T
+		SetInfoText("$BIS_DESC_PAPSETLOAD")
+	
+	ElseIf OptionID == ShynessToggleID
+		SetInfoText("$BIS_DESC_SHYNESSTOGGLE")
+	ElseIf OptionID == ShynessDistanceOID_S
+		SetInfoText("$BIS_DESC_SHYNESSDISTANCE")
+	EndIf
+EndFunction
+Function HandleOnOptionHighlightEffectsPage(int OptionID)
+	If OptionID == OverlayApplyAtOID_S
 		SetInfoText("$BIS_DESC_OVERLAYAPPLY")
 	ElseIf OptionID == StartingAlphaOID_S
 		SetInfoText("$BIS_DESC_OVERLAYALPHA")
 	ElseIf OptionID == OverlayTintOID_C
 		SetInfoText("$BIS_DESC_OVERLAYTINT")
+	ElseIf OptionID == TimeToCleanOID_S
+		SetInfoText("$BIS_DESC_TIMETOCLEAN")
+	ElseIf OptionID == TimeToCleanIntervalOID_S
+		SetInfoText("$BIS_DESC_TIMETOCLEANINTERVAL")
 	ElseIf OptionID == TexSetOverrideID
 		SetInfoText("$BIS_DESC_TEXSETOVERRIDE")
-		
 	ElseIf OptionID == TexSetCountOID_T
 		SetInfoText("$BIS_DESC_OVERLAYTEXSETCOUNT")
 	ElseIf OptionID == RedetectDirtSetsOID_T
 		SetInfoText("$BIS_DESC_OVERLAYREDETECT")
 	ElseIf OptionID == RemoveAllOverlaysOID_T
 		SetInfoText("$BIS_DESC_OVERLAYREMOVEALL")
-	ElseIf OptionID == PapSetSaveOID_T
-		SetInfoText("$BIS_DESC_PAPSETSAVE")
-	ElseIf OptionID == PapSetLoadOID_T
-		SetInfoText("$BIS_DESC_PAPSETLOAD")
-	
-	ElseIf OptionID == TimeToCleanOID_S
-		SetInfoText("$BIS_DESC_TIMETOCLEAN")
-	ElseIf OptionID == TimeToCleanIntervalOID_S
-		SetInfoText("$BIS_DESC_TIMETOCLEANINTERVAL")
-	ElseIf OptionID == ShynessToggleID
-		SetInfoText("$BIS_DESC_SHYNESSTOGGLE")
-	ElseIf OptionID == ShynessDistanceOID_S
-		SetInfoText("$BIS_DESC_SHYNESSDISTANCE")
+	ElseIf OptionID == OverlayProgressOID_T
+		SetInfoText("$BIS_DESC_OVERLAYPROGRESS")
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightIntegrationsPage(int OptionID)
@@ -1061,11 +1076,11 @@ EndEvent
 
 ; OnOptionColorOpen
 Event OnOptionColorOpen(Int OptionID)
-	If CurrentPage == "$BIS_PAGE_SETTINGS"
-		HandleOnOptionColorOpenSettingsPage(OptionID)
+	If CurrentPage == "$BIS_PAGE_EFFECTS"
+		HandleOnOptionColorOpenEffectsPage(OptionID)
 	EndIf
 EndEvent
-Function HandleOnOptionColorOpenSettingsPage(Int OptionID)
+Function HandleOnOptionColorOpenEffectsPage(Int OptionID)
 	If OptionID == OverlayTintOID_C
 		SetColorDialogStartColor(OverlayTint)
 		SetColorDialogDefaultColor(0xFFFFFF)
@@ -1073,11 +1088,11 @@ Function HandleOnOptionColorOpenSettingsPage(Int OptionID)
 EndFunction
 ; OnOptionColorAccept
 Event OnOptionColorAccept(Int OptionID, Int Color)
-	If CurrentPage == "$BIS_PAGE_SETTINGS"
-		HandleOnOptionColorAcceptSettingsPage(OptionID, Color)
+	If CurrentPage == "$BIS_PAGE_EFFECTS"
+		HandleOnOptionColorAcceptEffectsPage(OptionID, Color)
 	EndIf
 EndEvent
-Function HandleOnOptionColorAcceptSettingsPage(Int OptionID, Int Color)
+Function HandleOnOptionColorAcceptEffectsPage(Int OptionID, Int Color)
 	If OptionID == OverlayTintOID_C
 		OverlayTint = Color
 	EndIf
@@ -1089,6 +1104,8 @@ Event OnOptionSelect(Int OptionID)
 		HandleOnOptionSelectSystemOverviewPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_SETTINGS"
 		HandleOnOptionSelectSettingsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_EFFECTS"
+		HandleOnOptionSelectEffectsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS"
 		HandleOnOptionSelectAnimationsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
@@ -1178,6 +1195,19 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 	ElseIf OptionID == WaterRestrictionEnableToggleID
 		WaterRestrictionEnabled.SetValue((!WaterRestrictionEnabled.GetValue() As Bool) As Int)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
+	ElseIf OptionID == ShynessToggleID
+		Shyness = !Shyness
+		SetToggleOptionValue(OptionID, Shyness)
+	EndIf	
+EndFunction
+Function HandleOnOptionSelectEffectsPage(Int OptionID)
+	If OptionID == TexSetOverrideID
+		if !TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
+			ShowMessage("$BIS_MSG_TEXSETOVERRIDE_WARN", false)
+		else
+			TexSetOverride = !TexSetOverride
+		endIf
+		SetTextOptionValue(OptionID, TexSetOverride)
 	ElseIf OptionID == RedetectDirtSetsOID_T
 		TexUtil.DirtSetCount[0] = TexUtil.InitTexSets(0)
 		TexUtil.DirtSetCount[1] = TexUtil.InitTexSets(1)
@@ -1185,17 +1215,7 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 		ForcePageReset()
 	ElseIf OptionID == RemoveAllOverlaysOID_T
 		RemoveAllOverlays()
-	ElseIf OptionID == ShynessToggleID
-		Shyness = !Shyness
-		SetToggleOptionValue(OptionID, Shyness)
-	ElseIf OptionID == TexSetOverrideID
-		if !TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
-			ShowMessage("$BIS_MSG_TEXSETOVERRIDE_WARN", false)
-		else
-			TexSetOverride = !TexSetOverride
-		endIf
-		SetTextOptionValue(OptionID, TexSetOverride)
-	EndIf	
+	EndIf
 EndFunction
 Function HandleOnOptionSelectIntegrationsPage(Int OptionID)
 	If OptionID == FadeDirtSexToggleID
@@ -1363,6 +1383,8 @@ EndFunction
 Event OnOptionSliderAccept(Int OptionID, Float OptionValue)
 	If CurrentPage == "$BIS_PAGE_SETTINGS"
 		HandleOnOptionSliderAcceptSettingsPage(OptionID, OptionValue)
+	ElseIf CurrentPage == "$BIS_PAGE_EFFECTS"
+		HandleOnOptionSliderAcceptEffectsPage(OptionID, OptionValue)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS"
 		HandleOnOptionSliderAcceptAnimationsPage(OptionID, OptionValue)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
@@ -1464,7 +1486,19 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue / 100.0
 		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(SliderValue)
-	ElseIf OptionID == OverlayApplyAtOID_S
+	ElseIf OptionID == ShynessDistanceOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SliderValue = OptionValue
+		ShynessDistance.SetValue(SliderValue)
+	EndIf
+	
+	SetSliderOptionValue(OptionID, OptionValue, DisplayFormat)
+EndFunction
+Function HandleOnOptionSliderAcceptEffectsPage(Int OptionID, Float OptionValue)
+	Float SliderValue = OptionValue
+	String DisplayFormat
+
+	If OptionID == OverlayApplyAtOID_S
 		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
 		SliderValue = OptionValue
 		OverlayApplyAt = SliderValue / 100.0
@@ -1482,12 +1516,8 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		DisplayFormat = DisplayFormatDecimal
 		SliderValue = OptionValue
 		TimeToCleanInterval = SliderValue
-	ElseIf OptionID == ShynessDistanceOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SliderValue = OptionValue
-		ShynessDistance.SetValue(SliderValue)
 	EndIf
-	
+
 	SetSliderOptionValue(OptionID, OptionValue, DisplayFormat)
 EndFunction
 Function HandleOnOptionSliderAcceptIntegrationsPage(Int OptionID, Float OptionValue)
@@ -1531,6 +1561,8 @@ EndFunction
 Event OnOptionSliderOpen(Int OptionID)
 	If CurrentPage == "$BIS_PAGE_SETTINGS"
 		HandleOnOptionSliderOpenSettingsPage(OptionID)
+	ElseIf CurrentPage == "$BIS_PAGE_EFFECTS"
+		HandleOnOptionSliderOpenEffectsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS"
 		HandleOnOptionSliderOpenAnimationsPage(OptionID)
 	ElseIf CurrentPage == "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
@@ -1710,7 +1742,23 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(ClampDirtinessThreshold(3, 0.98) * 100)
 		SliderValue = ((DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100.0)
-	ElseIf OptionID == OverlayApplyAtOID_S
+	ElseIf OptionID == ShynessDistanceOID_S
+		DisplayFormat = DisplayFormatDecimal
+		SetSliderDialogDefaultValue(2000.0)
+		SetSliderDialogRange(0.0, 6000.0)
+		SetSliderDialogInterval(200.0)
+		SliderValue = ShynessDistance.GetValue()
+	EndIf
+	
+	; set slider value
+	SetSliderDialogStartValue(SliderValue)
+	SetSliderOptionValue(OptionID, SliderValue, DisplayFormat)
+EndFunction
+Function HandleOnOptionSliderOpenEffectsPage(int OptionID)
+	Float SliderValue = 0.0
+	String DisplayFormat
+
+	If OptionID == OverlayApplyAtOID_S
 		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
 		SetSliderDialogDefaultValue(40.0)
 		SetSliderDialogRange(0.0, 100.0)
@@ -1734,14 +1782,8 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogRange(0.01, 5.0)
 		SetSliderDialogInterval(0.01)
 		SliderValue = TimeToCleanInterval
-	ElseIf OptionID == ShynessDistanceOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SetSliderDialogDefaultValue(2000.0)
-		SetSliderDialogRange(0.0, 6000.0)
-		SetSliderDialogInterval(200.0)
-		SliderValue = ShynessDistance.GetValue()
 	EndIf
-	
+
 	; set slider value
 	SetSliderDialogStartValue(SliderValue)
 	SetSliderOptionValue(OptionID, SliderValue, DisplayFormat)
