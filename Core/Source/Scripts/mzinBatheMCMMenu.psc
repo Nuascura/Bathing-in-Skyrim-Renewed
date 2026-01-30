@@ -1,11 +1,9 @@
 ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 { this script displays the MCM menu for mod configuration }
 
-Bool IsConfigOpen = false
-
 import JsonUtil
 
-; Modified
+; core
 mzinBathePlayerAlias Property BathePlayer Auto
 mzinBatheQuest Property BatheQuest Auto
 mzinTextureUtility Property TexUtil Auto
@@ -16,40 +14,23 @@ Quest Property mzinBatheFollowerDialogQuest Auto
 Formlist Property mzinDirtyActorsList Auto
 FormList Property GetDirtyOverTimeSpellList Auto
 
+; integration settings
 Float Property FadeTatsFadeTime = 8.0 Auto Hidden
 Float Property FadeTatsSoapMult = 2.0 Auto Hidden
 Float Property DirtinessPerSexActor = 0.04 Auto Hidden
 Float Property VictimMult = 2.5 Auto Hidden
-Float Property OverlayApplyAt = 0.40 Auto Hidden
-Float Property StartingAlpha = 0.15 Auto Hidden
-Int Property OverlayTint = 0xFFFFFF Auto Hidden
 Bool Property FadeDirtSex = true Auto Hidden
 Float Property SexIntervalDirt = 35.0 Auto Hidden
 Float Property SexInterval = 1.0 Auto Hidden
+
+; effects settings
+GlobalVariable Property DirtShaderEnabled Auto
+Float Property OverlayApplyAt = 0.40 Auto Hidden
+Float Property StartingAlpha = 0.15 Auto Hidden
+Int Property OverlayTint = 0xFFFFFF Auto Hidden
 Float Property TimeToClean = 10.0 Auto Hidden
 Float Property TimeToCleanInterval = 0.25 Auto Hidden
-Bool Property Shyness = True Auto Hidden
-GlobalVariable Property ShynessDistance Auto
-Bool Property AutoHideUI = True Auto Hidden
-Bool Property AutoPlayerTFC = False Auto Hidden
 Bool Property TexSetOverride = False Auto Hidden
-Bool Property GameMessage = True Auto Hidden
-Bool Property LogNotification = True Auto Hidden
-Bool Property LogTrace = False Auto Hidden
-Bool Property SkipItemHash = False Auto Hidden
-
-Float[] Property AnimCustomMSet Auto
-Float Property AnimCustomMSet1Freq = 0.00 Auto
-Float[] Property AnimCustomFSet Auto
-Float Property AnimCustomFSet1Freq = 0.00 Auto
-Float Property AnimCustomFSet2Freq = 0.00 Auto
-Float Property AnimCustomFSet3Freq = 0.00 Auto
-Float[] Property AnimCustomMSetFollowers Auto
-Float Property AnimCustomMSet1FreqFollowers = 0.00 Auto
-Float[] Property AnimCustomFSetFollowers Auto
-Float Property AnimCustomFSet1FreqFollowers = 0.00 Auto
-Float Property AnimCustomFSet2FreqFollowers = 0.00 Auto
-Float Property AnimCustomFSet3FreqFollowers = 0.00 Auto
 
 ; references
 Actor Property PlayerRef Auto
@@ -58,6 +39,11 @@ Actor Property PlayerRef Auto
 GlobalVariable Property BathingInSkyrimEnabled Auto
 GlobalVariable Property DialogTopicEnabled Auto
 GlobalVariable Property WaterRestrictionEnabled Auto
+GlobalVariable Property AutomateFollowerBathing Auto
+
+; misc settings
+Bool Property Shyness = True Auto Hidden
+GlobalVariable Property ShynessDistance Auto
 
 ; soap settings
 GlobalVariable Property GetSoapyStyle Auto
@@ -68,13 +54,31 @@ GlobalVariable Property CheckStatusKeyCode Auto
 GlobalVariable Property BatheKeyCode Auto
 GlobalVariable Property ModifierKeyCode Auto
 
-; animation settings
+; animation settings - player
 FormList Property BathingAnimationLoopCountList Auto
-FormList Property BathingAnimationLoopCountListFollowers Auto
 GlobalVariable Property BathingAnimationStyle Auto
-GlobalVariable Property BathingAnimationStyleFollowers Auto
 GlobalVariable Property ShoweringAnimationStyle Auto
+Bool Property AutoHideUI = True Auto Hidden
+Bool Property AutoPlayerTFC = False Auto Hidden
+Float[] Property AnimCustomMSet Auto
+Float Property AnimCustomMSet1Freq = 0.00 Auto
+Float[] Property AnimCustomFSet Auto
+Float Property AnimCustomFSet1Freq = 0.00 Auto
+Float Property AnimCustomFSet2Freq = 0.00 Auto
+Float Property AnimCustomFSet3Freq = 0.00 Auto
+Int Property AnimCustomTierCond = 1 Auto
+
+; animation settings - follower
+FormList Property BathingAnimationLoopCountListFollowers Auto
+GlobalVariable Property BathingAnimationStyleFollowers Auto
 GlobalVariable Property ShoweringAnimationStyleFollowers Auto
+Float[] Property AnimCustomMSetFollowers Auto
+Float Property AnimCustomMSet1FreqFollowers = 0.00 Auto
+Float[] Property AnimCustomFSetFollowers Auto
+Float Property AnimCustomFSet1FreqFollowers = 0.00 Auto
+Float Property AnimCustomFSet2FreqFollowers = 0.00 Auto
+Float Property AnimCustomFSet3FreqFollowers = 0.00 Auto
+Int Property AnimCustomTierCondFollowers = 1 Auto
 
 ; undress settings
 GlobalVariable Property GetDressedAfterBathingEnabled Auto
@@ -91,28 +95,30 @@ GlobalVariable Property DirtinessPerHourSettlement Auto
 GlobalVariable Property DirtinessPerHourDungeon Auto
 GlobalVariable Property DirtinessPerHourWilderness Auto
 
+; auxiliary settings
+Bool Property GameMessage = True Auto Hidden
+Bool Property LogNotification = True Auto Hidden
+Bool Property LogTrace = False Auto Hidden
+Bool Property SkipItemHash = False Auto Hidden
+
 ; local variables
 String[] BathingAnimationStyleArray
 String[] ShoweringAnimationStyleArray
 String[] GetSoapyStyleArray
-
+String[] AutomateFollowerBathingArray
+String[] AnimCustomTierCondArray
 Int[] Property ArmorSlotArray Auto
 Int[] Property ArmorSlotArrayFollowers Auto
 Bool[] UndressArmorSlotArray
 Bool[] UndressArmorSlotArrayFollowers
+Bool IsConfigOpen = false
 
-String[] AutomateFollowerBathingArray
-GlobalVariable Property AutomateFollowerBathing Auto
-String[] AnimCustomTierCondArray
-Int Property AnimCustomTierCond = 1 Auto
-Int Property AnimCustomTierCondFollowers = 1 Auto
-
-Int Property cachedSoftCheck = 0 Auto Hidden
-
-; constants
+; local variables - constants
 String DisplayFormatPercentage = "{1}%"
 String DisplayFormatDecimal = "{2}"
 String config = "../../../Interface/Bathing in Skyrim/Settings.json"
+
+Int Property cachedSoftCheck = 0 Auto Hidden
 
 Bool Property ShowTierCondConfig
 	Bool Function Get()
@@ -347,7 +353,7 @@ Function DisplayAnimationsPage()
 	SetCursorPosition(1)	
 
 	AddHeaderOption("$BIS_HEADER_GET_DRESSED")
-	GetDressedAfterBathingEnabledToggleID = AddToggleOption("$BIS_L_ENABLED", GetDressedAfterBathingEnabled.GetValue() As Bool)	
+	GetDressedAfterBathingEnabledToggleID = AddToggleOption("$BIS_TXT_TOGGLE", GetDressedAfterBathingEnabled.GetValue() As Bool)	
 	AddHeaderOption("$BIS_HEADER_GET_NAKED_BASIC")
 	UndressArmorSlotToggleIDs[0]  = AddToggleOption("$BIS_L_SLOT_30", UndressArmorSlotArray[0])
 	UndressArmorSlotToggleIDs[1]  = AddToggleOption("$BIS_L_SLOT_31", UndressArmorSlotArray[1])
@@ -423,7 +429,7 @@ Function DisplayAnimationsPageFollowers()
 	SetCursorPosition(1)
 
 	AddHeaderOption("$BIS_HEADER_GET_DRESSED")
-	GetDressedAfterBathingEnabledToggleIDFollowers = AddToggleOption("$BIS_L_ENABLED", GetDressedAfterBathingEnabledFollowers.GetValue() As Bool)	
+	GetDressedAfterBathingEnabledToggleIDFollowers = AddToggleOption("$BIS_TXT_TOGGLE", GetDressedAfterBathingEnabledFollowers.GetValue() As Bool)	
 	AddHeaderOption("$BIS_HEADER_GET_NAKED_BASIC")
 	UndressArmorSlotToggleIDsFollowers[0]  = AddToggleOption("$BIS_L_SLOT_30", UndressArmorSlotArrayFollowers[0])
 	UndressArmorSlotToggleIDsFollowers[1]  = AddToggleOption("$BIS_L_SLOT_31", UndressArmorSlotArrayFollowers[1])
@@ -488,6 +494,9 @@ Function DisplaySettingsPage()
 	DirtinessThresholdTier4SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 EndFunction
 Function DisplayEffectsPage()
+	AddHeaderOption("$BIS_HEADER_SHADERS")
+	DirtShaderEnabledOID_T = AddToggleOption("$BIS_L_DIRTSHADERENABLED", DirtShaderEnabled.GetValue() As Bool)
+
 	SetCursorPosition(1)
 	AddHeaderOption("$BIS_HEADER_OVERLAYS")
 	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY_{}")
@@ -822,7 +831,10 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultEffectsPage(Int OptionID)
-	If OptionID == OverlayTintOID_C
+	If OptionID == DirtShaderEnabledOID_T
+		DirtShaderEnabled.SetValue(1.0)
+		SetToggleOptionValue(OptionID, DirtShaderEnabled.GetValue() as Bool)
+	ElseIf OptionID == OverlayTintOID_C
 		OverlayTint = 0xFFFFFF
 		SetColorOptionValue(OptionID, 0xFFFFFF)
 	ElseIf OptionID == TexSetOverrideID
@@ -1011,7 +1023,9 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightEffectsPage(int OptionID)
-	If OptionID == OverlayApplyAtOID_S
+	If OptionID == DirtShaderEnabledOID_T
+		SetInfoText("$BIS_DESC_DIRTSHADERENABLED")
+	ElseIf OptionID == OverlayApplyAtOID_S
 		SetInfoText("$BIS_DESC_OVERLAYAPPLY")
 	ElseIf OptionID == StartingAlphaOID_S
 		SetInfoText("$BIS_DESC_OVERLAYALPHA")
@@ -1221,7 +1235,10 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 	EndIf	
 EndFunction
 Function HandleOnOptionSelectEffectsPage(Int OptionID)
-	If OptionID == TexSetOverrideID
+	If OptionID == DirtShaderEnabledOID_T
+		DirtShaderEnabled.SetValue((!DirtShaderEnabled.GetValue() As Bool) As Int)
+		SetToggleOptionValue(OptionID, DirtShaderEnabled.GetValue() As Bool)
+	ElseIf OptionID == TexSetOverrideID
 		if !TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
 			ShowMessage("$BIS_MSG_TEXSETOVERRIDE_WARN", false)
 		else
@@ -2056,6 +2073,7 @@ Bool Function SavePapyrusSettings()
 	SetFloatValue(config, "SexInterval", SexInterval)
 	SetFloatValue(config, "TimeToClean", TimeToClean)
 	SetFloatValue(config, "TimeToCleanInterval", TimeToCleanInterval)
+	SetIntValue(config, "DirtShaderEnabled", DirtShaderEnabled.GetValue() as int)
 
 	SetFloatValue(config, "ShynessDistance", ShynessDistance.GetValue())
 	
@@ -2163,6 +2181,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	SexInterval = GetFloatValue(config, "SexInterval", SexInterval)
 	TimeToClean = GetFloatValue(config, "TimeToClean", TimeToClean)
 	TimeToCleanInterval = GetFloatValue(config, "TimeToCleanInterval", TimeToCleanInterval)
+	DirtShaderEnabled.SetValue(GetIntValue(config, "DirtShaderEnabled", DirtShaderEnabled.GetValue() as Int))
 	
 	ShynessDistance.SetValue(GetFloatValue(config, "ShynessDistance", ShynessDistance.GetValue()))
 	
@@ -2275,18 +2294,21 @@ Int DirtinessThresholdTier4SliderID
 Int CheckStatusKeyMapID
 Int BatheKeyMapID
 Int ModifierKeyMapID
+Int ShynessToggleID
+Int ShynessDistanceOID_S
+
+; menu - Effects
+Int DirtShaderEnabledOID_T
 Int OverlayApplyAtOID_S
 Int StartingAlphaOID_S
 Int OverlayTintOID_C
-Int TexSetCountOID_T
-Int RedetectDirtSetsOID_T
-Int OverlayProgressOID_T
-Int RemoveAllOverlaysOID_T
-Int TexSetOverrideID
-Int ShynessToggleID
-Int ShynessDistanceOID_S
 Int TimeToCleanOID_S
 Int TimeToCleanIntervalOID_S
+Int TexSetOverrideID
+Int TexSetCountOID_T
+Int RedetectDirtSetsOID_T
+Int RemoveAllOverlaysOID_T
+Int OverlayProgressOID_T
 
 ; menu - Animations - Left
 Int BathingAnimationStyleMenuID
