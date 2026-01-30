@@ -322,8 +322,9 @@ Function DisplayAnimationsPage()
 	endIf
 	BathingAnimationLoopsTier0SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_CLEAN", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 	BathingAnimationLoopsTier1SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_NOT_DIRTY", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
-	BathingAnimationLoopsTier2SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_DIRTY", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
-	BathingAnimationLoopsTier3SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_FILTHY", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
+	BathingAnimationLoopsTier2SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_SLIGHTLY_DIRTY", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
+	BathingAnimationLoopsTier3SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_QUITE_DIRTY", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
+	BathingAnimationLoopsTier4SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_FILTHY", (BathingAnimationLoopCountList.GetAt(4) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 
 	AddHeaderOption("$BIS_HEADER_CUSTOM_FREQ")
 	int CUSTOM_FREQ_FLAG
@@ -397,8 +398,9 @@ Function DisplayAnimationsPageFollowers()
 	endIf
 	BathingAnimationLoopsTier0SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_CLEAN", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 	BathingAnimationLoopsTier1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_NOT_DIRTY", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
-	BathingAnimationLoopsTier2SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_DIRTY", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
-	BathingAnimationLoopsTier3SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_FILTHY", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
+	BathingAnimationLoopsTier2SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_SLIGHTLY_DIRTY", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
+	BathingAnimationLoopsTier3SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_QUITE_DIRTY", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
+	BathingAnimationLoopsTier4SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_FILTHY", (BathingAnimationLoopCountListFollowers.GetAt(4) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 
 	AddHeaderOption("$BIS_HEADER_CUSTOM_FREQ")
 	int CUSTOM_FREQ_FLAG
@@ -481,8 +483,9 @@ Function DisplaySettingsPage()
 	DirtinessPerHourWildernessSliderID = AddSliderOption("$BIS_L_IN_WILDERNESS", DirtinessPerHourWilderness.GetValue() * 100, DisplayFormatPercentage)
 	AddHeaderOption("$BIS_HEADER_DIRT_THRESHOLDS")
 	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_DIRTY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_SLIGHTLY_DIRTY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_QUITE_DIRTY", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	DirtinessThresholdTier4SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 EndFunction
 Function DisplayEffectsPage()
 	SetCursorPosition(1)
@@ -548,8 +551,10 @@ Function DisplayTrackedActorsPage()
 			ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(1) As Spell)
 				DirtinessString = "$BIS_TXT_NOTDIRTY"
 			ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(2) As Spell)
-				DirtinessString = "$BIS_TXT_DIRTY"
+				DirtinessString = "$BIS_TXT_SLIGHTLYDIRTY"
 			ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(3) As Spell)
+				DirtinessString = "$BIS_TXT_QUITEDIRTY"
+			ElseIf DirtyActor.HasSpell(DirtinessSpellList.GetAt(4) As Spell)
 				DirtinessString = "$BIS_TXT_FILTHY"
 			Else
 				DirtinessString = "$BIS_TXT_MISSINGSPELL"
@@ -651,6 +656,9 @@ Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
 	ElseIf OptionID == BathingAnimationLoopsTier3SliderID
 		(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValue(1)
 		SetSliderOptionValue(OptionID, (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue(), "{0}")
+	ElseIf OptionID == BathingAnimationLoopsTier4SliderID
+		(BathingAnimationLoopCountList.GetAt(4) As GlobalVariable).SetValue(1)
+		SetSliderOptionValue(OptionID, (BathingAnimationLoopCountList.GetAt(4) As GlobalVariable).GetValue(), "{0}")
 	
 	ElseIf OptionID == AnimCustomMSet1SliderID
 		AnimCustomMSet1Freq = 0
@@ -718,6 +726,9 @@ Function HandleOnOptionDefaultAnimationsPageFollowers(Int OptionID)
 	ElseIf OptionID == BathingAnimationLoopsTier3SliderIDFollowers
 		(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValue(1)
 		SetSliderOptionValue(OptionID, (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue(), "{0}")
+	ElseIf OptionID == BathingAnimationLoopsTier4SliderIDFollowers
+		(BathingAnimationLoopCountListFollowers.GetAt(4) As GlobalVariable).SetValue(1)
+		SetSliderOptionValue(OptionID, (BathingAnimationLoopCountListFollowers.GetAt(4) As GlobalVariable).GetValue(), "{0}")
 
 	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
 		AnimCustomMSet1FreqFollowers = 0
@@ -789,6 +800,9 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(ClampDirtinessThreshold(3, 0.98))
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	ElseIf OptionID == DirtinessThresholdTier4SliderID
+		(DirtinessThresholdList.GetAt(4) As GlobalVariable).SetValue(ClampDirtinessThreshold(4, 1.00))
+		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
 	; menus
 	ElseIf OptionID == AutomateFollowerBathingMenuID
 		AutomateFollowerBathing.SetValue(1)
@@ -885,6 +899,8 @@ Function HandleOnOptionHighlightAnimationsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER2")
 	ElseIf OptionID == BathingAnimationLoopsTier3SliderID
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER3")
+	ElseIf OptionID == BathingAnimationLoopsTier4SliderID
+		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER4")
 	ElseIf OptionID == AnimCustomMSet1SliderID
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_MSet1")
 	ElseIf OptionID == AnimCustomFSet1SliderID
@@ -924,6 +940,8 @@ Function HandleOnOptionHighlightAnimationsPageFollowers(Int OptionID)
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER2")
 	ElseIf OptionID == BathingAnimationLoopsTier3SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER3")
+	ElseIf OptionID == BathingAnimationLoopsTier4SliderIDFollowers
+		SetInfoText("$BIS_DESC_ANIM_LOOP_TIER4")
 	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_STYLE_CUSTOM_MSet1")
 	ElseIf OptionID == AnimCustomFSet1SliderIDFollowers
@@ -978,6 +996,8 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_THRESHOLD_2")
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		SetInfoText("$BIS_DESC_THRESHOLD_3")
+	ElseIf OptionID == DirtinessThresholdTier4SliderID
+		SetInfoText("$BIS_DESC_THRESHOLD_4")
 	
 	ElseIf OptionID == PapSetSaveOID_T
 		SetInfoText("$BIS_DESC_PAPSETSAVE")
@@ -1405,6 +1425,8 @@ Function HandleOnOptionSliderAcceptAnimationsPage(Int OptionID, Float OptionValu
 		(BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == BathingAnimationLoopsTier3SliderID
 		(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValue(SliderValue)
+	ElseIf OptionID == BathingAnimationLoopsTier4SliderID
+		(BathingAnimationLoopCountList.GetAt(4) As GlobalVariable).SetValue(SliderValue)
 
 	ElseIf OptionID == AnimCustomMSet1SliderID
 		AnimCustomMSet1Freq = SliderValue
@@ -1434,6 +1456,8 @@ Function HandleOnOptionSliderAcceptAnimationsPageFollowers(Int OptionID, Float O
 		(BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == BathingAnimationLoopsTier3SliderIDFollowers
 		(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValue(SliderValue)
+	ElseIf OptionID == BathingAnimationLoopsTier4SliderIDFollowers
+		(BathingAnimationLoopCountListFollowers.GetAt(4) As GlobalVariable).SetValue(SliderValue)
 
 	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
 		AnimCustomMSet1FreqFollowers = SliderValue
@@ -1486,6 +1510,10 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		DisplayFormat = DisplayFormatPercentage
 		SliderValue = OptionValue / 100.0
 		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(SliderValue)
+	ElseIf OptionID == DirtinessThresholdTier4SliderID
+		DisplayFormat = DisplayFormatPercentage
+		SliderValue = OptionValue / 100.0
+		(DirtinessThresholdList.GetAt(4) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == ShynessDistanceOID_S
 		DisplayFormat = DisplayFormatDecimal
 		SliderValue = OptionValue
@@ -1599,6 +1627,12 @@ Function HandleOnOptionSliderOpenAnimationsPage(Int OptionID)
 		SetSliderDialogInterval(1.0)
 		SetSliderDialogDefaultValue(1.0)
 		SliderValue = (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue() As Int
+	ElseIf OptionID == BathingAnimationLoopsTier4SliderID
+		DisplayFormat = "{0}"
+		SetSliderDialogRange(1.0, 10.0)
+		SetSliderDialogInterval(1.0)
+		SetSliderDialogDefaultValue(1.0)
+		SliderValue = (BathingAnimationLoopCountList.GetAt(4) As GlobalVariable).GetValue() As Int
 
 	ElseIf OptionID == AnimCustomMSet1SliderID
 		DisplayFormat = "{0}"
@@ -1658,6 +1692,12 @@ Function HandleOnOptionSliderOpenAnimationsPageFollowers(Int OptionID)
 		SetSliderDialogInterval(1.0)
 		SetSliderDialogDefaultValue(1.0)
 		SliderValue = (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue() As Int
+	ElseIf OptionID == BathingAnimationLoopsTier4SliderIDFollowers
+		DisplayFormat = "{0}"
+		SetSliderDialogRange(1.0, 10.0)
+		SetSliderDialogInterval(1.0)
+		SetSliderDialogDefaultValue(1.0)
+		SliderValue = (BathingAnimationLoopCountListFollowers.GetAt(4) As GlobalVariable).GetValue() As Int
 
 	ElseIf OptionID == AnimCustomMSet1SliderIDFollowers
 		DisplayFormat = "{0}"
@@ -1742,6 +1782,12 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(ClampDirtinessThreshold(3, 0.98) * 100)
 		SliderValue = ((DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100.0)
+	ElseIf OptionID == DirtinessThresholdTier4SliderID
+		DisplayFormat = DisplayFormatPercentage
+		SetSliderDialogRange(GetDirtinessThresholdSliderMin(4), GetDirtinessThresholdSliderMax(4))
+		SetSliderDialogInterval(0.5)
+		SetSliderDialogDefaultValue(ClampDirtinessThreshold(4, 1.00) * 100)
+		SliderValue = ((DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == ShynessDistanceOID_S
 		DisplayFormat = DisplayFormatDecimal
 		SetSliderDialogDefaultValue(2000.0)
@@ -2082,16 +2128,19 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold1", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue()))
 	(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold2", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue()))
 	(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold3", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue()))
+	(DirtinessThresholdList.GetAt(4) As GlobalVariable).SetValue(GetFloatValue(config, "DirtinessThreshold4", (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue()))
 	
 	(BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount0", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue() as int))
 	(BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount1", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue() as int))
 	(BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount2", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValue() as int))
 	(BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount3", (BathingAnimationLoopCountList.GetAt(3) As GlobalVariable).GetValue() as int))
+	(BathingAnimationLoopCountList.GetAt(4) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCount4", (BathingAnimationLoopCountList.GetAt(4) As GlobalVariable).GetValue() as int))
 	
 	(BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers0", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValue() as int))
 	(BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers1", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValue() as int))
 	(BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers2", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValue() as int))
 	(BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers3", (BathingAnimationLoopCountListFollowers.GetAt(3) As GlobalVariable).GetValue() as int))
+	(BathingAnimationLoopCountListFollowers.GetAt(4) As GlobalVariable).SetValue(GetIntValue(config, "BathingAnimationLoopCountFollowers4", (BathingAnimationLoopCountListFollowers.GetAt(4) As GlobalVariable).GetValue() as int))
 	
 	AnimCustomMSet1Freq = GetFloatValue(config, "AnimCustomMSet1Freq", AnimCustomMSet1Freq)
 	AnimCustomFSet1Freq = GetFloatValue(config, "AnimCustomFSet1Freq", AnimCustomFSet1Freq)
@@ -2222,6 +2271,7 @@ Int DirtinessPerHourWildernessSliderID
 Int DirtinessThresholdTier1SliderID
 Int DirtinessThresholdTier2SliderID
 Int DirtinessThresholdTier3SliderID
+Int DirtinessThresholdTier4SliderID
 Int CheckStatusKeyMapID
 Int BatheKeyMapID
 Int ModifierKeyMapID
@@ -2248,6 +2298,7 @@ Int BathingAnimationLoopsTier0SliderID
 Int BathingAnimationLoopsTier1SliderID
 Int BathingAnimationLoopsTier2SliderID
 Int BathingAnimationLoopsTier3SliderID
+Int BathingAnimationLoopsTier4SliderID
 Int AnimCustomMSet1SliderID
 Int AnimCustomFSet1SliderID
 Int AnimCustomFSet2SliderID
@@ -2266,6 +2317,7 @@ Int BathingAnimationLoopsTier0SliderIDFollowers
 Int BathingAnimationLoopsTier1SliderIDFollowers
 Int BathingAnimationLoopsTier2SliderIDFollowers
 Int BathingAnimationLoopsTier3SliderIDFollowers
+Int BathingAnimationLoopsTier4SliderIDFollowers
 Int AnimCustomMSet1SliderIDFollowers
 Int AnimCustomFSet1SliderIDFollowers
 Int AnimCustomFSet2SliderIDFollowers
