@@ -83,9 +83,11 @@ Event OnKeyDown(Int KeyCode)
 	
 	UnregisterForAllKeys()
 	If KeyCode == CheckStatusKeyCode.GetValue() as int
-		ObjectReference crosshairRef = Game.GetCurrentCrosshairRef()
-		If crosshairRef as Actor
-			mzinUtil.LogNotification(crosshairRef.GetBaseObject().GetName() + " feels " + Math.Floor(StorageUtil.GetFloatValue(crosshairRef, "BiS_Dirtiness") * 100.0) + "% dirty.")
+		if Input.IsKeyPressed(ModifierKeyCode.GetValue() as int) 
+			ObjectReference crosshairRef = Game.GetCurrentCrosshairRef()
+			If crosshairRef as Actor
+				mzinUtil.LogNotification(crosshairRef.GetBaseObject().GetName() + " feels " + Math.Floor(StorageUtil.GetFloatValue(crosshairRef, "BiS_Dirtiness") * 100.0) + "% dirty.")
+			EndIf
 		Else
 			mzinUtil.GameMessage(DirtinessStatusMessage, DirtinessPercentage.GetValue() * 100)
 		EndIf
