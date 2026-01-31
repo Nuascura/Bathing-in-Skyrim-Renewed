@@ -320,12 +320,7 @@ Function DisplayAnimationsPage()
 	AutoPlayerTFCID = AddToggleOption("$BIS_L_AUTOPLAYERTFC", AutoPlayerTFC)
 
 	AddHeaderOption("$BIS_HEADER_ANIM_LOOP")
-	int ANIM_LOOP_FLAG
-	if (BathingAnimationStyle.GetValue() == 1) || (((BathingAnimationStyle.GetValue() as bool)) && (ShoweringAnimationStyle.GetValue() == 1))
-		ANIM_LOOP_FLAG = OPTION_FLAG_NONE
-	else
-		ANIM_LOOP_FLAG = OPTION_FLAG_DISABLED
-	endIf
+	int ANIM_LOOP_FLAG = GetAnimOptionFlag(1)
 	BathingAnimationLoopsTier0SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_CLEAN", (BathingAnimationLoopCountList.GetAt(0) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 	BathingAnimationLoopsTier1SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_NOT_DIRTY", (BathingAnimationLoopCountList.GetAt(1) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 	BathingAnimationLoopsTier2SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_SLIGHTLY_DIRTY", (BathingAnimationLoopCountList.GetAt(2) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
@@ -333,12 +328,7 @@ Function DisplayAnimationsPage()
 	BathingAnimationLoopsTier4SliderID = AddSliderOption("$BIS_L_ANIM_LOOP_FILTHY", (BathingAnimationLoopCountList.GetAt(4) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 
 	AddHeaderOption("$BIS_HEADER_CUSTOM_FREQ")
-	int CUSTOM_FREQ_FLAG
-	if (BathingAnimationStyle.GetValue() == 2) || (((BathingAnimationStyle.GetValue() as bool)) && (ShoweringAnimationStyle.GetValue() == 2))
-		CUSTOM_FREQ_FLAG = OPTION_FLAG_NONE
-	else
-		CUSTOM_FREQ_FLAG = OPTION_FLAG_DISABLED
-	endIf
+	int CUSTOM_FREQ_FLAG = GetAnimOptionFlag(2)
 	AnimCustomMSet1SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_MSet1", AnimCustomMSet1Freq, "{0}", CUSTOM_FREQ_FLAG)
 	AnimCustomFSet1SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet1", AnimCustomFSet1Freq, "{0}", CUSTOM_FREQ_FLAG)
 	AnimCustomFSet2SliderID = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet2", AnimCustomFSet2Freq, "{0}", CUSTOM_FREQ_FLAG)
@@ -396,12 +386,7 @@ Function DisplayAnimationsPageFollowers()
 	GetSoapyStyleMenuIDFollowers = AddMenuOption("$BIS_L_SOAP_STYLE", GetSoapyStyleArray[GetSoapyStyleFollowers.GetValue() As Int])
 
 	AddHeaderOption("$BIS_HEADER_ANIM_LOOP")
-	int ANIM_LOOP_FLAG
-	if (BathingAnimationStyleFollowers.GetValue() == 1) || (((BathingAnimationStyleFollowers.GetValue() as bool)) && (ShoweringAnimationStyleFollowers.GetValue() == 1))
-		ANIM_LOOP_FLAG = OPTION_FLAG_NONE
-	else
-		ANIM_LOOP_FLAG = OPTION_FLAG_DISABLED
-	endIf
+	int ANIM_LOOP_FLAG = GetAnimOptionFlag_Followers(1)
 	BathingAnimationLoopsTier0SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_CLEAN", (BathingAnimationLoopCountListFollowers.GetAt(0) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 	BathingAnimationLoopsTier1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_NOT_DIRTY", (BathingAnimationLoopCountListFollowers.GetAt(1) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 	BathingAnimationLoopsTier2SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_SLIGHTLY_DIRTY", (BathingAnimationLoopCountListFollowers.GetAt(2) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
@@ -409,12 +394,7 @@ Function DisplayAnimationsPageFollowers()
 	BathingAnimationLoopsTier4SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_LOOP_FILTHY", (BathingAnimationLoopCountListFollowers.GetAt(4) As GlobalVariable).GetValue(), "{0}", ANIM_LOOP_FLAG)
 
 	AddHeaderOption("$BIS_HEADER_CUSTOM_FREQ")
-	int CUSTOM_FREQ_FLAG
-	if (BathingAnimationStyleFollowers.GetValue() == 2) || (((BathingAnimationStyleFollowers.GetValue() as bool)) && (ShoweringAnimationStyleFollowers.GetValue() == 2))
-		CUSTOM_FREQ_FLAG = OPTION_FLAG_NONE
-	else
-		CUSTOM_FREQ_FLAG = OPTION_FLAG_DISABLED
-	endIf
+	int CUSTOM_FREQ_FLAG = GetAnimOptionFlag_Followers(2)
 	AnimCustomMSet1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_MSet1", AnimCustomMSet1FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
 	AnimCustomFSet1SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet1", AnimCustomFSet1FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
 	AnimCustomFSet2SliderIDFollowers = AddSliderOption("$BIS_L_ANIM_STYLE_CUSTOM_FSet2", AnimCustomFSet2FreqFollowers, "{0}", CUSTOM_FREQ_FLAG)
@@ -479,7 +459,7 @@ Function DisplaySettingsPage()
 	ModifierKeyMapID = AddKeyMapOption("$BIS_L_MODIFIER_HOTKEY", ModifierKeyCode.GetValue() As Int)
 	AddHeaderOption("$BIS_HEADER_MISC")
 	ShynessToggleID = AddToggleOption("$BIS_L_SHYNESSTOGGLE", Shyness)
-	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue(), DisplayFormatDecimal)
+	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue(), DisplayFormatDecimal, (!Shyness) as int)
 	
 	SetCursorPosition(1)
 	AddHeaderOption("$BIS_HEADER_DIRT_RATE")
@@ -641,10 +621,12 @@ Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
 	; menus
 	If OptionID == BathingAnimationStyleMenuID
 		BathingAnimationStyle.SetValue(1)
-		SetMenuOptionValue(OptionID, BathingAnimationStyleArray[BathingAnimationStyle.GetValue() As Int])
+		SetMenuOptionValue(OptionID, BathingAnimationStyleArray[BathingAnimationStyle.GetValue() As Int], true)
+		ForcePageReset()
 	ElseIf OptionID == ShoweringAnimationStyleMenuID
 		ShoweringAnimationStyle.SetValue(0)
-		SetMenuOptionValue(OptionID, ShoweringAnimationStyleArray[ShoweringAnimationStyle.GetValue() As Int])
+		SetMenuOptionValue(OptionID, ShoweringAnimationStyleArray[ShoweringAnimationStyle.GetValue() As Int], true)
+		ForcePageReset()
 	ElseIf OptionID == GetSoapyStyleMenuID
 		GetSoapyStyle.SetValue(1)
 		SetMenuOptionValue(OptionID, GetSoapyStyleArray[GetSoapyStyle.GetValue() As Int])
@@ -711,10 +693,12 @@ Function HandleOnOptionDefaultAnimationsPageFollowers(Int OptionID)
 	; menus
 	If OptionID == BathingAnimationStyleMenuIDFollowers
 		BathingAnimationStyleFollowers.SetValue(1)
-		SetMenuOptionValue(OptionID, BathingAnimationStyleArray[BathingAnimationStyleFollowers.GetValue() As Int])
+		SetMenuOptionValue(OptionID, BathingAnimationStyleArray[BathingAnimationStyleFollowers.GetValue() As Int], true)
+		ForcePageReset()
 	ElseIf OptionID == ShoweringAnimationStyleMenuIDFollowers
 		ShoweringAnimationStyleFollowers.SetValue(0)
-		SetMenuOptionValue(OptionID, BathingAnimationStyleArray[BathingAnimationStyleFollowers.GetValue() As Int])
+		SetMenuOptionValue(OptionID, ShoweringAnimationStyleArray[ShoweringAnimationStyleFollowers.GetValue() As Int], true)
+		ForcePageReset()
 	ElseIf OptionID == GetSoapyStyleMenuIDFollowers
 		GetSoapyStyleFollowers.SetValue(1)
 		SetMenuOptionValue(OptionID, GetSoapyStyleArray[GetSoapyStyleFollowers.GetValue() As Int])
@@ -783,6 +767,7 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
 	ElseIf OptionID == ShynessToggleID
 		Shyness = true
+		SetOptionFlags(ShynessDistanceOID_S, OPTION_FLAG_NONE, true)
 		SetToggleOptionValue(OptionID, Shyness)
 	; sliders
 	ElseIf OptionID == UpdateIntervalSliderID
@@ -847,6 +832,8 @@ EndFunction
 Function HandleOnOptionDefaultIntegrationsPage(Int OptionID)
 	If OptionID == FadeDirtSexToggleID
 		FadeDirtSex = true
+		SetOptionFlags(SexIntervalDirtOID_S, OPTION_FLAG_NONE, true)
+		SetOptionFlags(SexIntervalOID_S, OPTION_FLAG_NONE, true)
 		SetToggleOptionValue(OptionID, FadeDirtSex)
 	ElseIf OptionID == SexIntervalDirtOID_S
 		SexIntervalDirt = 35.0
@@ -1231,6 +1218,7 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
 	ElseIf OptionID == ShynessToggleID
 		Shyness = !Shyness
+		SetOptionFlags(ShynessDistanceOID_S, (!Shyness) as int, true)
 		SetToggleOptionValue(OptionID, Shyness)
 	EndIf	
 EndFunction
@@ -1257,8 +1245,9 @@ EndFunction
 Function HandleOnOptionSelectIntegrationsPage(Int OptionID)
 	If OptionID == FadeDirtSexToggleID
 		FadeDirtSex = !FadeDirtSex
+		SetOptionFlags(SexIntervalDirtOID_S, (!FadeDirtSex) as int, true)
+		SetOptionFlags(SexIntervalOID_S, (!FadeDirtSex) as int, true)
 		SetToggleOptionValue(OptionID, FadeDirtSex)
-		ForcePageReset() 
 	EndIf
 EndFunction
 Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
@@ -1312,13 +1301,13 @@ EndFunction
 Function HandleOnOptionMenuAcceptAnimationsPage(Int OptionID, Int MenuItemIndex)
 	If OptionID == BathingAnimationStyleMenuID
 		If MenuItemIndex >= 0 && MenuItemIndex < BathingAnimationStyleArray.Length
-			SetMenuOptionValue(OptionID, BathingAnimationStyleArray[MenuItemIndex])
+			SetMenuOptionValue(OptionID, BathingAnimationStyleArray[MenuItemIndex], true)
 			BathingAnimationStyle.SetValue(MenuItemIndex)
 			ForcePageReset()
 		EndIf
 	ElseIf OptionID == ShoweringAnimationStyleMenuID
 		If MenuItemIndex >= 0 && MenuItemIndex < ShoweringAnimationStyleArray.Length
-			SetMenuOptionValue(OptionID, ShoweringAnimationStyleArray[MenuItemIndex])
+			SetMenuOptionValue(OptionID, ShoweringAnimationStyleArray[MenuItemIndex], true)
 			ShoweringAnimationStyle.SetValue(MenuItemIndex)
 			ForcePageReset()
 		EndIf
@@ -1337,13 +1326,13 @@ EndFunction
 Function HandleOnOptionMenuAcceptAnimationsPageFollowers(Int OptionID, Int MenuItemIndex)
 	If OptionID == BathingAnimationStyleMenuIDFollowers
 		If MenuItemIndex >= 0 && MenuItemIndex < BathingAnimationStyleArray.Length
-			SetMenuOptionValue(OptionID, BathingAnimationStyleArray[MenuItemIndex])
+			SetMenuOptionValue(OptionID, BathingAnimationStyleArray[MenuItemIndex], true)
 			BathingAnimationStyleFollowers.SetValue(MenuItemIndex)
 			ForcePageReset()
 		EndIf
 	ElseIf OptionID == ShoweringAnimationStyleMenuIDFollowers
 		If MenuItemIndex >= 0 && MenuItemIndex < ShoweringAnimationStyleArray.Length
-			SetMenuOptionValue(OptionID, ShoweringAnimationStyleArray[MenuItemIndex])
+			SetMenuOptionValue(OptionID, ShoweringAnimationStyleArray[MenuItemIndex], true)
 			ShoweringAnimationStyleFollowers.SetValue(MenuItemIndex)
 			ForcePageReset()
 		EndIf
@@ -2269,6 +2258,22 @@ EndFunction
 
 Float Function GetDirtinessThresholdSliderMax(int iTier)
 	return (DirtinessThresholdList.GetAt(iTier + 1) As GlobalVariable).GetValue() * 100.0
+EndFunction
+
+Int Function GetAnimOptionFlag(int i)
+	if ((BathingAnimationStyle.GetValue() as int) == i) || (((BathingAnimationStyle.GetValue() as bool)) && ((ShoweringAnimationStyle.GetValue() as int) == i))
+		return OPTION_FLAG_NONE
+	else
+		return OPTION_FLAG_DISABLED
+	endIf
+EndFunction
+
+Int Function GetAnimOptionFlag_Followers(int i)
+	if ((BathingAnimationStyleFollowers.GetValue() as int) == i) || (((BathingAnimationStyleFollowers.GetValue() as bool)) && ((ShoweringAnimationStyleFollowers.GetValue() as int) == i))
+		return OPTION_FLAG_NONE
+	else
+		return OPTION_FLAG_DISABLED
+	endIf
 EndFunction
 
 ; ---------- MCM Internal Variables ----------
