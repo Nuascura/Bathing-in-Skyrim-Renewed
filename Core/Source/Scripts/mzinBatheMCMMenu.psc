@@ -42,7 +42,6 @@ GlobalVariable Property WaterRestrictionEnabled Auto
 GlobalVariable Property AutomateFollowerBathing Auto
 
 ; misc settings
-Bool Property Shyness = True Auto Hidden
 GlobalVariable Property ShynessDistance Auto
 
 ; soap settings
@@ -114,8 +113,9 @@ Bool[] UndressArmorSlotArrayFollowers
 Bool IsConfigOpen = false
 
 ; local variables - constants
-String DisplayFormatPercentage = "{1}%"
-String DisplayFormatDecimal = "{2}"
+String DF_Percentage = "$BIS_DF_PERCENTAGE"
+String DF_Decimal = "$BIS_DF_DECIMAL"
+String DF_Units_100 = "$BIS_DF_UNITS_100"
 String config = "../../../Interface/Bathing in Skyrim/Settings.json"
 
 Int Property cachedSoftCheck = 0 Auto Hidden
@@ -452,26 +452,25 @@ Function DisplaySettingsPage()
 	DialogTopicEnableToggleID = AddToggleOption("$BIS_L_ENABLED_DIALOG_TOPIC", DialogTopicEnabled.GetValue() As Bool)
 	AutomateFollowerBathingMenuID = AddMenuOption("$BIS_L_AUTOMATE_FOLLOWER_BATHING", AutomateFollowerBathingArray[AutomateFollowerBathing.GetValue() As Int])
 	WaterRestrictionEnableToggleID = AddToggleOption("$BIS_L_WATER_RESTRICT",WaterRestrictionEnabled.GetValue() As Bool)
-	UpdateIntervalSliderID = AddSliderOption("$BIS_L_UPDATE_INTERVAL", DirtinessUpdateInterval.GetValue(), DisplayFormatDecimal)
+	UpdateIntervalSliderID = AddSliderOption("$BIS_L_UPDATE_INTERVAL", DirtinessUpdateInterval.GetValue(), DF_Decimal)
 	AddHeaderOption("$BIS_HEADER_HOTKEYS")
 	CheckStatusKeyMapID = AddKeyMapOption("$BIS_L_STATUS_HOTKEY", CheckStatusKeyCode.GetValue() As Int)
 	BatheKeyMapID = AddKeyMapOption("$BIS_L_BATHE_HOTKEY", BatheKeyCode.GetValue() As Int)
 	ModifierKeyMapID = AddKeyMapOption("$BIS_L_MODIFIER_HOTKEY", ModifierKeyCode.GetValue() As Int)
 	AddHeaderOption("$BIS_HEADER_MISC")
-	ShynessToggleID = AddToggleOption("$BIS_L_SHYNESSTOGGLE", Shyness)
-	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue(), DisplayFormatDecimal, (!Shyness) as int)
+	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue() / 100.0, DF_Units_100)
 	
 	SetCursorPosition(1)
 	AddHeaderOption("$BIS_HEADER_DIRT_RATE")
-	DirtinessPerHourPlayerHouseSliderID = AddSliderOption("$BIS_L_IN_PLAYERHOUSE", DirtinessPerHourPlayerHouse.GetValue() * 100, DisplayFormatPercentage)
-	DirtinessPerHourSettlementSliderID = AddSliderOption("$BIS_L_IN_SETTLEMENTS", DirtinessPerHourSettlement.GetValue() * 100, DisplayFormatPercentage)
-	DirtinessPerHourDungeonSliderID = AddSliderOption("$BIS_L_IN_DUNGEONS", DirtinessPerHourDungeon.GetValue() * 100, DisplayFormatPercentage)
-	DirtinessPerHourWildernessSliderID = AddSliderOption("$BIS_L_IN_WILDERNESS", DirtinessPerHourWilderness.GetValue() * 100, DisplayFormatPercentage)
+	DirtinessPerHourPlayerHouseSliderID = AddSliderOption("$BIS_L_IN_PLAYERHOUSE", DirtinessPerHourPlayerHouse.GetValue() * 100, DF_Percentage)
+	DirtinessPerHourSettlementSliderID = AddSliderOption("$BIS_L_IN_SETTLEMENTS", DirtinessPerHourSettlement.GetValue() * 100, DF_Percentage)
+	DirtinessPerHourDungeonSliderID = AddSliderOption("$BIS_L_IN_DUNGEONS", DirtinessPerHourDungeon.GetValue() * 100, DF_Percentage)
+	DirtinessPerHourWildernessSliderID = AddSliderOption("$BIS_L_IN_WILDERNESS", DirtinessPerHourWilderness.GetValue() * 100, DF_Percentage)
 	AddHeaderOption("$BIS_HEADER_DIRT_THRESHOLDS")
-	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_SLIGHTLY_DIRTY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_QUITE_DIRTY", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
-	DirtinessThresholdTier4SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+	DirtinessThresholdTier1SliderID = AddSliderOption("$BIS_L_GET_NOT_DIRTY", (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DF_Percentage)
+	DirtinessThresholdTier2SliderID = AddSliderOption("$BIS_L_GET_SLIGHTLY_DIRTY", (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DF_Percentage)
+	DirtinessThresholdTier3SliderID = AddSliderOption("$BIS_L_GET_QUITE_DIRTY", (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DF_Percentage)
+	DirtinessThresholdTier4SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DF_Percentage)
 EndFunction
 Function DisplayEffectsPage()
 	AddHeaderOption("$BIS_HEADER_SHADERS")
@@ -480,10 +479,10 @@ Function DisplayEffectsPage()
 	SetCursorPosition(1)
 	AddHeaderOption("$BIS_HEADER_OVERLAYS")
 	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY_{}")
-	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DisplayFormatPercentage)
+	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DF_Percentage)
 	OverlayTintOID_C = AddColorOption("$BIS_L_OVERLAYTINT", OverlayTint)
-	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DisplayFormatDecimal)
-	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DisplayFormatDecimal)
+	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DF_Decimal)
+	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DF_Decimal)
 	TexSetOverrideID = AddTextOption("$BIS_L_OVERLAYTEXSETOVERRIDE", TexSetOverride)
 	AddEmptyOption()
 	TexSetCountOID_T = AddTextOption("$BIS_L_OVERLAYTEXSETCOUNT_{" + TexUtil.DirtSetCount[0] + "}{" + TexUtil.DirtSetCount[1] + "}", "")
@@ -497,16 +496,16 @@ Function DisplayIntegrationsPage()
 	else
 		If Init.IsSexLabInstalled || Init.IsOStimInstalled
 			AddHeaderOption("$BIS_HEADER_SEX")
-			DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DisplayFormatPercentage)
-			VictimMultOID_S = AddSliderOption("$BIS_L_VICTIMMULT", VictimMult, DisplayFormatDecimal)
+			DirtinessPerSexOID_S = AddSliderOption("$BIS_L_DIRTPERSEX", DirtinessPerSexActor * 100.0, DF_Percentage)
+			VictimMultOID_S = AddSliderOption("$BIS_L_VICTIMMULT", VictimMult, DF_Decimal)
 			FadeDirtSexToggleID = AddToggleOption("$BIS_L_FADEDIRTSEX", FadeDirtSex)
-			SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DisplayFormatDecimal, (!FadeDirtSex) as int)
-			SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DisplayFormatDecimal, (!FadeDirtSex) as int)
+			SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DF_Decimal, (!FadeDirtSex) as int)
+			SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DF_Decimal, (!FadeDirtSex) as int)
 		EndIf
 		If Init.IsFadeTattoosInstalled
 			AddHeaderOption("$BIS_HEADER_FADE_TATTOOS")
-			FadeTatsFadeTimeOID_S = AddSliderOption("$BIS_L_FADETATSADVANCE", FadeTatsFadeTime, DisplayFormatDecimal)
-			FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DisplayFormatDecimal)
+			FadeTatsFadeTimeOID_S = AddSliderOption("$BIS_L_FADETATSADVANCE", FadeTatsFadeTime, DF_Decimal)
+			FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DF_Decimal)
 		EndIf
 	
 		SetCursorPosition(1)
@@ -765,38 +764,37 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 	ElseIf OptionID == WaterRestrictionEnableToggleID
 		WaterRestrictionEnabled.SetValue(1)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
-	ElseIf OptionID == ShynessToggleID
-		Shyness = true
-		SetOptionFlags(ShynessDistanceOID_S, OPTION_FLAG_NONE, true)
-		SetToggleOptionValue(OptionID, Shyness)
 	; sliders
 	ElseIf OptionID == UpdateIntervalSliderID
 		DirtinessUpdateInterval.SetValue(1.0)
-		SetSliderOptionValue(OptionID, DirtinessUpdateInterval.GetValue(), DisplayFormatDecimal)
+		SetSliderOptionValue(OptionID, DirtinessUpdateInterval.GetValue(), DF_Decimal)
 	ElseIf OptionID == DirtinessPerHourPlayerHouseSliderID
 		DirtinessPerHourPlayerHouse.SetValue(0.00)
-		SetSliderOptionValue(OptionID, DirtinessPerHourPlayerHouse.GetValue() * 100, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, DirtinessPerHourPlayerHouse.GetValue() * 100, DF_Percentage)
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
 		DirtinessPerHourSettlement.SetValue(0.01)
-		SetSliderOptionValue(OptionID, DirtinessPerHourSettlement.GetValue() * 100, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, DirtinessPerHourSettlement.GetValue() * 100, DF_Percentage)
 	ElseIf OptionID == DirtinessPerHourDungeonSliderID
 		DirtinessPerHourDungeon.SetValue(0.025)
-		SetSliderOptionValue(OptionID, DirtinessPerHourDungeon.GetValue() * 100, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, DirtinessPerHourDungeon.GetValue() * 100, DF_Percentage)
 	ElseIf OptionID == DirtinessPerHourWildernessSliderID
 		DirtinessPerHourWilderness.SetValue(0.015)
-		SetSliderOptionValue(OptionID, DirtinessPerHourWilderness.GetValue() * 100, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, DirtinessPerHourWilderness.GetValue() * 100, DF_Percentage)
 	ElseIf OptionID == DirtinessThresholdTier1SliderID
 		(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(ClampDirtinessThreshold(1, 0.20))
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100, DF_Percentage)
 	ElseIf OptionID == DirtinessThresholdTier2SliderID
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(ClampDirtinessThreshold(2, 0.60))
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100, DF_Percentage)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
 		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(ClampDirtinessThreshold(3, 0.98))
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100, DF_Percentage)
 	ElseIf OptionID == DirtinessThresholdTier4SliderID
 		(DirtinessThresholdList.GetAt(4) As GlobalVariable).SetValue(ClampDirtinessThreshold(4, 1.00))
-		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DisplayFormatPercentage)
+		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DF_Percentage)
+	ElseIf OptionID == ShynessDistanceOID_S
+		ShynessDistance.SetValue(0.0)
+		SetSliderOptionValue(OptionID, ShynessDistance.GetValue() / 100, DF_Units_100)
 	; menus
 	ElseIf OptionID == AutomateFollowerBathingMenuID
 		AutomateFollowerBathing.SetValue(1)
@@ -837,10 +835,10 @@ Function HandleOnOptionDefaultIntegrationsPage(Int OptionID)
 		SetToggleOptionValue(OptionID, FadeDirtSex)
 	ElseIf OptionID == SexIntervalDirtOID_S
 		SexIntervalDirt = 35.0
-		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)
+		SetSliderOptionValue(OptionID, SexIntervalDirt, DF_Decimal)
 	ElseIf OptionID == SexIntervalOID_S
 		SexIntervalDirt = 1.0
-		SetSliderOptionValue(OptionID, SexIntervalDirt, DisplayFormatDecimal)
+		SetSliderOptionValue(OptionID, SexIntervalDirt, DF_Decimal)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultAuxiliaryPage(Int OptionID)
@@ -1003,8 +1001,6 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 	ElseIf OptionID == PapSetLoadOID_T
 		SetInfoText("$BIS_DESC_PAPSETLOAD")
 	
-	ElseIf OptionID == ShynessToggleID
-		SetInfoText("$BIS_DESC_SHYNESSTOGGLE")
 	ElseIf OptionID == ShynessDistanceOID_S
 		SetInfoText("$BIS_DESC_SHYNESSDISTANCE")
 	EndIf
@@ -1216,10 +1212,6 @@ Function HandleOnOptionSelectSettingsPage(Int OptionID)
 	ElseIf OptionID == WaterRestrictionEnableToggleID
 		WaterRestrictionEnabled.SetValue((!WaterRestrictionEnabled.GetValue() As Bool) As Int)
 		SetToggleOptionValue(OptionID, WaterRestrictionEnabled.GetValue() As Bool)
-	ElseIf OptionID == ShynessToggleID
-		Shyness = !Shyness
-		SetOptionFlags(ShynessDistanceOID_S, (!Shyness) as int, true)
-		SetToggleOptionValue(OptionID, Shyness)
 	EndIf	
 EndFunction
 Function HandleOnOptionSelectEffectsPage(Int OptionID)
@@ -1486,44 +1478,44 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 	String DisplayFormat
 
 	If OptionID == UpdateIntervalSliderID
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		DirtinessUpdateInterval.SetValue(SliderValue)
 	ElseIf OptionID == DirtinessPerHourPlayerHouseSliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue / 100.0
 		DirtinessPerHourPlayerHouse.SetValue(SliderValue)
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue / 100.0
 		DirtinessPerHourSettlement.SetValue(SliderValue)
 	ElseIf OptionID == DirtinessPerHourDungeonSliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue / 100.0
 		DirtinessPerHourDungeon.SetValue(SliderValue)
 	ElseIf OptionID == DirtinessPerHourWildernessSliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue / 100.0	
 		DirtinessPerHourWilderness.SetValue(SliderValue)
 	ElseIf OptionID == DirtinessThresholdTier1SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue / 100.0
 		(DirtinessThresholdList.GetAt(1) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == DirtinessThresholdTier2SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue / 100.0
 		(DirtinessThresholdList.GetAt(2) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue / 100.0
 		(DirtinessThresholdList.GetAt(3) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == DirtinessThresholdTier4SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue / 100.0
 		(DirtinessThresholdList.GetAt(4) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == ShynessDistanceOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Units_100
 		SliderValue = OptionValue
-		ShynessDistance.SetValue(SliderValue)
+		ShynessDistance.SetValue(SliderValue * 100.0)
 	EndIf
 	
 	SetSliderOptionValue(OptionID, OptionValue, DisplayFormat)
@@ -1538,16 +1530,16 @@ Function HandleOnOptionSliderAcceptEffectsPage(Int OptionID, Float OptionValue)
 		OverlayApplyAt = SliderValue / 100.0
 		UpdateAllActors()
 	ElseIf OptionID == StartingAlphaOID_S
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue
 		StartingAlpha = SliderValue / 100.0
 		UpdateAllActors()
 	ElseIf OptionID == TimeToCleanOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SliderValue = OptionValue
 		TimeToClean = SliderValue
 	ElseIf OptionID == TimeToCleanIntervalOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SliderValue = OptionValue
 		TimeToCleanInterval = SliderValue
 	EndIf
@@ -1559,31 +1551,31 @@ Function HandleOnOptionSliderAcceptIntegrationsPage(Int OptionID, Float OptionVa
 	String DisplayFormat
 
 	If OptionID == DirtinessPerSexOID_S
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue
 		DirtinessPerSexActor = SliderValue / 100.0
 		ForcePageReset()
 	ElseIf OptionID == VictimMultOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SliderValue = OptionValue
 		VictimMult = SliderValue
 		ForcePageReset()
 	ElseIf OptionID == SexIntervalDirtOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SliderValue = OptionValue
 		SexIntervalDirt = SliderValue
 		ForcePageReset()
 	ElseIf OptionID == SexIntervalOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SliderValue = OptionValue
 		SexInterval = SliderValue
 
 	ElseIf OptionID == FadeTatsFadeTimeOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SliderValue = OptionValue
 		FadeTatsFadeTime = SliderValue
 	ElseIf OptionID == FadeTatsSoapMultOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SliderValue = OptionValue
 		FadeTatsSoapMult = SliderValue
 	EndIf
@@ -1741,65 +1733,65 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 
 	; get slider value
 	If OptionID == UpdateIntervalSliderID
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SetSliderDialogRange(0.25, 5.0)
 		SetSliderDialogInterval(0.25)
 		SetSliderDialogDefaultValue(1.0)
 		SliderValue = (DirtinessUpdateInterval.GetValue())
 	ElseIf OptionID == DirtinessPerHourPlayerHouseSliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(1.0)
 		SliderValue = (DirtinessPerHourPlayerHouse.GetValue() * 100.0)
 	ElseIf OptionID == DirtinessPerHourSettlementSliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(1.0)
 		SliderValue = (DirtinessPerHourSettlement.GetValue() * 100.0)
 	ElseIf OptionID == DirtinessPerHourDungeonSliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(2.5)
 		SliderValue = (DirtinessPerHourDungeon.GetValue() * 100.0)
 	ElseIf OptionID == DirtinessPerHourWildernessSliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(1.5)
 		SliderValue = (DirtinessPerHourWilderness.GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier1SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogRange(GetDirtinessThresholdSliderMin(1), GetDirtinessThresholdSliderMax(1))
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(ClampDirtinessThreshold(1, 0.20) * 100)
 		SliderValue = ((DirtinessThresholdList.GetAt(1) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier2SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogRange(GetDirtinessThresholdSliderMin(2), GetDirtinessThresholdSliderMax(2))
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(ClampDirtinessThreshold(2, 0.60) * 100)
 		SliderValue = ((DirtinessThresholdList.GetAt(2) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier3SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogRange(GetDirtinessThresholdSliderMin(3), GetDirtinessThresholdSliderMax(3))
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(ClampDirtinessThreshold(3, 0.98) * 100)
 		SliderValue = ((DirtinessThresholdList.GetAt(3) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == DirtinessThresholdTier4SliderID
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogRange(GetDirtinessThresholdSliderMin(4), GetDirtinessThresholdSliderMax(4))
 		SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(ClampDirtinessThreshold(4, 1.00) * 100)
 		SliderValue = ((DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == ShynessDistanceOID_S
-		DisplayFormat = DisplayFormatDecimal
-		SetSliderDialogDefaultValue(2000.0)
-		SetSliderDialogRange(0.0, 6000.0)
-		SetSliderDialogInterval(200.0)
-		SliderValue = ShynessDistance.GetValue()
+		DisplayFormat = DF_Units_100
+		SetSliderDialogDefaultValue(0.0)
+		SetSliderDialogRange(-1.0, 60.0)
+		SetSliderDialogInterval(1.0)
+		SliderValue = ShynessDistance.GetValue() / 100.0
 	EndIf
 	
 	; set slider value
@@ -1817,19 +1809,19 @@ Function HandleOnOptionSliderOpenEffectsPage(int OptionID)
 		SetSliderDialogInterval(1.0)
 		SliderValue = OverlayApplyAt * 100.0	
 	ElseIf OptionID == StartingAlphaOID_S
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogDefaultValue(15.0)
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SliderValue = StartingAlpha * 100.0
 	ElseIf OptionID == TimeToCleanOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SetSliderDialogDefaultValue(10.0)
 		SetSliderDialogRange(0.0, 30.0)
 		SetSliderDialogInterval(0.5)
 		SliderValue = TimeToClean
 	ElseIf OptionID == TimeToCleanIntervalOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SetSliderDialogDefaultValue(0.25)
 		SetSliderDialogRange(0.01, 5.0)
 		SetSliderDialogInterval(0.01)
@@ -1845,38 +1837,38 @@ Function HandleOnOptionSliderOpenIntegrationsPage(int OptionID)
 	String DisplayFormat
 
 	If OptionID == DirtinessPerSexOID_S
-		DisplayFormat = DisplayFormatPercentage
+		DisplayFormat = DF_Percentage
 		SetSliderDialogDefaultValue(4.0)
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SliderValue = DirtinessPerSexActor * 100.0
 	ElseIf OptionID == VictimMultOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SetSliderDialogDefaultValue(2.5)
 		SetSliderDialogRange(0.0, 10.0)
 		SetSliderDialogInterval(0.1)
 		SliderValue = VictimMult
 	ElseIf OptionID == SexIntervalDirtOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SetSliderDialogDefaultValue(35.0)
 		SetSliderDialogRange(0.0, 200.0)
 		SetSliderDialogInterval(0.5)
 		SliderValue = SexIntervalDirt
 	ElseIf OptionID == SexIntervalOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SetSliderDialogDefaultValue(1.0)
 		SetSliderDialogRange(0.5, 10.0)
 		SetSliderDialogInterval(0.5)
 		SliderValue = SexInterval
 
 	ElseIf OptionID == FadeTatsFadeTimeOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SetSliderDialogDefaultValue(8.0)
 		SetSliderDialogRange(0.0, 1000.0)
 		SetSliderDialogInterval(1.0)
 		SliderValue = FadeTatsFadeTime
 	ElseIf OptionID == FadeTatsSoapMultOID_S
-		DisplayFormat = DisplayFormatDecimal
+		DisplayFormat = DF_Decimal
 		SetSliderDialogDefaultValue(2.0)
 		SetSliderDialogRange(0.0, 10.0)
 		SetSliderDialogInterval(0.1)
@@ -2067,7 +2059,6 @@ Bool Function SavePapyrusSettings()
 	SetFloatValue(config, "ShynessDistance", ShynessDistance.GetValue())
 	
 	SetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
-	SetIntValue(config, "Shyness", Shyness as int)
 	SetIntValue(config, "AutoHideUI", AutoHideUI as int)
 	SetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
 	SetIntValue(config, "TexSetOverride", TexSetOverride as int)
@@ -2175,7 +2166,6 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	ShynessDistance.SetValue(GetFloatValue(config, "ShynessDistance", ShynessDistance.GetValue()))
 	
 	FadeDirtSex = GetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
-	Shyness = GetIntValue(config, "Shyness", Shyness as int)
 	AutoHideUI = GetIntValue(config, "AutoHideUI", AutoHideUI as int)
 	AutoPlayerTFC = GetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
 	TexSetOverride = GetIntValue(config, "TexSetOverride", TexSetOverride as int)
@@ -2299,7 +2289,6 @@ Int DirtinessThresholdTier4SliderID
 Int CheckStatusKeyMapID
 Int BatheKeyMapID
 Int ModifierKeyMapID
-Int ShynessToggleID
 Int ShynessDistanceOID_S
 
 ; menu - Effects

@@ -13,9 +13,8 @@ mzinUtility Property mzinUtil Auto
 GlobalVariable Property WaterRestrictionEnabled Auto
 GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property GetSoapyStyleFollowers Auto
-
+GlobalVariable Property ShynessDistance Auto
 GlobalVariable Property DirtinessPercentage Auto
-
 GlobalVariable Property GameDaysPassed Auto
 
 FormList Property DirtyActors Auto
@@ -307,7 +306,7 @@ Bool Function IsNotPermitted(Actor akTarget)
 EndFunction
 
 Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
-	If Menu.Shyness
+	If (ShynessDistance.GetValue() as int) >= 0
 		If Init.IsSexlabArousedInstalled && akTarget.GetFactionRank(Init.SLAExhibitionistFaction) >= 0
 			Return False
 		EndIf
