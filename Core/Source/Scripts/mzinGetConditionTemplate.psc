@@ -4,7 +4,7 @@ import ModEvent
 
 Actor targetActor
 String Property hostState Auto
-GlobalVariable Property targetTier Auto
+GlobalVariable Property targetPercentage Auto
 
 Event OnEffectStart(Actor Target, Actor Caster)
     targetActor = Target
@@ -17,7 +17,7 @@ State mzinCondition_Swimming
     EndEvent
     Event OnUpdate()
         int targetEvent = Create("BiS_DecreaseActorDirt_" + targetActor.GetFormID())
-        PushFloat(targetEvent, targetTier.GetValue())
+        PushFloat(targetEvent, targetPercentage.GetValue())
         PushFloat(targetEvent, 4.2)
         PushFloat(targetEvent, 0.0)
         PushBool(targetEvent, true)

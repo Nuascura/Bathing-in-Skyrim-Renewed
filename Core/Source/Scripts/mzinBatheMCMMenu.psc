@@ -43,6 +43,7 @@ GlobalVariable Property AutomateFollowerBathing Auto
 
 ; misc settings
 GlobalVariable Property ShynessDistance Auto
+GlobalVariable Property CleansingSwim Auto
 
 ; soap settings
 GlobalVariable Property GetSoapyStyle Auto
@@ -113,9 +114,10 @@ Bool[] UndressArmorSlotArrayFollowers
 Bool IsConfigOpen = false
 
 ; local variables - constants
+String DF_Percentage_Dirt = "$BIS_DF_PERCENTAGE_DIRT"
 String DF_Percentage = "$BIS_DF_PERCENTAGE"
 String DF_Decimal = "$BIS_DF_DECIMAL"
-String DF_Units_100 = "$BIS_DF_UNITS_100"
+String DF_Units = "$BIS_DF_UNITS"
 String config = "../../../Interface/Bathing in Skyrim/Settings.json"
 
 Int Property cachedSoftCheck = 0 Auto Hidden
@@ -458,7 +460,8 @@ Function DisplaySettingsPage()
 	BatheKeyMapID = AddKeyMapOption("$BIS_L_BATHE_HOTKEY", BatheKeyCode.GetValue() As Int)
 	ModifierKeyMapID = AddKeyMapOption("$BIS_L_MODIFIER_HOTKEY", ModifierKeyCode.GetValue() As Int)
 	AddHeaderOption("$BIS_HEADER_MISC")
-	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue() / 100.0, DF_Units_100)
+	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue(), DF_Units)
+	CleansingSwimOID_S = AddSliderOption("$BIS_L_CLEANSINGSWIM", CleansingSwim.GetValue() * 100, DF_Percentage)
 	
 	SetCursorPosition(1)
 	AddHeaderOption("$BIS_HEADER_DIRT_RATE")
@@ -478,11 +481,12 @@ Function DisplayEffectsPage()
 
 	SetCursorPosition(1)
 	AddHeaderOption("$BIS_HEADER_OVERLAYS")
-	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, "$BIS_L_OVERLAYAPPLYDISPLAY_{}")
+	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, DF_Percentage_Dirt)
 	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DF_Percentage)
 	OverlayTintOID_C = AddColorOption("$BIS_L_OVERLAYTINT", OverlayTint)
 	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DF_Decimal)
 	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DF_Decimal)
+	AddEmptyOption()
 	TexSetOverrideID = AddTextOption("$BIS_L_OVERLAYTEXSETOVERRIDE", TexSetOverride)
 	AddEmptyOption()
 	TexSetCountOID_T = AddTextOption("$BIS_L_OVERLAYTEXSETCOUNT_{" + TexUtil.DirtSetCount[0] + "}{" + TexUtil.DirtSetCount[1] + "}", "")
@@ -794,7 +798,10 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 		SetSliderOptionValue(OptionID, (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DF_Percentage)
 	ElseIf OptionID == ShynessDistanceOID_S
 		ShynessDistance.SetValue(0.0)
-		SetSliderOptionValue(OptionID, ShynessDistance.GetValue() / 100, DF_Units_100)
+		SetSliderOptionValue(OptionID, ShynessDistance.GetValue(), DF_Units)
+	ElseIf OptionID == CleansingSwimOID_S
+		CleansingSwim.SetValue(0.2)
+		SetSliderOptionValue(OptionID, CleansingSwim.GetValue() * 100, DF_Percentage)
 	; menus
 	ElseIf OptionID == AutomateFollowerBathingMenuID
 		AutomateFollowerBathing.SetValue(1)
@@ -995,14 +1002,10 @@ Function HandleOnOptionHighlightSettingsPage(Int OptionID)
 		SetInfoText("$BIS_DESC_THRESHOLD_3")
 	ElseIf OptionID == DirtinessThresholdTier4SliderID
 		SetInfoText("$BIS_DESC_THRESHOLD_4")
-	
-	ElseIf OptionID == PapSetSaveOID_T
-		SetInfoText("$BIS_DESC_PAPSETSAVE")
-	ElseIf OptionID == PapSetLoadOID_T
-		SetInfoText("$BIS_DESC_PAPSETLOAD")
-	
 	ElseIf OptionID == ShynessDistanceOID_S
 		SetInfoText("$BIS_DESC_SHYNESSDISTANCE")
+	ElseIf OptionID == CleansingSwimOID_S
+		SetInfoText("$BIS_DESC_CLEANSINGSWIM")
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightEffectsPage(int OptionID)
@@ -1513,9 +1516,16 @@ Function HandleOnOptionSliderAcceptSettingsPage(Int OptionID, Float OptionValue)
 		SliderValue = OptionValue / 100.0
 		(DirtinessThresholdList.GetAt(4) As GlobalVariable).SetValue(SliderValue)
 	ElseIf OptionID == ShynessDistanceOID_S
-		DisplayFormat = DF_Units_100
+		DisplayFormat = DF_Units
 		SliderValue = OptionValue
-		ShynessDistance.SetValue(SliderValue * 100.0)
+		ShynessDistance.SetValue(SliderValue)
+	ElseIf OptionID == CleansingSwimOID_S
+		DisplayFormat = DF_Percentage
+		if OptionValue < 0
+			OptionValue = -1
+		endIf
+		SliderValue = OptionValue / 100
+		CleansingSwim.SetValue(SliderValue)
 	EndIf
 	
 	SetSliderOptionValue(OptionID, OptionValue, DisplayFormat)
@@ -1525,7 +1535,7 @@ Function HandleOnOptionSliderAcceptEffectsPage(Int OptionID, Float OptionValue)
 	String DisplayFormat
 
 	If OptionID == OverlayApplyAtOID_S
-		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
+		DisplayFormat = DF_Percentage_Dirt
 		SliderValue = OptionValue
 		OverlayApplyAt = SliderValue / 100.0
 		UpdateAllActors()
@@ -1787,11 +1797,17 @@ Function HandleOnOptionSliderOpenSettingsPage(Int OptionID)
 		SetSliderDialogDefaultValue(ClampDirtinessThreshold(4, 1.00) * 100)
 		SliderValue = ((DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100.0)
 	ElseIf OptionID == ShynessDistanceOID_S
-		DisplayFormat = DF_Units_100
+		DisplayFormat = DF_Units
 		SetSliderDialogDefaultValue(0.0)
-		SetSliderDialogRange(-1.0, 60.0)
-		SetSliderDialogInterval(1.0)
-		SliderValue = ShynessDistance.GetValue() / 100.0
+		SetSliderDialogRange(-100.0, 6000.0)
+		SetSliderDialogInterval(100.0)
+		SliderValue = ShynessDistance.GetValue()
+	ElseIf OptionID == CleansingSwimOID_S
+		DisplayFormat = DF_Percentage
+		SetSliderDialogRange(-1.0, 100.0)
+		SetSliderDialogInterval(0.5)
+		SetSliderDialogDefaultValue(20.0)
+		SliderValue = CleansingSwim.GetValue() * 100.0
 	EndIf
 	
 	; set slider value
@@ -1803,10 +1819,10 @@ Function HandleOnOptionSliderOpenEffectsPage(int OptionID)
 	String DisplayFormat
 
 	If OptionID == OverlayApplyAtOID_S
-		DisplayFormat = "$BIS_L_OVERLAYAPPLYDISPLAY_{}"
+		DisplayFormat = DF_Percentage_Dirt
 		SetSliderDialogDefaultValue(40.0)
 		SetSliderDialogRange(0.0, 100.0)
-		SetSliderDialogInterval(1.0)
+		SetSliderDialogInterval(0.5)
 		SliderValue = OverlayApplyAt * 100.0	
 	ElseIf OptionID == StartingAlphaOID_S
 		DisplayFormat = DF_Percentage
@@ -2057,6 +2073,7 @@ Bool Function SavePapyrusSettings()
 	SetIntValue(config, "DirtShaderEnabled", DirtShaderEnabled.GetValue() as int)
 
 	SetFloatValue(config, "ShynessDistance", ShynessDistance.GetValue())
+	SetFloatValue(config, "CleansingSwim", CleansingSwim.GetValue())
 	
 	SetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
 	SetIntValue(config, "AutoHideUI", AutoHideUI as int)
@@ -2164,6 +2181,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	DirtShaderEnabled.SetValue(GetIntValue(config, "DirtShaderEnabled", DirtShaderEnabled.GetValue() as Int))
 	
 	ShynessDistance.SetValue(GetFloatValue(config, "ShynessDistance", ShynessDistance.GetValue()))
+	CleansingSwim.SetValue(GetFloatValue(config, "CleansingSwim", CleansingSwim.GetValue()))
 	
 	FadeDirtSex = GetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
 	AutoHideUI = GetIntValue(config, "AutoHideUI", AutoHideUI as int)
@@ -2290,6 +2308,7 @@ Int CheckStatusKeyMapID
 Int BatheKeyMapID
 Int ModifierKeyMapID
 Int ShynessDistanceOID_S
+Int CleansingSwimOID_S
 
 ; menu - Effects
 Int DirtShaderEnabledOID_T

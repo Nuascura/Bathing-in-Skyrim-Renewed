@@ -14,6 +14,7 @@ GlobalVariable Property WaterRestrictionEnabled Auto
 GlobalVariable Property GetSoapyStyle Auto
 GlobalVariable Property GetSoapyStyleFollowers Auto
 GlobalVariable Property ShynessDistance Auto
+GlobalVariable Property CleansingSwim Auto
 GlobalVariable Property DirtinessPercentage Auto
 GlobalVariable Property GameDaysPassed Auto
 
@@ -256,7 +257,7 @@ Bool Function IsRestricted(Actor DirtyActor, Actor PotentialGawker = None)
 EndFunction
 
 Bool Function IsConditionallyRestricted(Actor DirtyActor)
-	return IsDeviceBlocked(DirtyActor) || IsActorAnimating(DirtyActor) || DirtyActor.GetSitState() || IsNotPermitted(DirtyActor)
+	return IsSwimmingConditional(DirtyActor) || IsDeviceBlocked(DirtyActor) || IsActorAnimating(DirtyActor) || DirtyActor.GetSitState() || IsNotPermitted(DirtyActor)
 EndFunction
 
 Bool Function IsActorAnimating(Actor DirtyActor)
@@ -334,6 +335,10 @@ Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 		EndIf
 	EndIf
 	Return False
+EndFunction
+
+Bool Function IsSwimmingConditional(Actor akTarget)
+	return (((CleansingSwim.GetValue() * 100.0) as int) < 0) && akTarget.IsSwimming()
 EndFunction
 
 Bool Function IsSubmerged(Actor akTarget)
