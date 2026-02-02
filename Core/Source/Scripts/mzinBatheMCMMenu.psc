@@ -590,6 +590,7 @@ Function DisplayTrackedActorsPage()
 EndFunction
 Function DisplayAuxiliaryPage()
 	AddHeaderOption("$BIS_HEADER_DEBUG")
+	ResetMenuOID_T = AddTextOption("$BIS_L_RESETMENU", "")
 	UnForbidOID_T = AddTextOption("$BIS_L_UNFORBID", "")
 	AddEmptyOption()
 	AddHeaderOption("$BIS_HEADER_ADVANCED_SETTINGS")
@@ -1095,7 +1096,9 @@ Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightAuxiliaryPage(Int OptionID)
-	If OptionID == UnForbidOID_T
+	If OptionID == ResetMenuOID_T
+		SetInfoText("$BIS_DESC_RESETMENU")
+	ElseIf OptionID == UnForbidOID_T
 		SetInfoText("$BIS_DESC_UNFORBID")
 	ElseIf OptionID == ConfigWarnID_T
 		SetInfoText("$BIS_DESC_CONFIGWARN")
@@ -1295,8 +1298,14 @@ Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionSelectAuxiliaryPage(Int OptionID)
-	If OptionID == UnForbidOID_T
-		SetTextOptionValue(UnForbidOID_T, "$BIS_TXT_WORKING", false)
+	If OptionID == ResetMenuOID_T
+		if ShowMessage("$BIS_MSG_RESETMENU_1")
+			SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
+			ShowMessage("$BIS_MSG_RESETMENU_2", false)
+			mzinUtil.ResetMCM()
+		endIf
+	ElseIf OptionID == UnForbidOID_T
+		SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
 		UnForbidAllActor()
 		SetTextOptionValue(OptionID, "$BIS_TXT_DONE", false)
 	ElseIf OptionID == GameMessageID_T
@@ -2430,6 +2439,7 @@ Int SexIntervalOID_S
 Int FadeDirtSexToggleID
 
 ; menu - Auxiliary
+Int ResetMenuOID_T
 Int UnForbidOID_T
 Int GameMessageID_T
 Int LogNotificationID_T
