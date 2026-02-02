@@ -46,60 +46,40 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	WashProp = StorageUtil.PluckFormValue(BathingActor, "mzin_LastWashProp") as MiscObject
 	WashPropIsSoap = (WashProp && WashProp.HasKeyWord(SoapKeyword))
 	
-	GoToState("StartSequence")
+	StripActor()
+	LockActor()
+	RegisterForEvents()
+
+	Int AnimStyle
+	If IsShowering
+		AnimStyle = ShoweringAnimationStyle.GetValue() as int
+	else
+		AnimStyle = BathingAnimationStyle.GetValue() as int
+	endIf
+
+	If AnimStyle > 0
+		if TargetIsPlayer
+			if BathingActor.GetActorBase().GetSex()
+				GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSet, AnimStyle, Menu.AnimCustomTierCond))
+			else
+				GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSet, AnimStyle, Menu.AnimCustomTierCond))
+			endIf
+		else
+			if BathingActor.GetActorBase().GetSex()
+				GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSetFollowers, AnimStyle, Menu.AnimCustomTierCondFollowers))
+			else
+				GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSetFollowers, AnimStyle, Menu.AnimCustomTierCondFollowers))
+			endIf
+		endIf
+	Else
+		RegisterForSingleUpdate(2.0)
+	EndIf
 EndEvent
 
 Event OnEffectFinish(Actor Target, Actor Caster)
-	StopAnimation(ResetState = false)
+	StopAnimation(ResetState = False)
 EndEvent
 
-State StartSequence
-	Event OnBeginState()
-		StripActor()
-		LockActor()
-		RegisterForEvents()
-
-		Int AnimStyle
-		If IsShowering
-			AnimStyle = ShoweringAnimationStyle.GetValue() as int
-		else
-			AnimStyle = BathingAnimationStyle.GetValue() as int
-		endIf
-
-		If AnimStyle > 0
-			if TargetIsPlayer
-				if BathingActor.GetActorBase().GetSex()
-					GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSet, AnimStyle, Menu.AnimCustomTierCond))
-				else
-					GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSet, AnimStyle, Menu.AnimCustomTierCond))
-				endIf
-			else
-				if BathingActor.GetActorBase().GetSex()
-					GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSetFollowers, AnimStyle, Menu.AnimCustomTierCondFollowers))
-				else
-					GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSetFollowers, AnimStyle, Menu.AnimCustomTierCondFollowers))
-				endIf
-			endIf
-		Else
-			GoToState("FinishSequence")
-		EndIf
-	EndEvent
-EndState
-State FinishSequence
-	Event OnBeginState()
-		OnUpdate()
-	EndEvent
-	Event OnUpdate()
-		DressActor()
-		UnlockActor()
-		ForbidSex(BathingActor, Forbid = false)
-		SendWashActorFinishModEvent(BathingActor, WashProp, WashPropIsSoap)
-		BathingActor.RemoveSpell(PlayBathingAnimation)
-	EndEvent
-	Event OnEffectFinish(Actor Target, Actor Caster)
-		; Keep empty
-	EndEvent
-EndState
 State InSequence
 	Event OnBeginState()
 		Int AnimationCyclesRemaining = 0
@@ -118,7 +98,7 @@ State InSequence
 			Utility.Wait(1)
 		EndWhile
 
-		StopAnimation(true)
+		StopAnimation()
 	EndEvent
 EndState
 State InSequenceCustom
@@ -126,7 +106,7 @@ State InSequenceCustom
 		if BathingActor.PlayIdle(SelectedStyle)
 			RegisterForSingleUpdate(75.0)
 		else
-			RegisterForSingleUpdate(2.5)
+			RegisterForSingleUpdate(2.0)
 		endIf
 	EndEvent
 EndState
@@ -223,9 +203,10 @@ EndFunction
 Function StopAnimation(bool PlayRinseOff = false, bool ResetState = true)
 	if ResetState
 		UnregisterForEvents()
-		Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState")
-		Utility.Wait(0.5)
-	EndIf
+		GoToState("")
+	endIf
+	Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState")
+	Utility.Wait(0.5)
 
 	if PlayRinseOff
 		RinseOff()
@@ -233,7 +214,11 @@ Function StopAnimation(bool PlayRinseOff = false, bool ResetState = true)
 		Utility.Wait(0.5)
 	EndIf
 
-	GoToState("FinishSequence")
+	DressActor()
+	UnlockActor()
+	ForbidSex(BathingActor, Forbid = false)
+	SendWashActorFinishModEvent(BathingActor, WashProp, WashPropIsSoap)
+	BathingActor.RemoveSpell(PlayBathingAnimation)
 EndFunction
 
 Idle Function GetIdleByCondition(Idle[] IdleList, int aiArg = 0)
@@ -340,6 +325,7 @@ Function RegisterForEvents()
 EndFunction
 
 Function UnregisterForEvents()
+	UnregisterForUpdate()
 	int i = mzinAnimEvent.Length
 	while i
 		i -= 1
