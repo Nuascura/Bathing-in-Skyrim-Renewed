@@ -4,10 +4,6 @@ mzinBatheMCMMenu Property Menu Auto
 mzinInit Property Init Auto
 mzinTextureUtility Property TexUtil Auto
 
-Bool Function IsActorInWater(Actor akActor) global
-	return mzinAPI.IsActorInWater(akActor)
-EndFunction
-
 Function LogTrace(String LogMessage, Bool Force = False)
     if LogMessage
         if Force || Menu.LogTrace
