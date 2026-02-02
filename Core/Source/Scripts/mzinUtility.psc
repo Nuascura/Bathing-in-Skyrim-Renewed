@@ -3,6 +3,8 @@ Scriptname mzinUtility extends Quest
 mzinBatheMCMMenu Property Menu Auto
 mzinInit Property Init Auto
 mzinTextureUtility Property TexUtil Auto
+Package Property StopMovementPackage Auto
+Spell Property PlayBathingAnimation Auto
 
 Function LogTrace(String LogMessage, Bool Force = False)
     if LogMessage
@@ -322,4 +324,51 @@ Function Send_TargetedEvent(Form akTarget, String EventName)
 	If !(BiS_EventID && ModEvent.Send(BiS_EventID))
 		ModEvent.Release(BiS_EventID)
 	EndIf
+EndFunction
+
+Function Send_WashActorFinish(Form akBathingActor, Form akWashProp = None, Bool abUsingSoap = False)
+    int BiS_WashActorFinishModEvent = ModEvent.Create("BiS_WashActorFinish")
+    If (BiS_WashActorFinishModEvent)
+        ModEvent.PushForm(BiS_WashActorFinishModEvent, akBathingActor)
+		ModEvent.PushForm(BiS_WashActorFinishModEvent, akWashProp)
+		ModEvent.PushBool(BiS_WashActorFinishModEvent, abUsingSoap)
+        ModEvent.Send(BiS_WashActorFinishModEvent)
+    EndIf
+EndFunction
+
+Function ForbidSex(Actor akTarget, Bool Forbid)
+	If Init.IsSexlabInstalled && akTarget
+		If Forbid
+			akTarget.AddToFaction(Init.SexLabForbiddenActors)
+		Else
+			akTarget.RemoveFromFaction(Init.SexLabForbiddenActors)
+		EndIf
+	EndIf
+EndFunction
+
+Function RescueActor(Actor akActor)
+	if !akActor.HasSpell(PlayBathingAnimation)
+		return
+	endIf
+	akActor.RemoveSpell(PlayBathingAnimation)
+	Debug.SendAnimationEvent(akActor, "IdleForceDefaultState")
+	SetFreeCam(false)
+	Game.EnablePlayerControls(abLooking = false)
+	Game.SetPlayerAIDriven(false)
+	SetHUDInstanceFlag(true)
+	ForbidSex(akActor, Forbid = false)
+	Send_WashActorFinish(akActor)
+EndFunction
+
+Function RescueActor_NPC(Actor akActor)
+	if !akActor.HasSpell(PlayBathingAnimation)
+		return
+	endIf
+	akActor.RemoveSpell(PlayBathingAnimation)
+	Debug.SendAnimationEvent(akActor, "IdleForceDefaultState")
+	akActor.AllowPCDialogue(true)
+	ActorUtil.RemovePackageOverride(akActor, StopMovementPackage)
+	akActor.EvaluatePackage()
+	ForbidSex(akActor, Forbid = false)
+	Send_WashActorFinish(akActor)
 EndFunction

@@ -591,6 +591,7 @@ EndFunction
 Function DisplayAuxiliaryPage()
 	AddHeaderOption("$BIS_HEADER_DEBUG")
 	ResetMenuOID_T = AddTextOption("$BIS_L_RESETMENU", "")
+	StopAnimationsOID_T = AddTextOption("$BIS_L_STOPANIMATIONS", "")
 	UnForbidOID_T = AddTextOption("$BIS_L_UNFORBID", "")
 	AddEmptyOption()
 	AddHeaderOption("$BIS_HEADER_ADVANCED_SETTINGS")
@@ -1098,6 +1099,8 @@ EndFunction
 Function HandleOnOptionHighlightAuxiliaryPage(Int OptionID)
 	If OptionID == ResetMenuOID_T
 		SetInfoText("$BIS_DESC_RESETMENU")
+	ElseIf OptionID == StopAnimationsOID_T
+		SetInfoText("$BIS_DESC_STOPANIMATIONS")
 	ElseIf OptionID == UnForbidOID_T
 		SetInfoText("$BIS_DESC_UNFORBID")
 	ElseIf OptionID == ConfigWarnID_T
@@ -1304,6 +1307,10 @@ Function HandleOnOptionSelectAuxiliaryPage(Int OptionID)
 			ShowMessage("$BIS_MSG_RESETMENU_2", false)
 			mzinUtil.ResetMCM()
 		endIf
+	ElseIf OptionID == StopAnimationsOID_T
+		SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
+		StopAnimations()
+		SetTextOptionValue(OptionID, "$BIS_TXT_DONE", false)
 	ElseIf OptionID == UnForbidOID_T
 		SetTextOptionValue(OptionID, "$BIS_TXT_WORKING", false)
 		UnForbidAllActor()
@@ -2289,6 +2296,18 @@ Function UnForbidAllActor()
 	StorageUtil.FormListClear(none, "BiS_ForbiddenActors")
 EndFunction
 
+Function StopAnimations()
+	mzinUtil.RescueActor(PlayerRef)
+
+	Int DirtyActorIndex = DirtyActors.Getsize()
+	If DirtyActorIndex > 0
+		While DirtyActorIndex
+			DirtyActorIndex -= 1
+			mzinUtil.RescueActor_NPC(DirtyActors.GetAt(DirtyActorIndex) As Actor)
+		EndWhile
+	EndIf
+EndFunction
+
 Function CorrectInvalidSettings()
 	if !Init.IsMalignisAnimInstalled
 		float fDefault = 0.0
@@ -2440,6 +2459,7 @@ Int FadeDirtSexToggleID
 
 ; menu - Auxiliary
 Int ResetMenuOID_T
+Int StopAnimationsOID_T
 Int UnForbidOID_T
 Int GameMessageID_T
 Int LogNotificationID_T

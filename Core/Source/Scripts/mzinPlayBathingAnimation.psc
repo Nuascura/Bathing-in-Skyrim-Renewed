@@ -40,7 +40,7 @@ Bool       IsShowering
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	BathingActor = Target
-	ForbidSex(BathingActor, Forbid = true)
+	mzinUtil.ForbidSex(BathingActor, Forbid = true)
 	
 	IsShowering = StorageUtil.PluckIntValue(BathingActor, "mzin_LastWashState") as Bool
 	WashProp = StorageUtil.PluckFormValue(BathingActor, "mzin_LastWashProp") as MiscObject
@@ -74,10 +74,6 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	Else
 		RegisterForSingleUpdate(2.0)
 	EndIf
-EndEvent
-
-Event OnEffectFinish(Actor Target, Actor Caster)
-	StopAnimation(ResetState = False)
 EndEvent
 
 State InSequence
@@ -200,11 +196,9 @@ String Function GetAnimationMale(float[] IdleWeight, int aiIdleSet, int aiTierCo
 	return ""
 EndFunction
 
-Function StopAnimation(bool PlayRinseOff = false, bool ResetState = true)
-	if ResetState
-		UnregisterForEvents()
-		GoToState("")
-	endIf
+Function StopAnimation(bool PlayRinseOff = false)
+	UnregisterForEvents()
+	GoToState("")
 	Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState")
 	Utility.Wait(0.5)
 
@@ -216,8 +210,8 @@ Function StopAnimation(bool PlayRinseOff = false, bool ResetState = true)
 
 	DressActor()
 	UnlockActor()
-	ForbidSex(BathingActor, Forbid = false)
-	SendWashActorFinishModEvent(BathingActor, WashProp, WashPropIsSoap)
+	mzinUtil.ForbidSex(BathingActor, Forbid = false)
+	mzinUtil.Send_WashActorFinish(BathingActor, WashProp, WashPropIsSoap)
 	BathingActor.RemoveSpell(PlayBathingAnimation)
 EndFunction
 
@@ -294,26 +288,6 @@ Function RinseOff()
 		Debug.SendAnimationEvent(BathingActor, "IdleWipeBrow")
 		Utility.Wait(3)
 	endIf
-EndFunction
-
-Function ForbidSex(Actor akTarget, Bool Forbid)
-	If Init.IsSexlabInstalled && akTarget
-		If Forbid
-			akTarget.AddToFaction(Init.SexLabForbiddenActors)
-		Else
-			akTarget.RemoveFromFaction(Init.SexLabForbiddenActors)
-		EndIf
-	EndIf
-EndFunction
-
-Function SendWashActorFinishModEvent(Form akBathingActor, Form akWashProp, Bool abUsingSoap)
-    int BiS_WashActorFinishModEvent = ModEvent.Create("BiS_WashActorFinish")
-    If (BiS_WashActorFinishModEvent)
-        ModEvent.PushForm(BiS_WashActorFinishModEvent, akBathingActor)
-		ModEvent.PushForm(BiS_WashActorFinishModEvent, akWashProp)
-		ModEvent.PushBool(BiS_WashActorFinishModEvent, abUsingSoap)
-        ModEvent.Send(BiS_WashActorFinishModEvent)
-    EndIf
 EndFunction
 
 Function RegisterForEvents()
