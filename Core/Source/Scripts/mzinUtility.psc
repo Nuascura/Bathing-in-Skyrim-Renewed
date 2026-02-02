@@ -1,14 +1,11 @@
 Scriptname mzinUtility extends Quest  
 
 mzinBatheMCMMenu Property Menu Auto
-
-string Function GetModVersion()
-    return Menu.GetModVersion()
-EndFunction
+mzinInit Property Init Auto
+mzinTextureUtility Property TexUtil Auto
 
 Bool Function IsActorInWater(Actor akActor) global
-	mzinBatheQuest BatheQuest = Quest.GetQuest("mzinBatheQuest") as mzinBatheQuest
-	return BatheQuest.IsInWater(akActor) || BatheQuest.IsUnderWaterfall(akActor)
+	return mzinAPI.IsActorInWater(akActor)
 EndFunction
 
 Function LogTrace(String LogMessage, Bool Force = False)
@@ -42,6 +39,33 @@ Int Function GameMessage(Message LogMessage, float afArg1 = 0.0, float afArg2 = 
         endIf
     endIf
     return 0
+EndFunction
+
+Function ResetMCM()
+    Quest kQuest = Quest.GetQuest("mzinBatheMCMQuest")
+    kQuest.Reset()
+    Utility.Wait(2.0)
+    kQuest.Stop()
+    While !kQuest.IsStopped()
+        Utility.Wait(0.1)
+    EndWhile
+    if kQuest.Start()
+		ReloadMCMVariables(true)
+        LogMessageBox("Successfully reset the MCM. If Bathing in Skyrim was recently updated, you may also want to restart the mod.")
+    else
+        LogMessageBox("The MCM failed to restart. Please check your Papyrus log and notify the author of this error.")
+    endIf
+EndFunction
+
+Function ReloadMCMVariables(bool abSilent = false)
+    if !Init.DoHardCheck() && abSilent
+        LogNotification("Detected missing dependencies. Check Auxiliary tab for details.", true)
+    endIf
+	Menu.cachedSoftCheck = Init.DoSoftCheck()
+	Init.SetInternalVariables()
+	TexUtil.UtilInit()
+	Menu.SetLocalArrays()
+	Menu.CorrectInvalidSettings()
 EndFunction
 
 Function RemoveSpells(Actor targetActor, FormList SpellFormList)

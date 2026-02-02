@@ -13,6 +13,7 @@ mzinInit Property Init Auto
 Quest Property mzinBatheFollowerDialogQuest Auto
 Formlist Property mzinDirtyActorsList Auto
 FormList Property GetDirtyOverTimeSpellList Auto
+Message Property MessageConfigWarn  Auto 
 
 ; integration settings
 Float Property FadeTatsFadeTime = 8.0 Auto Hidden
@@ -99,9 +100,11 @@ GlobalVariable Property DirtinessPerHourWilderness Auto
 Bool Property GameMessage = True Auto Hidden
 Bool Property LogNotification = True Auto Hidden
 Bool Property LogTrace = False Auto Hidden
+bool Property ConfigWarn = True Auto Hidden
 Bool Property SkipItemHash = False Auto Hidden
 
 ; local variables
+string[] ModVersionCache
 String[] BathingAnimationStyleArray
 String[] ShoweringAnimationStyleArray
 String[] GetSoapyStyleArray
@@ -128,35 +131,56 @@ Bool Property ShowTierCondConfig
 	EndFunction
 EndProperty
 
+String Function GetModName()
+	return modname
+EndFunction
+
 String Function GetModVersion()
-	return "2.7.4"
+	return mzinAPI.GetModVersion()
 EndFunction
 
 Int Function GetVersion()
-	Return 21
+	Return mzinAPI.GetConfigVersion()
 EndFunction
 
-Event OnConfigOpen()
-	UnregisterForUpdate()
-	GoToState("")
+bool Function CheckVersionConflict()
+	; potential conflict if config version number is incremented across a different or new major or minor version.
+	string[] ModVersionCurrent = PapyrusUtil.StringSplit(GetModVersion(), ".")
+	if !ModVersionCache
+		return true
+	elseIf (ModVersionCache[0] != ModVersionCurrent[0]) || (ModVersionCache[1] != ModVersionCurrent[1]) || (ModVersionCurrent[2] as int == 0) ; invalid strings are displayed as 0, which is fine
+		return true
+	endIf
+	return false
+EndFunction
 
-	IsConfigOpen = true
-	If BathingInSkyrimEnabled.GetValue() == 1
-		Pages = new String[8]
-		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
-		Pages[1] = "$BIS_PAGE_SETTINGS"
-		Pages[2] = "$BIS_PAGE_EFFECTS"
-		Pages[3] = "$BIS_PAGE_ANIMATIONS"
-		Pages[4] = "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
-		Pages[5] = "$BIS_PAGE_TRACKED_ACTORS"
-		Pages[6] = "$BIS_PAGE_INTEGRATIONS"
-		Pages[7] = "$BIS_PAGE_AUXILIARY"
-	else
-		Pages = new String[1]
-		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
+Event OnVersionUpdate(int version)
+	if (CurrentVersion != 0) && (version > CurrentVersion)
+		mzinUtil.LogTrace("Found BiSR MCM version " + GetVersion(), true)
+		mzinUtil.LogNotification("Detected a newer config version. Refreshing...", true)
+		RegisterForSingleUpdate(2.0)
 	endIf
 EndEvent
+
+Event OnUpdate()
+	VersionUpdate()
+	mzinUtil.LogTrace("Finished update cycle.", true)
+EndEvent
+
 Function VersionUpdate()
+	if CheckVersionConflict()
+		if ConfigWarn && MessageConfigWarn.Show() == 0
+			mzinUtil.ResetMCM()
+			return
+		else
+			mzinUtil.LogNotification("Detected potential config version conflict.", true)
+		endIf
+	endIf
+	OnConfigInit()
+	mzinUtil.LogNotification("Updated internal configuration for " + GetModVersion(), true)
+EndFunction
+
+Event OnConfigInit()
 	; automate follower bathing
 	AutomateFollowerBathingArray = new String[3]
 	AutomateFollowerBathingArray[0] = "$BIS_L_AUTOMATE_FOLLOWER_BATHING_DISABLED"
@@ -181,47 +205,50 @@ Function VersionUpdate()
 	GetSoapyStyleArray[1] = "$BIS_L_SOAP_STYLE_STATIC"
 	GetSoapyStyleArray[2] = "$BIS_L_SOAP_STYLE_ANIMATED"
 
-	; undress array
-	UndressArmorSlotArray = new Bool[32]
-	UndressArmorSlotArrayFollowers = new Bool[32]
-	UndressArmorSlotToggleIDs = new Int[32]
-	UndressArmorSlotToggleIDsFollowers = new Int[32]
-
-	; tracked actors array
-	TrackedActorsToggleIDs = new Int[128]
-
-	; animation frequency arrays
-	AnimCustomMSet = new Float[1]
-	AnimCustomFSet = new Float[3]
-	AnimCustomMSetFollowers = new Float[1]
-	AnimCustomFSetFollowers = new Float[3]
-
 	; set tiered conditioning
 	AnimCustomTierCondArray = new String[3]
 	AnimCustomTierCondArray[0] = "$BIS_L_ANIM_TIERCOND_NONE"
 	AnimCustomTierCondArray[1] = "$BIS_L_ANIM_TIERCOND_DIRTINESS"
 	AnimCustomTierCondArray[2] = "$BIS_L_ANIM_TIERCOND_DANGER"
 
-	SetLocalArrays()
-EndFunction
-Function InternalUpdate()
-	VersionUpdate()
-	CorrectInvalidSettings()
-EndFunction
-Function SetLocalArrays()
-	AnimCustomMSet[0] = AnimCustomMSet1Freq
-	AnimCustomFSet[0] = AnimCustomFSet1Freq
-	AnimCustomFSet[1] = AnimCustomFSet2Freq
-	AnimCustomFSet[2] = AnimCustomFSet3Freq
-	AnimCustomMSetFollowers[0] = AnimCustomMSet1FreqFollowers
-	AnimCustomFSetFollowers[0] = AnimCustomFSet1FreqFollowers
-	AnimCustomFSetFollowers[1] = AnimCustomFSet2FreqFollowers
-	AnimCustomFSetFollowers[2] = AnimCustomFSet3FreqFollowers
-	UndressArmorSlotArray = mzinUtil.RetrieveSlotState(ArmorSlotArray, UndressArmorSlotArray)
-	ArmorSlotArray = mzinUtil.RenewSlotState(ArmorSlotArray, UndressArmorSlotArray)
-	UndressArmorSlotArrayFollowers = mzinUtil.RetrieveSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
-	ArmorSlotArrayFollowers = mzinUtil.RenewSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
-EndFunction
+	ModVersionCache = PapyrusUtil.StringSplit(GetModVersion(), ".")
+	if JsonExists(config)
+		Load(config)
+	endIf
+	if CurrentVersion == 0
+		mzinUtil.LogNotification("Installed Bathing in Skyrim " + GetModVersion(), true)
+		mzinUtil.LogTrace("Installed Bathing in Skyrim " + GetModVersion(), true)
+		if BathingInSkyrimEnabled.GetValue() == 0 && GetIntValue(config, "!!doautostart") == 1
+			GoToState("AutoStartST")
+		endIf
+	endIf
+EndEvent
+
+Event OnConfigOpen()
+	UnregisterForUpdate()
+	GoToState("")
+
+	IsConfigOpen = true
+	If BathingInSkyrimEnabled.GetValue() == 1
+		Pages = new String[8]
+		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
+		Pages[1] = "$BIS_PAGE_SETTINGS"
+		Pages[2] = "$BIS_PAGE_EFFECTS"
+		Pages[3] = "$BIS_PAGE_ANIMATIONS"
+		Pages[4] = "$BIS_PAGE_ANIMATIONS_FOLLOWERS"
+		Pages[5] = "$BIS_PAGE_TRACKED_ACTORS"
+		Pages[6] = "$BIS_PAGE_INTEGRATIONS"
+		Pages[7] = "$BIS_PAGE_AUXILIARY"
+	else
+		Pages = new String[1]
+		Pages[0] = "$BIS_PAGE_SYSTEM_OVERVIEW"
+	endIf
+EndEvent
+
+Event OnConfigClose()
+	IsConfigOpen = false
+EndEvent
+
 String Function GetModState()
 	if BathingInSkyrimEnabled.GetValue() == 1
 		return "$BIS_TXT_ENABLED"
@@ -234,26 +261,6 @@ String Function GetModState()
 	endIf
 EndFunction
 
-; initialize events
-Event OnConfigInit()
-	if JsonExists(config)
-		Load(config)
-	endIf
-	if CurrentVersion == 0
-		InternalUpdate()
-		mzinUtil.LogNotification("Installed Bathing in Skyrim " + GetModVersion(), true)
-		mzinUtil.LogTrace("Installed Bathing in Skyrim " + GetModVersion(), true)
-		if BathingInSkyrimEnabled.GetValue() == 0 && GetIntValue(config, "!!doautostart") == 1
-			GoToState("AutoStartST")
-		endIf
-	endIf
-EndEvent
-Event OnVersionUpdate(Int Version)
-	if CurrentVersion != 0
-		InternalUpdate()
-		mzinUtil.LogNotification("Updated Bathing in Skyrim " + GetModVersion(), true)
-	endIf
-EndEvent
 Event OnPageReset(String Page)
 	UnloadCustomContent()
 	SetCursorFillMode(TOP_TO_BOTTOM)
@@ -277,9 +284,35 @@ Event OnPageReset(String Page)
 		DisplayAuxiliaryPage()
 	EndIf		
 EndEvent
-Event OnConfigClose()
-	IsConfigOpen = false
-EndEvent
+
+Function SetLocalArrays()
+	; tracked actors array
+	TrackedActorsToggleIDs = new Int[128]
+	
+	; animation frequency arrays
+	AnimCustomMSet = new Float[1]
+	AnimCustomMSet[0] = AnimCustomMSet1Freq
+	AnimCustomFSet = new Float[3]
+	AnimCustomFSet[0] = AnimCustomFSet1Freq
+	AnimCustomFSet[1] = AnimCustomFSet2Freq
+	AnimCustomFSet[2] = AnimCustomFSet3Freq
+	AnimCustomMSetFollowers = new Float[1]
+	AnimCustomMSetFollowers[0] = AnimCustomMSet1FreqFollowers
+	AnimCustomFSetFollowers = new Float[3]
+	AnimCustomFSetFollowers[0] = AnimCustomFSet1FreqFollowers
+	AnimCustomFSetFollowers[1] = AnimCustomFSet2FreqFollowers
+	AnimCustomFSetFollowers[2] = AnimCustomFSet3FreqFollowers
+
+	; undress array
+	UndressArmorSlotArray = new Bool[32]
+	UndressArmorSlotArray = mzinUtil.RetrieveSlotState(ArmorSlotArray, UndressArmorSlotArray)
+	ArmorSlotArray = mzinUtil.RenewSlotState(ArmorSlotArray, UndressArmorSlotArray)
+	UndressArmorSlotArrayFollowers = new Bool[32]
+	UndressArmorSlotArrayFollowers = mzinUtil.RetrieveSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
+	ArmorSlotArrayFollowers = mzinUtil.RenewSlotState(ArmorSlotArrayFollowers, UndressArmorSlotArrayFollowers)
+	UndressArmorSlotToggleIDs = new Int[32]
+	UndressArmorSlotToggleIDsFollowers = new Int[32]
+EndFunction
 
 State AutoStartST
 	Event OnBeginState()
@@ -563,6 +596,7 @@ Function DisplayAuxiliaryPage()
 	GameMessageID_T = AddToggleOption("$BIS_L_GAMEMESSAGE", GameMessage)
 	LogNotificationID_T = AddToggleOption("$BIS_L_LOGNOTIFICATION", LogNotification)
 	LogTraceID_T = AddToggleOption("$BIS_L_LOGTRACE", LogTrace)
+	ConfigWarnID_T = AddToggleOption("$BIS_L_CONFIGWARN", ConfigWarn)
 	SkipItemHashID_T = AddToggleOption("$BIS_L_SKIPITEMHASH", SkipItemHash)
 	
 	SetCursorPosition(1)
@@ -858,6 +892,9 @@ Function HandleOnOptionDefaultAuxiliaryPage(Int OptionID)
 	ElseIf OptionID == LogTraceID_T
 		LogTrace = false
 		SetToggleOptionValue(OptionID, LogTrace)
+	ElseIf OptionID == ConfigWarnID_T
+		ConfigWarn = true
+		SetToggleOptionValue(OptionID, ConfigWarn)
 	ElseIf OptionID == SkipItemHashID_T
 		SkipItemHash = false
 		SetToggleOptionValue(OptionID, SkipItemHash)
@@ -1060,6 +1097,8 @@ EndFunction
 Function HandleOnOptionHighlightAuxiliaryPage(Int OptionID)
 	If OptionID == UnForbidOID_T
 		SetInfoText("$BIS_DESC_UNFORBID")
+	ElseIf OptionID == ConfigWarnID_T
+		SetInfoText("$BIS_DESC_CONFIGWARN")
 	ElseIf OptionID == SkipItemHashID_T
 		SetInfoText("$BIS_DESC_SKIPITEMHASH")
 	endIf
@@ -1269,6 +1308,9 @@ Function HandleOnOptionSelectAuxiliaryPage(Int OptionID)
 	ElseIf OptionID == LogTraceID_T
 		LogTrace = !LogTrace
 		SetToggleOptionValue(OptionID, LogTrace)
+	ElseIf OptionID == ConfigWarnID_T
+		ConfigWarn = !ConfigWarn
+		SetToggleOptionValue(OptionID, ConfigWarn)
 	ElseIf OptionID == SkipItemHashID_T
 		SkipItemHash = !SkipItemHash
 		SetToggleOptionValue(OptionID, SkipItemHash)
@@ -1899,11 +1941,21 @@ EndFunction
 ; helper functions
 Function EnableBathingInSkyrim(Bool abAutoLoad)
 	Utility.Wait(1.0)
-	Init.DoHardCheck()
-	cachedSoftCheck = Init.DoSoftCheck()
-	Init.SetInternalVariables()
-	TexUtil.UtilInit()
-	VersionUpdate()
+	
+	mzinUtil.reset()
+	mzinUtil.stop()
+	while !mzinUtil.IsStopped()
+		Utility.Wait(0.1)
+	endWhile
+	if !mzinUtil.start()
+		mzinUtil.LogNotification("Failed to initialize utility script.", true)
+		mzinUtil.LogTrace("Player failed to enable Bathing in Skyrim. Mod version: " + GetModVersion() + "; Script version: " + GetVersion(), true)
+		BathingInSkyrimEnabled.SetValue(0)
+		return
+	endIf
+	mzinUtil.ReloadMCMVariables()
+
+	ConfigWarn = true
 
 	BatheQuest.Start()
 	BatheQuest.RegForEvents()
@@ -2086,6 +2138,7 @@ Bool Function SavePapyrusSettings()
 	SetIntValue(config, "GameMessage", GameMessage as int)
 	SetIntValue(config, "LogNotification", LogNotification as int)
 	SetIntValue(config, "LogTrace", LogTrace as int)
+	SetIntValue(config, "ConfigWarn", ConfigWarn as int)
 	SetIntValue(config, "SkipItemHash", SkipItemHash as int)
 	
 	Save(config)
@@ -2194,6 +2247,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	GameMessage = GetIntValue(config, "GameMessage", GameMessage as int)
 	LogNotification = GetIntValue(config, "LogNotification", LogNotification as int)
 	LogTrace = GetIntValue(config, "LogTrace", LogTrace as int)
+	ConfigWarn = GetIntValue(config, "ConfigWarn", ConfigWarn as int)
 	SkipItemHash = GetIntValue(config, "SkipItemHash", SkipItemHash as int)
 	
 	SetLocalArrays()
@@ -2380,6 +2434,7 @@ Int UnForbidOID_T
 Int GameMessageID_T
 Int LogNotificationID_T
 Int LogTraceID_T
+Int ConfigWarnID_T
 Int SkipItemHashID_T
 
 ; --------------------------------------------
