@@ -6,6 +6,11 @@ mzinTextureUtility Property TexUtil Auto
 Package Property StopMovementPackage Auto
 Spell Property PlayBathingAnimation Auto
 
+Keyword[] Property arrkwDirtinessSpell Auto
+Keyword[] Property arrkwSoapBonusSpell Auto
+Keyword[] Property arrkwGDOTSpell Auto
+
+
 Function LogTrace(String LogMessage, Bool Force = False)
     if LogMessage
         if Force || Menu.LogTrace

@@ -1,6 +1,8 @@
 ScriptName mzinGetDirtyOverTime Extends ActiveMagicEffect
 { this script increases the player's dirtiness over time }
 
+import PO3_SKSEFunctions
+
 mzinBatheQuest Property BatheQuest Auto
 mzinBatheMCMMenu Property Menu Auto
 mzinOverlayUtility Property OlUtil Auto
@@ -470,7 +472,7 @@ Bool Function RegressDirtSpell()
 				If DirtyActorIsPlayer
 					mzinUtil.GameMessage(ExitTierMessageList.GetAt(GetCurrentDirtSpellIndex(Index + 1, DirtinessSpellList.GetSize())) As Message)
 				EndIf
-				mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
+				RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwDirtinessSpell, false)
 				Return DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
 			endIf
 		EndIf
@@ -487,8 +489,8 @@ Bool Function ProgressDirtSpell()
 			if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
 				Return True
 			else
-				mzinUtil.RemoveSpells(DirtyActor, SoapBonusSpellList)
-				mzinUtil.RemoveSpells(DirtyActor, DirtinessSpellList)
+				RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwSoapBonusSpell, false)
+				RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwDirtinessSpell, false)
 				If DirtyActorIsPlayer
 					mzinUtil.GameMessage(EnterTierMessageList.GetAt(Index) As Message)
 				EndIf

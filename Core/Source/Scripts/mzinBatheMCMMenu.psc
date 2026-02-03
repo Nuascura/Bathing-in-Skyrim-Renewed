@@ -2020,13 +2020,6 @@ Function DisableBathingInSkyrim()
 
 	ForcePageReset()
 EndFunction
-Function RemoveSpells(Actor DirtyActor, FormList SpellFormList)
-	Int SpellListIndex = SpellFormList.GetSize()
-	While SpellListIndex
-		SpellListIndex -= 1
-		DirtyActor.RemoveSpell(SpellFormList.GetAt(SpellListIndex) As Spell)	
-	EndWhile
-EndFunction
 
 Function UpdateProgressRedetectDirtSets(String CurrentTex)
 	If IsConfigOpen
