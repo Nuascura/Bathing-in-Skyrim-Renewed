@@ -16,6 +16,7 @@ FormList Property GetDirtyOverTimeSpellList Auto
 Message Property MessageConfigWarn  Auto 
 
 ; integration settings
+Bool Property WadeDetection = true Auto Hidden
 Float Property FadeTatsFadeTime = 8.0 Auto Hidden
 Float Property FadeTatsSoapMult = 2.0 Auto Hidden
 Float Property DirtinessPerSexActor = 0.04 Auto Hidden
@@ -128,6 +129,12 @@ Int Property cachedSoftCheck = 0 Auto Hidden
 Bool Property ShowTierCondConfig
 	Bool Function Get()
 		return Init.IsMalignisAnimInstalled
+	EndFunction
+EndProperty
+
+Bool Property ShowIntegrations
+	Bool Function Get()
+		return Init.IsSexLabInstalled || Init.IsOStimInstalled || Init.IsFadeTattoosInstalled || Init.IsWadeInWaterInstalled
 	EndFunction
 EndProperty
 
@@ -489,9 +496,9 @@ Function DisplaySettingsPage()
 	WaterRestrictionEnableToggleID = AddToggleOption("$BIS_L_WATER_RESTRICT",WaterRestrictionEnabled.GetValue() As Bool)
 	UpdateIntervalSliderID = AddSliderOption("$BIS_L_UPDATE_INTERVAL", DirtinessUpdateInterval.GetValue(), DF_Decimal)
 	AddHeaderOption("$BIS_HEADER_HOTKEYS")
-	CheckStatusKeyMapID = AddKeyMapOption("$BIS_L_STATUS_HOTKEY", CheckStatusKeyCode.GetValue() As Int)
-	BatheKeyMapID = AddKeyMapOption("$BIS_L_BATHE_HOTKEY", BatheKeyCode.GetValue() As Int)
-	ModifierKeyMapID = AddKeyMapOption("$BIS_L_MODIFIER_HOTKEY", ModifierKeyCode.GetValue() As Int)
+	CheckStatusKeyMapID = AddKeyMapOption("$BIS_L_STATUS_HOTKEY", CheckStatusKeyCode.GetValue() As Int, OPTION_FLAG_WITH_UNMAP)
+	BatheKeyMapID = AddKeyMapOption("$BIS_L_BATHE_HOTKEY", BatheKeyCode.GetValue() As Int, OPTION_FLAG_WITH_UNMAP)
+	ModifierKeyMapID = AddKeyMapOption("$BIS_L_MODIFIER_HOTKEY", ModifierKeyCode.GetValue() As Int, OPTION_FLAG_WITH_UNMAP)
 	AddHeaderOption("$BIS_HEADER_MISC")
 	ShynessDistanceOID_S = AddSliderOption("$BIS_L_SHYNESSDISTANCE", ShynessDistance.GetValue(), DF_Units)
 	CleansingSwimOID_S = AddSliderOption("$BIS_L_CLEANSINGSWIM", CleansingSwim.GetValue() * 100, DF_Percentage)
@@ -528,7 +535,7 @@ Function DisplayEffectsPage()
 	OverlayProgressOID_T = AddTextOption("", "$BIS_L_INACTIVE")
 EndFunction
 Function DisplayIntegrationsPage()
-	if !Init.IsSexLabInstalled && !Init.IsOStimInstalled && !Init.IsFadeTattoosInstalled
+	if !ShowIntegrations
 		AddTextOption("$BIS_TXT_EMPTY", "", OPTION_FLAG_DISABLED)
 	else
 		If Init.IsSexLabInstalled || Init.IsOStimInstalled
@@ -538,20 +545,22 @@ Function DisplayIntegrationsPage()
 			FadeDirtSexToggleID = AddToggleOption("$BIS_L_FADEDIRTSEX", FadeDirtSex)
 			SexIntervalDirtOID_S = AddSliderOption("$BIS_L_SEXINTERVALDIRT", SexIntervalDirt, DF_Decimal, (!FadeDirtSex) as int)
 			SexIntervalOID_S = AddSliderOption("$BIS_L_SEXINTERVAL", SexInterval, DF_Decimal, (!FadeDirtSex) as int)
+			SetCursorPosition(1)
+			AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
+			AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+			AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+			AddTextOption("$BIS_L_FADEDIRT_CREATURENV_{" + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+			AddTextOption("$BIS_L_FADEDIRT_CREATUREV_{" + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+			SetCursorPosition(12)
 		EndIf
 		If Init.IsFadeTattoosInstalled
 			AddHeaderOption("$BIS_HEADER_FADE_TATTOOS")
 			FadeTatsFadeTimeOID_S = AddSliderOption("$BIS_L_FADETATSADVANCE", FadeTatsFadeTime, DF_Decimal)
 			FadeTatsSoapMultOID_S = AddSliderOption("$BIS_L_FADETATSMULT", FadeTatsSoapMult, DF_Decimal)
 		EndIf
-	
-		SetCursorPosition(1)
-		If (Init.IsSexLabInstalled || Init.IsOStimInstalled) && FadeDirtSex
-			AddHeaderOption("$BIS_HEADER_FADEDIRTSEX")
-			AddTextOption("$BIS_L_FADEDIRT_NPCNV_{" + ((DirtinessPerSexActor / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
-			AddTextOption("$BIS_L_FADEDIRT_NPCV_{" + (((DirtinessPerSexActor * VictimMult)/ SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
-			AddTextOption("$BIS_L_FADEDIRT_CREATURENV_{" + (((DirtinessPerSexActor * 2) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
-			AddTextOption("$BIS_L_FADEDIRT_CREATUREV_{" + (((DirtinessPerSexActor * 2 * VictimMult) / SexIntervalDirt) * 100.0) + "}", "", OPTION_FLAG_DISABLED)
+		If Init.IsWadeInWaterInstalled
+			AddHeaderOption("$BIS_HEADER_WATER_DEPTH")
+			WadeDetectionOID_T = AddToggleOption("$BIS_L_WADEDETECTION", WadeDetection)
 		EndIf
 	endIf
 EndFunction
@@ -844,16 +853,16 @@ Function HandleOnOptionDefaultSettingsPage(Int OptionID)
 		SetMenuOptionValue(OptionID, AutomateFollowerBathingArray[AutomateFollowerBathing.GetValue() As Int])
 	; hotkeys
 	ElseIf OptionID == CheckStatusKeyMapID
-		CheckStatusKeyCode.Value = 0
+		CheckStatusKeyCode.SetValue(-1)
 		BathePlayer.RegisterHotKeys()
-		SetKeymapOptionValue(OptionID, CheckStatusKeyCode.Value as int)
+		SetKeymapOptionValue(OptionID, CheckStatusKeyCode.GetValue() as int)
 	ElseIf OptionID == BatheKeyMapID
-		BatheKeyCode.Value = 0
+		BatheKeyCode.SetValue(-1)
 		BathePlayer.RegisterHotKeys()
-		SetKeymapOptionValue(OptionID, BatheKeyCode.Value as int)
+		SetKeymapOptionValue(OptionID, BatheKeyCode.GetValue() as int)
 	ElseIf OptionID == ModifierKeyMapID
-		ModifierKeyCode.Value = 0
-		SetKeymapOptionValue(OptionID, ModifierKeyCode.Value as int)
+		ModifierKeyCode.SetValue(-1)
+		SetKeymapOptionValue(OptionID, ModifierKeyCode.GetValue() as int)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultEffectsPage(Int OptionID)
@@ -882,6 +891,9 @@ Function HandleOnOptionDefaultIntegrationsPage(Int OptionID)
 	ElseIf OptionID == SexIntervalOID_S
 		SexIntervalDirt = 1.0
 		SetSliderOptionValue(OptionID, SexIntervalDirt, DF_Decimal)
+	ElseIf OptionID == WadeDetectionOID_T
+		WadeDetection = true
+		SetToggleOptionValue(OptionID, WadeDetection)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultAuxiliaryPage(Int OptionID)
@@ -1088,6 +1100,9 @@ Function HandleOnOptionHighlightIntegrationsPage(int OptionID)
 		SetInfoText("$BIS_DESC_FADETATSADVANCE")
 	ElseIf OptionID == FadeTatsSoapMultOID_S
 		SetInfoText("$BIS_DESC_FADETATSMULT")
+
+	ElseIf OptionID == WadeDetectionOID_T
+		SetInfoText("$BIS_DESC_WADEDETECTION")
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
@@ -1125,19 +1140,29 @@ Event OnOptionKeyMapChange(Int OptionID, Int KeyCode, String ConflictControl, St
 	
 	If Continue
 		If OptionID == CheckStatusKeyMapID
-			BathePlayer.UnregisterForKey(CheckStatusKeyCode.Value as int)
-			CheckStatusKeyCode.Value = KeyCode
+			BathePlayer.UnregisterForKey(CheckStatusKeyCode.GetValue() as int)
+			CheckStatusKeyCode.SetValue(KeyCode)
 			BathePlayer.RegisterForKey(KeyCode)
 		ElseIf OptionID == BatheKeyMapID
-			BathePlayer.UnregisterForKey(BatheKeyCode.Value as int)
-			BatheKeyCode.Value = KeyCode
+			BathePlayer.UnregisterForKey(BatheKeyCode.GetValue() as int)
+			BatheKeyCode.SetValue(KeyCode)
 			BathePlayer.RegisterForKey(KeyCode)
 		ElseIf OptionID == ModifierKeyMapID
-			ModifierKeyCode.Value = KeyCode
+			ModifierKeyCode.SetValue(KeyCode)
 		EndIf
 		SetKeymapOptionValue(OptionID, KeyCode)
 	EndIf
 EndEvent
+
+String Function GetCustomControl(int keyCode)
+	If keyCode == CheckStatusKeyCode.GetValue()
+		Return "$BIS_L_STATUS_HOTKEY"
+	ElseIf keyCode == BatheKeyCode.GetValue()
+		Return "$BIS_L_BATHE_HOTKEY"
+	ElseIf keyCode == ModifierKeyCode.GetValue()
+		Return "$BIS_L_MODIFIER_HOTKEY"
+	EndIf
+EndFunction
 
 ; OnOptionColorOpen
 Event OnOptionColorOpen(Int OptionID)
@@ -1288,6 +1313,9 @@ Function HandleOnOptionSelectIntegrationsPage(Int OptionID)
 		SetOptionFlags(SexIntervalDirtOID_S, (!FadeDirtSex) as int, true)
 		SetOptionFlags(SexIntervalOID_S, (!FadeDirtSex) as int, true)
 		SetToggleOptionValue(OptionID, FadeDirtSex)
+	ElseIf OptionID == WadeDetectionOID_T
+		WadeDetection = !WadeDetection
+		SetToggleOptionValue(OptionID, WadeDetection)
 	EndIf
 EndFunction
 Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
@@ -2137,6 +2165,7 @@ Bool Function SavePapyrusSettings()
 	SetFloatValue(config, "CleansingSwim", CleansingSwim.GetValue())
 	
 	SetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
+	SetIntValue(config, "WadeDetection", WadeDetection as int)
 	SetIntValue(config, "AutoHideUI", AutoHideUI as int)
 	SetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
 	SetIntValue(config, "TexSetOverride", TexSetOverride as int)
@@ -2246,6 +2275,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	CleansingSwim.SetValue(GetFloatValue(config, "CleansingSwim", CleansingSwim.GetValue()))
 	
 	FadeDirtSex = GetIntValue(config, "FadeDirtSex", FadeDirtSex as int)
+	WadeDetection = GetIntValue(config, "WadeDetection", WadeDetection as int)
 	AutoHideUI = GetIntValue(config, "AutoHideUI", AutoHideUI as int)
 	AutoPlayerTFC = GetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
 	TexSetOverride = GetIntValue(config, "TexSetOverride", TexSetOverride as int)
@@ -2442,6 +2472,7 @@ Int[] UndressArmorSlotToggleIDsFollowers
 Int[] TrackedActorsToggleIDs
 
 ; menu - Integrations
+Int WadeDetectionOID_T
 Int FadeTatsFadeTimeOID_S
 Int FadeTatsSoapMultOID_S
 Int DirtinessPerSexOID_S

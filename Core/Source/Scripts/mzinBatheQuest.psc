@@ -215,11 +215,10 @@ MiscObject Function TryFindWashProp(Actor DirtyActor)
 EndFunction
 
 Bool Function IsInWater(Actor DirtyActor)
-	if Init.IsWadeInWaterInstalled
+	if Init.IsWadeInWaterInstalled && Menu.WadeDetection
 		return !(WaterRestrictionEnabled.GetValue() As Bool) || DirtyActor.HasMagicEffect(Init.LokiWaterSlowdownEffect)
-	else
-		return !(WaterRestrictionEnabled.GetValue() As Bool) || IsActorInWater(DirtyActor)
 	endIf
+	return !(WaterRestrictionEnabled.GetValue() As Bool) || IsActorInWater(DirtyActor)
 EndFunction
 
 Bool Function IsUnderWaterfall(Actor DirtyActor)
