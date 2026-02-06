@@ -1,3 +1,43 @@
+2.7.4
+Primary
+- Add: Option to toggle Dirt Specks.
+- Add: Option to configure 'Cleansing Swim.'
+- Add: Option to toggle Wade Detection.
+- Add: Dirtiness tier 4.
+- Add: MCM Effects page.
+- Improve: Gradual onset of Dirt Specks.
+- Improve: Handling of unexpected Animation MGEF termination.
+- Change: Rename 'Shyness' option name as 'Bather's Shame.'
+- Change: Mid-swim 'Quick Clean' can no longer be active simultaneously with 'Cleansing Swim.'
+- Change: Check Status for NPC button behavior; hold modifier key while targeting an NPC to access said NPC's dirt stat.
+- Change: Dirt Specks shader behavior: Toggle state must be chosen before shader begins applying.
+
+Secondary
+- Add: MCM version health check.
+- Add: mzinAPI script.
+- Add: Reset Menu debug function.
+- Add: Stop Animations debug function.
+- Add: Config Warn toggle.
+- Change: Use PO3 RemoveAddedSpells() for faster spell removal.
+- Change: Add dialogue to accomodate new dirtiness tier 'Quite Dirty.'
+- Change: Adjust wording of some dialogue lines to improve sentence flow.
+- Change: Move mzinDirtShaderEnabled condition check from Spell to MGEF.
+- Change: Reorganize dirt tiers: Clean, Not Dirty, Slightly Dirty, Quite Dirty, Filthy.
+- Change: Reduce redundant textual mentions of save/load.
+- Change: Unify Shyness options.
+- Change: Set default keycode global values to -1.
+- Change: Expose keycode custom names to other mod scripts.
+- Fix: Threshold clamp responsiveness.
+- Fix: Follower Showering Style resets incorrect Global Variable.
+- Fix: Resetting animation menu options to default fails to refresh MCM page.
+- Fix: Untracking actor via dialogue forgets to unset some variables.
+- Remove: mzinBatheMCMQuest 'Run Once' flag.
+- Remove: Utility IsActorInWater function.
+- Remove: DirtinessTier spell Conflict Guard.
+- Update: Localization files.
+
+
+
 2.7.3
 Primary
 - Fix: Dirtiness threshold incorrect import token.
