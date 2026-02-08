@@ -209,6 +209,10 @@ Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint, Bool UnsetPrefix = tru
 EndFunction
 
 Function ReapplyDirt(Actor akTarget)
+	If (StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix", "") == "")
+		Return
+	EndIf
+
 	String Node = GetLastNode(akTarget, 0)
 	ApplyDirt(akTarget, \
 	NiOverride.GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 8, -1), \
