@@ -94,7 +94,7 @@ State InSequence
 			Utility.Wait(1)
 		EndWhile
 
-		StopAnimation()
+		StopAnimation(true)
 	EndEvent
 EndState
 State InSequenceCustom
