@@ -219,15 +219,16 @@ Event OnConfigInit()
 	AnimCustomTierCondArray[2] = "$BIS_L_ANIM_TIERCOND_DANGER"
 
 	ModVersionCache = PapyrusUtil.StringSplit(GetModVersion(), ".")
+EndEvent
+
+Event OnConfigRegister()
 	if JsonExists(config)
 		Load(config)
 	endIf
-	if CurrentVersion == 0
-		mzinUtil.LogNotification("Installed Bathing in Skyrim " + GetModVersion(), true)
-		mzinUtil.LogTrace("Installed Bathing in Skyrim " + GetModVersion(), true)
-		if BathingInSkyrimEnabled.GetValue() == 0 && GetIntValue(config, "!!doautostart") == 1
-			GoToState("AutoStartST")
-		endIf
+	mzinUtil.LogNotification("Installed Bathing in Skyrim " + GetModVersion(), true)
+	mzinUtil.LogTrace("Installed Bathing in Skyrim " + GetModVersion(), true)
+	if BathingInSkyrimEnabled.GetValue() == 0 && GetIntValue(config, "!!doautostart") == 1
+		GoToState("AutoStartST")
 	endIf
 EndEvent
 
