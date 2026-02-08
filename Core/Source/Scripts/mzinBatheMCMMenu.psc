@@ -2320,13 +2320,13 @@ Function UnForbidAllActor()
 EndFunction
 
 Function StopAnimations()
-	mzinUtil.RescueActor(PlayerRef)
+	mzinUtil.RescueActor(PlayerRef, true)
 
 	Int DirtyActorIndex = DirtyActors.Getsize()
 	If DirtyActorIndex > 0
 		While DirtyActorIndex
 			DirtyActorIndex -= 1
-			mzinUtil.RescueActor_NPC(DirtyActors.GetAt(DirtyActorIndex) As Actor)
+			mzinUtil.RescueActor_NPC((DirtyActors.GetAt(DirtyActorIndex) As Actor), true)
 		EndWhile
 	EndIf
 EndFunction

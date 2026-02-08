@@ -351,11 +351,14 @@ Function ForbidSex(Actor akTarget, Bool Forbid)
 	EndIf
 EndFunction
 
-Function RescueActor(Actor akActor)
-	if !akActor.HasSpell(PlayBathingAnimation)
-		return
+Function RescueActor(Actor akActor, Bool spellDependent)
+	if spellDependent
+		if !akActor.HasSpell(PlayBathingAnimation)
+			return
+		endIf
+		akActor.RemoveSpell(PlayBathingAnimation)
 	endIf
-	akActor.RemoveSpell(PlayBathingAnimation)
+
 	Debug.SendAnimationEvent(akActor, "IdleForceDefaultState")
 	SetFreeCam(false)
 	Game.EnablePlayerControls(abLooking = false)
@@ -365,11 +368,14 @@ Function RescueActor(Actor akActor)
 	Send_WashActorFinish(akActor)
 EndFunction
 
-Function RescueActor_NPC(Actor akActor)
-	if !akActor.HasSpell(PlayBathingAnimation)
-		return
+Function RescueActor_NPC(Actor akActor, Bool spellDependent)
+	if spellDependent
+		if !akActor.HasSpell(PlayBathingAnimation)
+			return
+		endIf
+		akActor.RemoveSpell(PlayBathingAnimation)
 	endIf
-	akActor.RemoveSpell(PlayBathingAnimation)
+
 	Debug.SendAnimationEvent(akActor, "IdleForceDefaultState")
 	akActor.AllowPCDialogue(true)
 	ActorUtil.RemovePackageOverride(akActor, StopMovementPackage)
