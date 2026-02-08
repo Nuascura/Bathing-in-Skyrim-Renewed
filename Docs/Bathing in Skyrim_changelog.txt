@@ -1,3 +1,13 @@
+2.7.5
+Primary
+- Fix: Soap effect isn't removed from actor after vanilla bathing sequence.
+- Fix: Idle condition array overflow.
+- Fix: Overlay Reapply on game load, condition oversight.
+- Change: Reduce OnConfigInit burden.
+- Change: Free up RescueActor utility functions from strict spell-dependency.
+
+
+
 2.7.4
 Primary
 - Add: Option to toggle Dirt Specks.
