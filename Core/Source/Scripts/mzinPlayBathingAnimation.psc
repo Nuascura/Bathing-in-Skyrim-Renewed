@@ -215,16 +215,21 @@ Function StopAnimation(bool PlayRinseOff = false)
 	BathingActor.RemoveSpell(PlayBathingAnimation)
 EndFunction
 
-Idle Function GetIdleByCondition(Idle[] IdleList, int aiArg = 0)
+Idle Function GetIdleByCondition(Idle[] IdleList, int aiArg = 0, int aiTarg = 0)
 	if !IsShowering
 		if aiArg == 0
-			return IdleList[Utility.RandomInt(0, IdleList.Length - 1)]
+			aiTarg = Utility.RandomInt(0, IdleList.Length - 1)
 		elseIf aiArg == 1
-			return IdleList[mzinUtil.GetDirtinessTier(BathingActor, DirtinessSpellList)]
+			aiTarg = mzinUtil.GetDirtinessTier(BathingActor, DirtinessSpellList)
 		elseIf aiArg == 2
-			return IdleList[mzinUtil.GetDangerTier(BathingActor, PlayerHouseLocationList, SettlementLocationList, DungeonLocationList)]
+			aiTarg = mzinUtil.GetDangerTier(BathingActor, PlayerHouseLocationList, SettlementLocationList, DungeonLocationList)
 		endIf
+		if aiTarg >= IdleList.Length
+			aiTarg = IdleList.Length - 1
+		endIf
+		return IdleList[aiTarg]
 	endIf
+	
 	return IdleList[0]
 EndFunction
 
