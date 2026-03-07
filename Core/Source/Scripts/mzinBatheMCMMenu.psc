@@ -673,7 +673,7 @@ Function HandleOnOptionDefaultAnimationsPage(Int OptionID)
 		SetMenuOptionValue(OptionID, BathingAnimationStyleArray[BathingAnimationStyle.GetValue() As Int], true)
 		ForcePageReset()
 	ElseIf OptionID == ShoweringAnimationStyleMenuID
-		ShoweringAnimationStyle.SetValue(0)
+		ShoweringAnimationStyle.SetValue(1)
 		SetMenuOptionValue(OptionID, ShoweringAnimationStyleArray[ShoweringAnimationStyle.GetValue() As Int], true)
 		ForcePageReset()
 	ElseIf OptionID == GetSoapyStyleMenuID
@@ -1456,7 +1456,7 @@ Function HandleOnOptionMenuOpenAnimationsPage(Int OptionID)
 	ElseIf OptionID == ShoweringAnimationStyleMenuID
 		SetMenuDialogOptions(ShoweringAnimationStyleArray)
 		SetMenuDialogStartIndex(ShoweringAnimationStyle.GetValue() As Int)
-		SetMenuDialogDefaultIndex(0)
+		SetMenuDialogDefaultIndex(1)
 	ElseIf OptionID == GetSoapyStyleMenuID
 		SetMenuDialogOptions(GetSoapyStyleArray)
 		SetMenuDialogStartIndex(GetSoapyStyle.GetValue() As Int)

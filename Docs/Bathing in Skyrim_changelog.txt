@@ -1,3 +1,28 @@
+2.7.6
+Primary
+- Fix: Showering animation option highlights do not reflect actual functions.
+- Add: Script patches for Barefoot Realism and Barefoot Realism Tweaked, with thanks to @Prexz.
+- Add: Script patches for Widget Addon.
+- Add: Interactive wash basin BOS addon.
+- Update: First Person Messages addon.
+
+Secondary
+- Add: mzinActorIsDirty mgef keyword.
+- Change: "You now feel more clean." -> "You feel refreshed."
+- Change: "There is not enough water to bathe." -> "There isn't enough water to bathe."
+- Change: "The floral scent makes your spirits rise." -> "The floral scent stimulates you."
+- Change: "The floral scent makes you feel stronger." -> "The floral scent strengthens you."
+- Change: "The floral scent makes you feel more energetic." -> "The floral scent energizes you."
+- Change: "The floral scent makes you feel more powerful." -> "The floral scent empowers you."
+- Change: "The floral scent raises your confidence." -> "The floral scent emboldens you."
+- Change: "The exotic oil scent makes you feel strange." -> "The oily scent revitalizes you."
+- Change: "The floral scent raises your confidence." -> "The draconic scent emboldens you."
+- Change: "The scent of sap makes you feel in tune with nature." -> "The arboreal scent spiritualizes you."
+- Change: "The wash rag wipes away some dirt." -> "The wash rag clears some dirt."
+- Update: Localization files.
+
+
+
 2.7.5
 Primary
 - Fix: Soap effect isn't removed from actor after vanilla bathing sequence.
