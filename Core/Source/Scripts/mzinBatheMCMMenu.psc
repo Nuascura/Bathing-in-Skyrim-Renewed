@@ -202,9 +202,9 @@ Event OnConfigInit()
 
 	; showering animation styles
 	ShoweringAnimationStyleArray = new String[4]
-	ShoweringAnimationStyleArray[0] = "$BIS_L_SHOWER_OVERRIDE_NONE"
-	ShoweringAnimationStyleArray[1] = "$BIS_L_SHOWER_OVERRIDE_DEFAULT"
-	ShoweringAnimationStyleArray[2] = "$BIS_L_SHOWER_OVERRIDE_CUSTOM"
+	ShoweringAnimationStyleArray[0] = "$BIS_L_OVDE_STYLE_NONE"
+	ShoweringAnimationStyleArray[1] = "$BIS_L_OVDE_STYLE_DEFAULT"
+	ShoweringAnimationStyleArray[2] = "$BIS_L_OVDE_STYLE_CUSTOM"
 
 	; soap effect styles
 	GetSoapyStyleArray = new String[3]
@@ -357,7 +357,7 @@ EndFunction
 Function DisplayAnimationsPage()
 	AddHeaderOption("$BIS_HEADER_PLAYER_SETTINGS")
 	BathingAnimationStyleMenuID = AddMenuOption("$BIS_L_ANIM_STYLE", BathingAnimationStyleArray[BathingAnimationStyle.GetValue() As Int])
-	ShoweringAnimationStyleMenuID = AddMenuOption("$BIS_L_SHOWER_OVERRIDE", ShoweringAnimationStyleArray[ShoweringAnimationStyle.GetValue() As Int], (!(BathingAnimationStyle.GetValue() as bool)) as int)
+	ShoweringAnimationStyleMenuID = AddMenuOption("$BIS_L_OVDE_STYLE", ShoweringAnimationStyleArray[ShoweringAnimationStyle.GetValue() As Int], (!(BathingAnimationStyle.GetValue() as bool)) as int)
 	GetSoapyStyleMenuID = AddMenuOption("$BIS_L_SOAP_STYLE", GetSoapyStyleArray[GetSoapyStyle.GetValue() As Int])
 	AutoHideUIID = AddToggleOption("$BIS_L_AUTOHIDEUI", AutoHideUI)
 	AutoPlayerTFCID = AddToggleOption("$BIS_L_AUTOPLAYERTFC", AutoPlayerTFC)
@@ -425,7 +425,7 @@ EndFunction
 Function DisplayAnimationsPageFollowers()
 	AddHeaderOption("$BIS_HEADER_FOLLOWER_SETTINGS")
 	BathingAnimationStyleMenuIDFollowers = AddMenuOption("$BIS_L_ANIM_STYLE", BathingAnimationStyleArray[BathingAnimationStyleFollowers.GetValue() As Int])
-	ShoweringAnimationStyleMenuIDFollowers = AddMenuOption("$BIS_L_SHOWER_OVERRIDE", ShoweringAnimationStyleArray[ShoweringAnimationStyleFollowers.GetValue() As Int], (!(BathingAnimationStyleFollowers.GetValue() as bool)) as int)
+	ShoweringAnimationStyleMenuIDFollowers = AddMenuOption("$BIS_L_OVDE_STYLE", ShoweringAnimationStyleArray[ShoweringAnimationStyleFollowers.GetValue() As Int], (!(BathingAnimationStyleFollowers.GetValue() as bool)) as int)
 	GetSoapyStyleMenuIDFollowers = AddMenuOption("$BIS_L_SOAP_STYLE", GetSoapyStyleArray[GetSoapyStyleFollowers.GetValue() As Int])
 
 	AddHeaderOption("$BIS_HEADER_ANIM_LOOP")
@@ -940,7 +940,7 @@ Function HandleOnOptionHighlightAnimationsPage(Int OptionID)
 	If OptionID == BathingAnimationStyleMenuID
 		SetInfoText("$BIS_DESC_ANIM_STYLE")
 	ElseIf OptionID == ShoweringAnimationStyleMenuID
-		SetInfoText("$BIS_DESC_SHOWER_OVERRIDE")
+		SetInfoText("$BIS_DESC_OVDE_STYLE")
 	ElseIf OptionID == GetSoapyStyleMenuID
 		SetInfoText("$BIS_DESC_SOAP_STYLE")
 	ElseIf OptionID == AutoHideUIID
@@ -985,7 +985,7 @@ Function HandleOnOptionHighlightAnimationsPageFollowers(Int OptionID)
 	If OptionID == BathingAnimationStyleMenuIDFollowers
 		SetInfoText("$BIS_DESC_ANIM_STYLE")
 	ElseIf OptionID == ShoweringAnimationStyleMenuIDFollowers
-		SetInfoText("$BIS_DESC_SHOWER_OVERRIDE")
+		SetInfoText("$BIS_DESC_OVDE_STYLE")
 	ElseIf OptionID == GetSoapyStyleMenuIDFollowers
 		SetInfoText("$BIS_DESC_SOAP_STYLE")
 	ElseIf OptionID == BathingAnimationLoopsTier0SliderIDFollowers

@@ -11,12 +11,12 @@ EndFunction
 
 ; Get - Config Version
 Int Function GetConfigVersion() Global
-	return 21
+	return 22
 EndFunction
 
 ; Get - Script Version
 int Function GetVersion() Global
-	return 0x02070621 ; 0x01020304
+	return 0x02070622 ; 0x01020304
 EndFunction
 
 ; Get - Mod Name
