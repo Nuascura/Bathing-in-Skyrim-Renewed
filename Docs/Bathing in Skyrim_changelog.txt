@@ -1,6 +1,7 @@
 2.7.6
 Primary
 - Fix: Override Animation Option mismatch between Function and Description.
+- Fix: Shower sequences still use normalized bathing animation frequencies.
 - Add: Script patches for Barefoot Realism and Barefoot Realism Tweaked, with thanks to @Prexz.
 - Add: Script patches for Widget Addon.
 - Add: Interactive wash basin BOS addon.

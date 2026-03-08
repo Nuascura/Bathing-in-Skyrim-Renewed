@@ -53,28 +53,50 @@ Event OnEffectStart(Actor Target, Actor Caster)
 	Int AnimStyle
 	If IsShowering
 		AnimStyle = ShoweringAnimationStyle.GetValue() as int
-	else
-		AnimStyle = BathingAnimationStyle.GetValue() as int
-	endIf
-
-	If AnimStyle > 0
-		if TargetIsPlayer
-			if BathingActor.GetActorBase().GetSex()
-				GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSet, AnimStyle, Menu.AnimCustomTierCond))
-			else
-				GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSet, AnimStyle, Menu.AnimCustomTierCond))
-			endIf
-		else
-			if BathingActor.GetActorBase().GetSex()
-				GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSetFollowers, AnimStyle, Menu.AnimCustomTierCondFollowers))
-			else
-				GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSetFollowers, AnimStyle, Menu.AnimCustomTierCondFollowers))
-			endIf
-		endIf
 	Else
+		AnimStyle = BathingAnimationStyle.GetValue() as int
+	EndIf
+
+	If AnimStyle < 1
 		RegisterForSingleUpdate(2.0)
+	ElseIf IsShowering
+		StartSequence_OVDE(AnimStyle)
+	Else
+		StartSequence(AnimStyle)
 	EndIf
 EndEvent
+
+Function StartSequence(Int aiAnimStyle)
+	if TargetIsPlayer
+		if BathingActor.GetActorBase().GetSex()
+			GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSet, aiAnimStyle, Menu.AnimCustomTierCond))
+		else
+			GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSet, aiAnimStyle, Menu.AnimCustomTierCond))
+		endIf
+	else
+		if BathingActor.GetActorBase().GetSex()
+			GoToState("InSequence" + GetAnimationFemale(Menu.AnimCustomFSetFollowers, aiAnimStyle, Menu.AnimCustomTierCondFollowers))
+		else
+			GoToState("InSequence" + GetAnimationMale(Menu.AnimCustomMSetFollowers, aiAnimStyle, Menu.AnimCustomTierCondFollowers))
+		endIf
+	endIf
+EndFunction
+
+Function StartSequence_OVDE(Int aiAnimStyle)
+	if TargetIsPlayer
+		if BathingActor.GetActorBase().GetSex()
+			GoToState("InSequence" + GetAnimationFemale_OVDE(aiAnimStyle))
+		else
+			GoToState("InSequence" + GetAnimationMale_OVDE(aiAnimStyle))
+		endIf
+	else
+		if BathingActor.GetActorBase().GetSex()
+			GoToState("InSequence" + GetAnimationFemale_OVDE(aiAnimStyle))
+		else
+			GoToState("InSequence" + GetAnimationMale_OVDE(aiAnimStyle))
+		endIf
+	endIf
+EndFunction
 
 State InSequence
 	Event OnBeginState()
@@ -123,8 +145,9 @@ Function LockActor()
 		Game.SetPlayerAIDriven(true)
 		if Game.GetCameraState() == 0
 			Game.ForceFirstPerson()
+			Utility.Wait(0.1)
+			Game.ForceThirdPerson()
 		endIf
-		Game.ForceThirdPerson()
 		mzinUtil.SetHUDInstanceFlag(false)
 		mzinUtil.SetFreeCam(true)
 	else
@@ -175,6 +198,23 @@ String Function GetAnimationFemale(float[] IdleWeight, int aiIdleSet, int aiTier
 	return ""
 EndFunction
 
+String Function GetAnimationFemale_OVDE(int aiIdleSet)
+	If aiIdleSet == 2
+		if WashPropIsSoap
+			SelectedStyle = mzinBathe_Baka_S[0]
+		else
+			SelectedStyle = mzinBathe_Baka_C[0]
+		endIf
+		RinseOn()
+	EndIf
+
+	if SelectedStyle
+		return "Custom"
+	endIf
+
+	return ""
+EndFunction
+
 String Function GetAnimationMale(float[] IdleWeight, int aiIdleSet, int aiTierCond)
 
 	If aiIdleSet > 1
@@ -193,6 +233,24 @@ String Function GetAnimationMale(float[] IdleWeight, int aiIdleSet, int aiTierCo
 	if SelectedStyle
 		return "Custom"
 	endIf
+
+	return ""
+EndFunction
+
+String Function GetAnimationMale_OVDE(int aiIdleSet)
+	If aiIdleSet == 2
+		if WashPropIsSoap
+			SelectedStyle = mzinBathe_Tweens_S[0]
+		else
+			SelectedStyle = mzinBathe_Tweens_C[0]
+		endIf
+		RinseOn()
+	endIf
+
+	if SelectedStyle
+		return "Custom"
+	endIf
+	
 	return ""
 EndFunction
 
@@ -216,21 +274,17 @@ Function StopAnimation(bool PlayRinseOff = false)
 EndFunction
 
 Idle Function GetIdleByCondition(Idle[] IdleList, int aiArg = 0, int aiTarg = 0)
-	if !IsShowering
-		if aiArg == 0
-			aiTarg = Utility.RandomInt(0, IdleList.Length - 1)
-		elseIf aiArg == 1
-			aiTarg = mzinUtil.GetDirtinessTier(BathingActor, DirtinessSpellList)
-		elseIf aiArg == 2
-			aiTarg = mzinUtil.GetDangerTier(BathingActor, PlayerHouseLocationList, SettlementLocationList, DungeonLocationList)
-		endIf
-		if aiTarg >= IdleList.Length
-			aiTarg = IdleList.Length - 1
-		endIf
-		return IdleList[aiTarg]
+	if aiArg == 0
+		aiTarg = Utility.RandomInt(0, IdleList.Length - 1)
+	elseIf aiArg == 1
+		aiTarg = mzinUtil.GetDirtinessTier(BathingActor, DirtinessSpellList)
+	elseIf aiArg == 2
+		aiTarg = mzinUtil.GetDangerTier(BathingActor, PlayerHouseLocationList, SettlementLocationList, DungeonLocationList)
 	endIf
-	
-	return IdleList[0]
+	if aiTarg >= IdleList.Length
+		aiTarg = IdleList.Length - 1
+	endIf
+	return IdleList[aiTarg]
 EndFunction
 
 Function GetSoapy()
