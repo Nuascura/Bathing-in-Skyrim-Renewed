@@ -129,7 +129,6 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower =
 		mzinUtil.Send_ResetActorDirt(DirtyActor, DoFullClean)
 		DirtyActor.AddSpell(PlayBathingAnimation, False)
 	Else
-		OlUtil.ClearDirt(DirtyActor, true)
 		ResetGDOTSpell(DirtyActor, (DirtinessThresholdList.GetAt((!DoFullClean) as int) As GlobalVariable).GetValue())
 		WashActorFinish(DirtyActor, WashProp, DoFullClean)
 	endIf
@@ -161,6 +160,9 @@ Function ResetGDOTSpell(Actor targetActor, Float targetValue)
 		Return
 	EndIf
 
+	If StorageUtil.HasStringValue(targetActor, "mzin_DirtTexturePrefix")
+		OlUtil.ClearDirt(targetActor, true)
+	EndIf
 	RemoveAddedSpells(targetActor, "", mzinUtil.arrkwDirtinessSpell, false)
 	RemoveAddedSpells(targetActor, "", mzinUtil.arrkwGDOTSpell, false)
 	if targetValue < GetActorDirtPercent(targetActor)
