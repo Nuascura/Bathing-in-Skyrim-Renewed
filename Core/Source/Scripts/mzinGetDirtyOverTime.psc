@@ -327,7 +327,7 @@ Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanI
 	
 	Bool BreakCondition = DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
 	Float DirtToClean = ((LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval))
-	if (StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") == "") || !(DirtToClean > 0)
+	if !StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix") || !(DirtToClean > 0)
 		return
 	endIf
 	
@@ -501,7 +501,7 @@ Bool Function ProgressDirtSpell()
 EndFunction
 
 Function ApplyDirtLeadIn(Float targetAlpha)
-	If (LocalDirtinessPercentage >= Menu.OverlayApplyAt) && (StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") == "")
+	If (LocalDirtinessPercentage >= Menu.OverlayApplyAt) && !StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 		OlUtil.BeginOverlay(DirtyActor, targetAlpha, Menu.OverlayTint)
 	EndIf
 EndFunction
@@ -534,7 +534,7 @@ Float Function GetDirtPerHour()
 EndFunction
 
 Function ProgressAlpha()
-	if (StorageUtil.GetStringValue(DirtyActor, "mzin_DirtTexturePrefix", "") != "")
+	if StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 		Float Alpha = Menu.StartingAlpha + (LocalDirtinessPercentage * LocalDirtinessPercentage * LocalDirtinessPercentage)
 		If Alpha > 1.0
 			Alpha = 1.0

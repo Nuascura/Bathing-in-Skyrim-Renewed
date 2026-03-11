@@ -209,7 +209,7 @@ Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint, Bool UnsetPrefix = tru
 EndFunction
 
 Function ReapplyDirt(Actor akTarget)
-	If (StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix", "") == "")
+	If !StorageUtil.HasStringValue(akTarget, "mzin_DirtTexturePrefix")
 		Return
 	EndIf
 
