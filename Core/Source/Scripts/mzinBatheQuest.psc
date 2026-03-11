@@ -21,7 +21,6 @@ GlobalVariable Property GameDaysPassed Auto
 FormList Property DirtyActors Auto
 FormList Property WashPropList Auto
 FormList Property SoapBonusSpellList Auto
-FormList Property DirtinessSpellList Auto
 FormList Property DirtinessThresholdList Auto
 FormList Property WaterfallList Auto
 FormList Property SoapBonusMessageList Auto
@@ -166,11 +165,10 @@ Function ResetGDOTSpell(Actor targetActor, Float targetValue)
 	RemoveAddedSpells(targetActor, "", mzinUtil.arrkwGDOTSpell, false)
 	if targetValue < GetActorDirtPercent(targetActor)
 		UpdateActorDirtPercent(targetActor, targetValue)
-		targetActor.AddSpell(GetGDOTSpell(targetValue, GetDirtyOverTimeSpellList.GetSize()), False)
 	else
-		targetActor.AddSpell(GetGDOTSpell(GetActorDirtPercent(targetActor), GetDirtyOverTimeSpellList.GetSize()), False)
+		targetValue = GetActorDirtPercent(targetActor)
 	endIf
-	
+	targetActor.AddSpell(GetGDOTSpell(targetValue, GetDirtyOverTimeSpellList.GetSize()), False)
 	StorageUtil.SetFloatValue(targetActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
 EndFunction
 
