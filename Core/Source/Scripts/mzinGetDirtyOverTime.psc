@@ -235,7 +235,6 @@ EndFunction
 State PAUSED
 	Event OnBeginState()
 		Send_GDOTStateChange("PAUSED")
-		UnregisterEvents(false)
 	EndEvent
 	Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 	EndEvent
