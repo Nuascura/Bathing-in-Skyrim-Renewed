@@ -61,6 +61,9 @@ Event OnBiS_GDOTStateChange_Player(string NewState, string DefaultState)
 EndEvent
 
 State PauseKeyCheck
+	Event OnBeginState()
+		UnregisterForAllKeys()
+	EndEvent
 	Event OnKeyDown(Int KeyCode)
 		If Utility.IsInMenuMode() || SPE_Actor.GetPlayerSpeechTarget() || UI.IsTextInputEnabled()
 			return

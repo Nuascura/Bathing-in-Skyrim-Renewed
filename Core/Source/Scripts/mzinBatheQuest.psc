@@ -101,7 +101,6 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower =
 
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
 	If DirtyActorIsPlayer
-		UnregisterForAllKeys()
 		mzinInterfaceFrostfall.MakeWet(Init.FrostfallRunning_var, 1000.0)
 	EndIf
 
