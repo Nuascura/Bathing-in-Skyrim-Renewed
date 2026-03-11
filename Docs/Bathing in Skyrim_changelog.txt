@@ -1,10 +1,13 @@
 2.7.6
 Primary
-- Fix: Override Animation Option mismatch between Function and Description.
-- Fix: Shower sequences still use normalized bathing animation frequencies.
+- Add: New Wash Rag model and texture, with thanks to @krzp.
 - Add: Script patches for Barefoot Realism and Barefoot Realism Tweaked, with thanks to @Prexz.
 - Add: Script patches for Widget Addon.
 - Add: Interactive wash basin BOS addon.
+- Fix: Override Animation Option mismatch between Function and Description.
+- Fix: Shower sequences still use normalized bathing animation frequencies.
+- Fix: WashActor NoAnimate flag fails to correctly reset GDOT and dirtiness spells.
+- Fix: Regression: Wash Rag erroneously increases dirt if player bathes below a tier 1 dirtiness percentage.
 - Update: First Person Messages addon.
 
 Secondary
@@ -20,6 +23,8 @@ Secondary
 - Change: "The floral scent raises your confidence." -> "The draconic scent emboldens you."
 - Change: "The scent of sap makes you feel in tune with nature." -> "The arboreal scent spiritualizes you."
 - Change: "The wash rag wipes away some dirt." -> "The wash rag clears some dirt."
+- Change: UnregisterForAllKeys call location.
+- Remove: Unnecessary event unregistration, which may cause log errors if host GDOT is removed from actor soon after entering PAUSED state.
 - Update: Localization files.
 
 
