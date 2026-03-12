@@ -160,16 +160,21 @@ Function ResetGDOTSpell(Actor targetActor, Float targetValue)
 		Return
 	EndIf
 
-	If StorageUtil.HasStringValue(targetActor, "mzin_DirtTexturePrefix")
-		OlUtil.ClearDirt(targetActor, true)
-	EndIf
+	Float currentValue = GetActorDirtPercent(targetActor)
 	RemoveAddedSpells(targetActor, "", mzinUtil.arrkwDirtinessSpell, false)
 	RemoveAddedSpells(targetActor, "", mzinUtil.arrkwGDOTSpell, false)
-	if targetValue < GetActorDirtPercent(targetActor)
+	If targetValue < currentValue
 		UpdateActorDirtPercent(targetActor, targetValue)
-	else
-		targetValue = GetActorDirtPercent(targetActor)
-	endIf
+	Else
+		targetValue = currentValue
+	EndIf
+	If StorageUtil.HasStringValue(targetActor, "mzin_DirtTexturePrefix")
+		If targetValue < Menu.OverlayApplyAt
+			OlUtil.ClearDirt(targetActor, true)
+		Else
+			OlUtil.UpdateAlpha(targetActor, Menu.StartingAlpha)
+		EndIf
+	EndIf
 	targetActor.AddSpell(GetGDOTSpell(targetValue, GetDirtyOverTimeSpellList.GetSize()), False)
 	StorageUtil.SetFloatValue(targetActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
 EndFunction
