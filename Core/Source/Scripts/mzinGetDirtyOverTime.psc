@@ -57,12 +57,15 @@ Event OnEffectStart(Actor Target, Actor Caster)
 EndEvent
 
 Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
-	If akBaseObject.HasKeyWord(WashPropKeyword) && !BatheQuest.IsRestricted(DirtyActor)
+	If !akBaseObject.HasKeyWord(WashPropKeyword)
+		Return
+	EndIf
+
+	CloseInventory()
+	If !BatheQuest.IsRestricted(DirtyActor)
 		if BatheQuest.IsInWater(DirtyActor)
-			CloseInventory()
 			BatheQuest.WashActor(DirtyActor, akBaseObject as MiscObject, false, DirtyActorIsPlayer)
 		elseIf BatheQuest.IsUnderWaterfall(DirtyActor)
-			CloseInventory()
 			BatheQuest.WashActor(DirtyActor, akBaseObject as MiscObject, true, DirtyActorIsPlayer)
 		endIf
 	EndIf
@@ -213,14 +216,12 @@ Function UnregisterEvents(Bool ModEvents = True)
 EndFunction
 
 Function CloseInventory()
-	If DirtyActorIsPlayer
-		if UI.IsMenuOpen("InventoryMenu")
-            UI.InvokeString("InventoryMenu", "_global.skse.CloseMenu", "InventoryMenu")
-        endIf
-		if UI.IsMenuOpen("TweenMenu")
-            UI.InvokeString("InventoryMenu", "_global.skse.CloseMenu", "TweenMenu")
-        endIf
+	If !DirtyActorIsPlayer
+		Return
 	EndIf
+	UI.InvokeString("InventoryMenu", "_global.skse.CloseMenu", "InventoryMenu")
+	UI.InvokeString("TweenMenu", "_global.skse.CloseMenu", "TweenMenu")
+	UI.InvokeString("FavoritesMenu", "_global.skse.CloseMenu", "FavoritesMenu")
 EndFunction
 
 Function Send_GDOTStateChange(string StateName = "")
