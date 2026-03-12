@@ -108,7 +108,7 @@ State InSequence
 
 		GetSoapy()
 
-		While AnimationCyclesRemaining > 0	
+		While (AnimationCyclesRemaining > 0) && (GetState() == "InSequence")
 			AnimationCyclesRemaining -= 1	
 			Debug.SendAnimationEvent(BathingActor, "IdleWarmArms")
 			Utility.Wait(2)
@@ -255,8 +255,12 @@ String Function GetAnimationMale_OVDE(int aiIdleSet)
 EndFunction
 
 Function StopAnimation(bool PlayRinseOff = false)
-	UnregisterForEvents()
+	if !GetState()
+		Return
+	endIf
+
 	GoToState("")
+	UnregisterForEvents()
 	Debug.SendAnimationEvent(BathingActor, "IdleForceDefaultState")
 	Utility.Wait(0.5)
 
