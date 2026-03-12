@@ -80,14 +80,14 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 			If IsUnderWaterfall(DirtyActor)
 				WashActor(DirtyActor, WashProp, true, PlayerTeammates && Menu.AutomateFollowerBathing.GetValue() > 0)
 				return true
-			Else
+			ElseIf DirtyActor == PlayerRef
 				mzinUtil.GameMessage(ShoweringNeedsWaterMessage)
 			EndIf
 		Else
 			If IsInWater(DirtyActor)
 				WashActor(DirtyActor, WashProp, false, PlayerTeammates && Menu.AutomateFollowerBathing.GetValue() > 0)
 				return true
-			Else
+			ElseIf DirtyActor == PlayerRef
 				mzinUtil.GameMessage(BathingNeedsWaterMessage)
 			EndIf
 		EndIf
