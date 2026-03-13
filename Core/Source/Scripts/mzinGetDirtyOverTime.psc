@@ -9,8 +9,6 @@ mzinOverlayUtility Property OlUtil Auto
 mzinUtility Property mzinUtil Auto
 mzinInit Property Init Auto
 
-FormList Property DirtyActors Auto
-
 FormList Property PlayerHouseLocationList Auto
 FormList Property DungeonLocationList Auto
 FormList Property SettlementLocationList Auto
@@ -34,7 +32,9 @@ Keyword Property WashPropKeyword Auto
 Keyword Property ActorTypeCreature Auto
 Keyword Property DirtinessTierKeyword Auto
 Keyword Property AnimationKeyword Auto
+Keyword Property TrackedBatherActor Auto
 
+Faction Property TrackedBatherFaction Auto
 Faction Property CreatureFaction Auto
 
 Actor Property PlayerRef Auto
@@ -279,11 +279,11 @@ Function StartDirtCycle(Actor Target)
 			LocalDirtinessPercentage = (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue()
 		endIf
 	Else
-		If DirtyActors.Find(DirtyActor) == -1
-			DirtyActors.AddForm(DirtyActor)
-		EndIf
+		DirtyActor.AddToFaction(TrackedBatherFaction)
 		LocalDirtinessPercentage = StorageUtil.GetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue())
 	EndIf
+
+	AddKeywordToRef(DirtyActor, TrackedBatherActor)
 
 	If !DirtyActor.HasMagicEffectWithKeyword(DirtinessTierKeyword)
 		If !InitialDirtinessTier

@@ -2,7 +2,7 @@ ScriptName mzinBathePlayerAlias Extends ReferenceAlias
 
 mzinUtility Property mzinUtil Auto
 mzinBatheQuest Property BatheQuest Auto
-FormList Property DirtyActors Auto
+Faction Property TrackedBatherFaction Auto
 GlobalVariable Property AutomateFollowerBathing Auto
 GlobalVariable Property BatheKeyCode Auto
 GlobalVariable Property ModifierKeyCode Auto
@@ -25,7 +25,7 @@ Function CycleTeammate(Actor[] PlayerFollowers, Actor LastGawker)
 	int i = 0
 	if AutomateFollowerBathing.GetValue() == 1.0 ; Tracked Only
 		while i < PlayerFollowers.Length
-			if DirtyActors.HasForm(PlayerFollowers[i])
+			if PlayerFollowers[i].IsInFaction(TrackedBatherFaction)
 				TryWashTeammate(PlayerFollowers[i], LastGawker)
 			endIf
 			i += 1

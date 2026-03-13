@@ -18,7 +18,6 @@ GlobalVariable Property CleansingSwim Auto
 GlobalVariable Property DirtinessPercentage Auto
 GlobalVariable Property GameDaysPassed Auto
 
-FormList Property DirtyActors Auto
 FormList Property WashPropList Auto
 FormList Property SoapBonusSpellList Auto
 FormList Property DirtinessThresholdList Auto
@@ -29,6 +28,9 @@ FormList Property GetDirtyOverTimeSpellList Auto
 Keyword Property WashPropKeyword Auto
 Keyword Property SoapKeyword Auto
 Keyword Property AnimationKeyword Auto
+Keyword Property TrackedBatherActor Auto
+
+Faction Property TrackedBatherFaction Auto
 
 Spell Property PlayBathingAnimation Auto
 
@@ -141,12 +143,8 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower =
 	mzinUtil.Send_BatheEvent(DirtyActor as Form, DoPlayerTeammates)
 EndFunction
 
-Bool Function IsActorTracked(Actor targetActor)
-	Return (targetActor == PlayerRef) || (DirtyActors.Find(targetActor) != -1)
-EndFunction
-
 Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFullClean = false)
-	If !IsActorTracked(DirtyActor)
+	If !DirtyActor.HasKeyword(TrackedBatherActor)
 		Return
 	EndIf
 
@@ -156,7 +154,7 @@ Function WashActorFinish(Actor DirtyActor, MiscObject WashProp = none, Bool DoFu
 EndFunction
 
 Function ResetGDOTSpell(Actor targetActor, Float targetValue)
-	If !IsActorTracked(targetActor)
+	If !targetActor.HasKeyword(TrackedBatherActor)
 		Return
 	EndIf
 
@@ -187,6 +185,17 @@ Spell Function GetGDOTSpell(Float targetValue, int iMax, int iInit = 0)
 		iInit += 1
 	EndWhile
 	return GetDirtyOverTimeSpellList.GetAt(iInit) As Spell
+EndFunction
+
+Bool Function HasGDOTSpell(Actor targetActor)
+	int i = GetDirtyOverTimeSpellList.GetSize()
+	While i
+		i -= 1
+		If targetActor.HasSpell(GetDirtyOverTimeSpellList.GetAt(i) As Spell)
+			Return True
+		EndIf
+	EndWhile
+	Return False
 EndFunction
 
 Function ApplySoapBonus(Actor DirtyActor, MiscObject WashProp)
@@ -398,7 +407,8 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwDirtinessSpell, false)
 	RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwSoapBonusSpell, false)
 
-	DirtyActors.RemoveAddedForm(DirtyActor)
+	RemoveKeywordFromRef(DirtyActor, TrackedBatherActor)
+	DirtyActor.RemoveFromFaction(TrackedBatherFaction)
 
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
@@ -415,7 +425,7 @@ EndFunction
 Function UpdateActorDirtPercent(Actor akActor, float afNewValue)
 	If akActor == PlayerRef
 		DirtinessPercentage.SetValue(afNewValue)
-	elseIf DirtyActors.Find(akActor) != -1
+	elseIf akActor.IsInFaction(TrackedBatherFaction)
 		StorageUtil.SetFloatValue(akActor, "BiS_Dirtiness", afNewValue)
 	EndIf
 EndFunction
@@ -423,7 +433,7 @@ EndFunction
 Float Function GetActorDirtPercent(Actor akActor)
 	If akActor == PlayerRef
 		return DirtinessPercentage.GetValue()
-	ElseIf DirtyActors.Find(akActor) != -1
+	ElseIf akActor.IsInFaction(TrackedBatherFaction)
 		StorageUtil.GetFloatValue(akActor, "BiS_Dirtiness")
 	EndIf
 EndFunction

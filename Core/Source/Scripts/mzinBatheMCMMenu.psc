@@ -2,6 +2,8 @@ ScriptName mzinBatheMCMMenu Extends SKI_ConfigBase
 { this script displays the MCM menu for mod configuration }
 
 import JsonUtil
+import PapyrusUtil
+import PO3_SKSEFunctions
 
 ; core
 mzinBathePlayerAlias Property BathePlayer Auto
@@ -11,9 +13,9 @@ mzinOverlayUtility Property OlUtil Auto
 mzinUtility Property mzinUtil Auto
 mzinInit Property Init Auto
 Quest Property mzinBatheFollowerDialogQuest Auto
-Formlist Property mzinDirtyActorsList Auto
 FormList Property GetDirtyOverTimeSpellList Auto
 Message Property MessageConfigWarn  Auto 
+Keyword Property ActorTypeNPC Auto
 
 ; integration settings
 Bool Property WadeDetection = true Auto Hidden
@@ -36,6 +38,9 @@ Bool Property TexSetOverride = False Auto Hidden
 
 ; references
 Actor Property PlayerRef Auto
+
+; factions
+Faction Property TrackedBatherFaction Auto
 
 ; toggle values
 GlobalVariable Property BathingInSkyrimEnabled Auto
@@ -87,7 +92,6 @@ GlobalVariable Property GetDressedAfterBathingEnabled Auto
 GlobalVariable Property GetDressedAfterBathingEnabledFollowers Auto
 
 ; dirtiness settings
-FormList Property DirtyActors Auto
 FormList Property DirtinessSpellList Auto
 FormList Property DirtinessThresholdList Auto
 GlobalVariable Property DirtinessUpdateInterval Auto
@@ -116,6 +120,8 @@ Int[] Property ArmorSlotArrayFollowers Auto
 Bool[] UndressArmorSlotArray
 Bool[] UndressArmorSlotArrayFollowers
 Bool IsConfigOpen = false
+Actor CrosshairActor
+Actor[] TrackedActors
 
 ; local variables - constants
 String DF_Percentage_Dirt = "$BIS_DF_PERCENTAGE_DIRT"
@@ -152,7 +158,7 @@ EndFunction
 
 bool Function CheckVersionConflict()
 	; potential conflict if config version number is incremented across a different or new major or minor version.
-	string[] ModVersionCurrent = PapyrusUtil.StringSplit(GetModVersion(), ".")
+	string[] ModVersionCurrent = StringSplit(GetModVersion(), ".")
 	if !ModVersionCache
 		return true
 	elseIf (ModVersionCache[0] != ModVersionCurrent[0]) || (ModVersionCache[1] != ModVersionCurrent[1]) || (ModVersionCurrent[2] as int == 0) ; invalid strings are displayed as 0, which is fine
@@ -218,7 +224,7 @@ Event OnConfigInit()
 	AnimCustomTierCondArray[1] = "$BIS_L_ANIM_TIERCOND_DIRTINESS"
 	AnimCustomTierCondArray[2] = "$BIS_L_ANIM_TIERCOND_DANGER"
 
-	ModVersionCache = PapyrusUtil.StringSplit(GetModVersion(), ".")
+	ModVersionCache = StringSplit(GetModVersion(), ".")
 EndEvent
 
 Event OnConfigRegister()
@@ -295,6 +301,7 @@ EndEvent
 
 Function SetLocalArrays()
 	; tracked actors array
+	TrackedActors = new Actor[128]
 	TrackedActorsToggleIDs = new Int[128]
 	
 	; animation frequency arrays
@@ -566,20 +573,33 @@ Function DisplayIntegrationsPage()
 	endIf
 EndFunction
 Function DisplayTrackedActorsPage()
-	Int TrackedActorsCount = DirtyActors.GetSize()
-	If !TrackedActorsCount
+	AddHeaderOption("$BIS_HEADER_TARGETED_ACTOR")
+	CrosshairActor = Game.GetCurrentCrosshairRef() as Actor
+	If !(CrosshairActor && CrosshairActor.HasKeyword(ActorTypeNPC))
 		AddTextOption("$BIS_TXT_EMPTY", "", OPTION_FLAG_DISABLED)
 	Else
-		If TrackedActorsCount > 128
-			TrackedActorsCount = 128
-		EndIf
-		TrackedActorsToggleIDs = Utility.CreateIntArray(TrackedActorsCount)
-		
-		AddHeaderOption("$BIS_HEADER_TRACKED_ACTORS")
-		Int Index = TrackedActorsCount
-		While Index
-			Index -= 1
-			Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
+		String DisplayString = ""
+		If BatheQuest.HasGDOTSpell(CrosshairActor)
+			DisplayString = "$BIS_BUTTON_UNTRACK"
+		Else
+			DisplayString = "$BIS_BUTTON_TRACK"
+		EndIF
+		TargetedActorControlOID = AddTextOption(CrosshairActor.GetActorBase().GetName(), DisplayString)
+	EndIf
+
+	AddHeaderOption("$BIS_HEADER_TRACKED_ACTORS")
+	TrackedActors = GetMatchingActor(GetAllActorsInFaction(TrackedBatherFaction), GetActorsByProcessingLevel(0))
+	If TrackedActors.Length < 128
+		TrackedActorsToggleIDs = Utility.CreateIntArray(TrackedActors.Length)
+	Else
+		TrackedActorsToggleIDs = new Int[128]
+	EndIf
+	If !TrackedActors.Length
+		AddTextOption("$BIS_TXT_EMPTY", "", OPTION_FLAG_DISABLED)
+	Else
+		Int Index = 0
+		While Index < TrackedActorsToggleIDs.Length
+			Actor DirtyActor = TrackedActors[Index]
 			String DirtinessString = ""
 			If DirtyActor.HasSpell(DirtinessSpellList.GetAt(0) As Spell)
 				DirtinessString = "$BIS_TXT_CLEAN"
@@ -595,6 +615,7 @@ Function DisplayTrackedActorsPage()
 				DirtinessString = "$BIS_TXT_MISSINGSPELL"
 			EndIf
 			TrackedActorsToggleIDs[Index] = AddTextOption(DirtyActor.GetActorBase().GetName(), DirtinessString, OPTION_FLAG_NONE)
+			Index += 1
 		EndWhile
 	EndIf
 EndFunction
@@ -1107,8 +1128,9 @@ Function HandleOnOptionHighlightIntegrationsPage(int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionHighlightTrackedActorsPage(Int OptionID)
-	Int Index = TrackedActorsToggleIDs.Find(OptionID)	
-	If Index >= 0
+	If OptionID == TargetedActorControlOID
+		SetInfoText("$BIS_DESC_MOD_TARGETED_ACTOR")
+	ElseIf TrackedActorsToggleIDs.Find(OptionID) != -1
 		SetInfoText("$BIS_DESC_STOP_TRACKING_ACTOR")
 	EndIf
 EndFunction
@@ -1320,11 +1342,20 @@ Function HandleOnOptionSelectIntegrationsPage(Int OptionID)
 	EndIf
 EndFunction
 Function HandleOnOptionSelectTrackedActorsPage(Int OptionID)
-	Int Index = TrackedActorsToggleIDs.Find(OptionID)
-	If Index >= 0
+	If OptionID == TargetedActorControlOID
+		If BatheQuest.HasGDOTSpell(CrosshairActor)
+			If ShowMessage("$BIS_MSG_ASK_STOP_TRACK", True) == True
+				BatheQuest.UntrackActor(CrosshairActor)
+				ForcePageReset()
+			EndIf
+		Else
+			CrosshairActor.AddSpell(GetDirtyOverTimeSpellList.GetAt(0) As Spell, False)
+			ShowMessage("$BIS_MSG_START_TRACK", False)
+			ForcePageReset()
+		EndIf
+	ElseIf TrackedActorsToggleIDs.Find(OptionID) != -1
 		If ShowMessage("$BIS_MSG_ASK_STOP_TRACK", True) == True
-			Actor DirtyActor = DirtyActors.GetAt(Index) As Actor
-			BatheQuest.UntrackActor(DirtyActor)
+			BatheQuest.UntrackActor(TrackedActors[TrackedActorsToggleIDs.Find(OptionID)])
 			ForcePageReset()
 		EndIf
 	EndIf
@@ -2023,14 +2054,13 @@ Function DisableBathingInSkyrim()
 	BatheQuest.UntrackActor(PlayerRef, false)
 	BatheQuest.UpdateActorDirtPercent(PlayerRef, 0.0)
 
-	Int DirtyActorIndex = DirtyActors.Getsize()
-	If DirtyActorIndex > 0
-		While DirtyActorIndex
-			DirtyActorIndex -= 1
-			Actor DirtyActor = DirtyActors.GetAt(DirtyActorIndex) As Actor
-			BatheQuest.UntrackActor(DirtyActor, false)
+	Actor[] arrDirtyActors = GetAllActorsInFaction(TrackedBatherFaction)
+	Int i = arrDirtyActors.Length
+	If i > 0
+		While i
+			i -= 1
+			BatheQuest.UntrackActor(arrDirtyActors[i], false)
 		EndWhile
-		DirtyActors.Revert()
 	EndIf
 
 	Quest.GetQuest("mzinBatheQuest").reset()
@@ -2061,12 +2091,11 @@ Function RemoveAllOverlays(bool displayProgress = true)
 	DoRemoveOverlays(PlayerRef, displayProgress)
 	
 	; Do other Npcs
-	Int i = mzinDirtyActorsList.GetSize()
-	Actor CurrentActor
+	Actor[] arrDirtyActors = GetAllActorsInFaction(TrackedBatherFaction)
+	Int i = arrDirtyActors.Length
 	While i > 0
 		i -= 1
-		CurrentActor = mzinDirtyActorsList.GetAt(i) as Actor
-		DoRemoveOverlays(CurrentActor, displayProgress)
+		DoRemoveOverlays(arrDirtyActors[i], displayProgress)
 	EndWhile
 	If IsConfigOpen && displayProgress
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_TXT_DONE", false)
@@ -2323,11 +2352,12 @@ EndFunction
 Function StopAnimations()
 	mzinUtil.RescueActor(PlayerRef, true)
 
-	Int DirtyActorIndex = DirtyActors.Getsize()
-	If DirtyActorIndex > 0
-		While DirtyActorIndex
-			DirtyActorIndex -= 1
-			mzinUtil.RescueActor_NPC((DirtyActors.GetAt(DirtyActorIndex) As Actor), true)
+	Actor[] arrDirtyActors = GetAllActorsInFaction(TrackedBatherFaction)
+	Int i = arrDirtyActors.Length
+	If i > 0
+		While i
+			i -= 1
+			mzinUtil.RescueActor_NPC(arrDirtyActors[i], true)
 		EndWhile
 	EndIf
 EndFunction
@@ -2470,6 +2500,7 @@ Int   GetDressedAfterBathingEnabledToggleIDFollowers
 Int[] UndressArmorSlotToggleIDsFollowers
 
 ; menu - Tracked NPCs
+Int   TargetedActorControlOID
 Int[] TrackedActorsToggleIDs
 
 ; menu - Integrations
