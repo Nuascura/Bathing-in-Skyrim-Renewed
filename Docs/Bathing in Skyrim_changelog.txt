@@ -4,14 +4,21 @@ Primary
 - Add: Script patches for Barefoot Realism and Barefoot Realism Tweaked, with thanks to @Prexz.
 - Add: Script patches for Widget Addon.
 - Add: Interactive wash basin BOS addon.
+- Add: Track or untrack actors under crosshair via MCM.
+- Change: Tracked NPCs tab now only shows active NPCs in current loaded cell.
+- Change: Use non-latent functions for shyness check.
 - Fix: Override Animation Option mismatch between Function and Description.
 - Fix: Shower sequences still use normalized bathing animation frequencies.
 - Fix: WashActor NoAnimate flag fails to correctly reset GDOT and dirtiness spells.
 - Fix: Regression: Wash Rag erroneously increases dirt if player bathes below a tier 1 dirtiness percentage.
+- Fix: Inventory event fails to close menus outside gametime.
 - Update: First Person Messages addon.
 
 Secondary
 - Add: mzinActorIsDirty mgef keyword.
+- Add: mzinTrackedBatherActor keyword.
+- Add: mzinTrackedBatherFaction faction group.
+- Fix: TryWashActor shows notifications for NPCs.
 - Change: "You now feel more clean." -> "You feel refreshed."
 - Change: "There is not enough water to bathe." -> "There isn't enough water to bathe."
 - Change: "The floral scent makes your spirits rise." -> "The floral scent stimulates you."
@@ -24,7 +31,12 @@ Secondary
 - Change: "The scent of sap makes you feel in tune with nature." -> "The arboreal scent spiritualizes you."
 - Change: "The wash rag wipes away some dirt." -> "The wash rag clears some dirt."
 - Change: UnregisterForAllKeys call location.
+- Change: Conditionally resolve overlay appearance after bathing.
 - Remove: Unnecessary event unregistration, which may cause log errors if host GDOT is removed from actor soon after entering PAUSED state.
+- Remove: mzinDirtyActorsList FormList.
+- Remove: mzinGawker Quest.
+- Improve: Function efficiency when player has no teammates.
+- Improve: Premature termination handling.
 - Update: Localization files.
 
 
