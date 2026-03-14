@@ -408,15 +408,15 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwSoapBonusSpell, false)
 
 	RemoveKeywordFromRef(DirtyActor, TrackedBatherActor)
-	DirtyActor.RemoveFromFaction(TrackedBatherFaction)
 
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
 	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
 	StorageUtil.UnSetFormValue(DirtyActor, "mzin_LastWashProp")
 	StorageUtil.UnSetIntValue(DirtyActor, "mzin_LastWashState")
 
-	if Init.IsSexLabInstalled
-		if DirtyActor != PlayerRef
+	if DirtyActor != PlayerRef
+		DirtyActor.RemoveFromFaction(TrackedBatherFaction)
+		if Init.IsSexLabInstalled
 			mzinInterfaceSexLab.UntrackActor(Init.SL_API, DirtyActor, DirtyActor.GetFormID())
 		endIf
 	endIf
