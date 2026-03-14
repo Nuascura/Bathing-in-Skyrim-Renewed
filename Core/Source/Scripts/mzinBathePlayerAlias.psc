@@ -8,6 +8,7 @@ GlobalVariable Property BatheKeyCode Auto
 GlobalVariable Property ModifierKeyCode Auto
 GlobalVariable Property CheckStatusKeyCode Auto
 GlobalVariable Property DirtinessPercentage Auto
+GlobalVariable Property ShynessDistance Auto
 Message Property DirtinessStatusMessage Auto
 
 Actor Property PlayerRef Auto
@@ -15,9 +16,10 @@ Actor Property PlayerRef Auto
 ; ---------- Bathing Event ----------
 
 Event OnBiS_BatheEvent_Player(Bool abArg)
-	if abArg
+	Actor[] PlayerFollowers = PO3_SKSEfunctions.GetPlayerFollowers()
+	if abArg && (PlayerFollowers.Length > 0)
 		Utility.Wait(1.0)
-		CycleTeammate(PO3_SKSEfunctions.GetPlayerFollowers(), BatheQuest.GetGawker(PlayerRef))
+		CycleTeammate(PlayerFollowers, BatheQuest.GetGawker(PlayerRef, ShynessDistance.GetValue()))
 	endIf
 EndEvent
 
