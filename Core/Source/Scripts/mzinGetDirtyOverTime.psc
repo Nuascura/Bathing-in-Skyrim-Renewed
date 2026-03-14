@@ -61,11 +61,12 @@ Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 		Return
 	EndIf
 
-	CloseInventory()
 	If !BatheQuest.IsRestricted(DirtyActor)
 		if BatheQuest.IsInWater(DirtyActor)
+			CloseInventory()
 			BatheQuest.WashActor(DirtyActor, akBaseObject as MiscObject, false, DirtyActorIsPlayer)
 		elseIf BatheQuest.IsUnderWaterfall(DirtyActor)
+			CloseInventory()
 			BatheQuest.WashActor(DirtyActor, akBaseObject as MiscObject, true, DirtyActorIsPlayer)
 		endIf
 	EndIf

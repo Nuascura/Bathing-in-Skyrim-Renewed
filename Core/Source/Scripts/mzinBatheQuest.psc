@@ -2,6 +2,9 @@ ScriptName mzinBatheQuest Extends Quest
 { this script handles some functions needed by other scripts }
 
 import PO3_SKSEFunctions
+import MiscUtil
+import PapyrusUtil
+import SPE_Actor
 
 mzinUtilityPlayerAlias Property UtilityPlayer Auto
 mzinBathePlayerAlias Property BathePlayer Auto
@@ -29,6 +32,7 @@ Keyword Property WashPropKeyword Auto
 Keyword Property SoapKeyword Auto
 Keyword Property AnimationKeyword Auto
 Keyword Property TrackedBatherActor Auto
+Keyword Property ActorTypeNPC Auto
 
 Faction Property TrackedBatherFaction Auto
 
@@ -42,8 +46,6 @@ Message Property ShoweringWithSoapMessage Auto
 Message Property ShoweringWithoutSoapMessage Auto
 
 Actor Property PlayerRef Auto
-
-Quest Property mzinGawkers Auto
 
 Function RegForEvents()
 	RegisterForModEvent("BiS_WashActor", "OnBiS_WashActor")
@@ -341,22 +343,22 @@ Bool Function IsTooShy(Actor akTarget, Actor akGawker = none)
 
 		If akTarget == PlayerRef
 			If !akGawker
-				akGawker = GetGawker(akTarget)
+				akGawker = GetGawker(akTarget, ShynessDistance.GetValue())
 			EndIf
-			If akGawker && akGawker.HasLOS(akTarget)
-				mzinUtil.LogNotification("No way am I bathing in front of " + akGawker.GetBaseObject().GetName() + "!")
+			If akGawker
+				mzinUtil.LogNotification("I'd rather not bathe in front of " + akGawker.GetBaseObject().GetName() + ".")
 				Return True
 			EndIf
 		ElseIf akTarget.IsPlayerTeammate()
 			If !akGawker
-				akGawker = GetGawker(akTarget)
+				akGawker = GetGawker(akTarget, ShynessDistance.GetValue())
 			EndIf
-			If akGawker && akGawker.HasLOS(akTarget)
+			If akGawker
 				mzinUtil.LogNotification(akTarget.GetBaseObject().GetName() + ": You're joking, right? I'm not bathing in front of " +  akGawker.GetBaseObject().GetName() + "!")
 				Return True
 			EndIf
 		Else
-			If SPE_Actor.GetDetectedActors(akTarget)
+			If GetNPCFromArray(GetDetectedActors(akTarget), akTarget)
 				Return True
 			EndIf
 		EndIf
@@ -384,16 +386,25 @@ Bool Function IsWeatherWet(Actor akTarget)
 	Return !akTarget.IsInInterior() && (GetWeatherType() > 1)
 EndFunction
 
-Actor Function GetGawker(Actor akActor)
-	if mzinGawkers.Start()
-		Actor Gawker = (mzinGawkers.GetNthAlias(0) as ReferenceAlias).GetReference() as Actor
-		mzinGawkers.Reset()
-		mzinGawkers.Stop()
-		If Gawker && Gawker != akActor
-			return Gawker
+Actor Function GetGawker(Actor akActor, Float afDistance)
+	; This function should only be run for players and player teammates
+	
+	If afDistance > 0.00 && (!akActor.IsInInterior() || akActor.GetWorldSpace())
+		Return GetNPCFromArray(GetDiffActor(ScanCellNPCs(akActor, afDistance), GetPlayerFollowers()), akActor)
+	EndIf
+	Return GetNPCFromArray(GetDiffActor(GetDetectedBy(akActor), GetPlayerFollowers()), akActor)
+EndFunction
+
+Actor Function GetNPCFromArray(Actor[] ActorList, Actor targetActor)
+	ActorList = RemoveActor(ActorList, targetActor)
+	int i = ActorList.Length
+	While i
+		i -= 1
+		If ActorList[i].HasKeyword(ActorTypeNPC) && ActorList[i].HasLOS(targetActor)
+			Return ActorList[i]
 		EndIf
-	endIf
-	return none
+	EndWhile
+	Return None
 EndFunction
 
 Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
