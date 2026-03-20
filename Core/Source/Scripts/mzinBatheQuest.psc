@@ -5,6 +5,7 @@ import PO3_SKSEFunctions
 import MiscUtil
 import PapyrusUtil
 import SPE_Actor
+import SPE_ObjectRef
 
 mzinUtilityPlayerAlias Property UtilityPlayer Auto
 mzinBathePlayerAlias Property BathePlayer Auto
@@ -112,6 +113,8 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower =
 		DoFullClean = True
 	EndIf
 
+	RemoveDecals(DirtyActor, true)
+
 	if DoAnimate && !IsSubmerged(DirtyActor)
 		if DirtyActorIsPlayer
 			If DoShower
@@ -138,7 +141,6 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower =
 	endIf
 
 	DirtyActor.ClearExtraArrows()
-	SPE_ObjectRef.RemoveDecals(DirtyActor, true)
 	mzinInterfaceSexLab.ClearCum(Init.SL_API, DirtyActor)
 	mzinInterfaceOCum.OCClearCum(Init.OCA_API, DirtyActor)
 	mzinInterfaceFadeTats.FadeTats(Init.FadeTats_API, DirtyActor, DoFullClean, Menu.FadeTatsFadeTime, Menu.FadeTatsSoapMult)
