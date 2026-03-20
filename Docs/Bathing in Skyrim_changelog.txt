@@ -1,3 +1,10 @@
+2.7.7
+Primary
+- Fix: Soap Bonuses aren't removed after bathing, or after dirtiness state progresses.
+- Change: Prioritize SPE RemoveDecal() call to minimize effects of script delay conflicts.
+
+
+
 2.7.6
 Primary
 - Add: New Wash Rag model and texture, with thanks to @krzp.
