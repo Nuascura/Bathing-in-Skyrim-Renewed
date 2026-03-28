@@ -16,7 +16,7 @@ EndFunction
 
 ; Get - Script Version
 int Function GetVersion() Global
-	return 0x02070622 ; 0x01020304
+	return 0x02070822 ; 0x01020304
 EndFunction
 
 ; Get - Mod Name
