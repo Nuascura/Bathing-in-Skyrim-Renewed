@@ -128,13 +128,14 @@ Int Function DoSoftCheck()
 EndFunction
 
 Function SetInternalVariables()
-	KeywordIgnoreItem = new Keyword[6]
+	KeywordIgnoreItem = new Keyword[7]
 	KeywordIgnoreItem[0] = BatheIgnoreItem
 	KeywordIgnoreItem[1] = Keyword.GetKeyword("zad_QuestItem")
 	KeywordIgnoreItem[2] = Keyword.GetKeyword("zad_Lockable")
 	KeywordIgnoreItem[3] = Keyword.GetKeyword("zad_InventoryDevice")
 	KeywordIgnoreItem[4] = Keyword.GetKeyword("zbfWornDevice")
 	KeywordIgnoreItem[5] = Keyword.GetKeyword("SexLabNoStrip")
+	KeywordIgnoreItem[6] = Keyword.GetKeyword("WearWhenStripped")
 
 	If IsWadeInWaterInstalled
 		If Game.GetModByName("WadeInWater.esp") != 255
