@@ -360,6 +360,7 @@ Function DisplaySystemOverviewPage()
 	else
 		AddTextOption("$BIS_L_DEPENDENCY_CHECK", "$BIS_TXT_FAILED", OPTION_FLAG_DISABLED)
 	endIf
+	AddTextOption("$BIS_L_RESTRICTED_STATE", BatheQuest.IsConditionallyRestricted(PlayerRef), OPTION_FLAG_DISABLED)
 EndFunction
 Function DisplayAnimationsPage()
 	AddHeaderOption("$BIS_HEADER_PLAYER_SETTINGS")
