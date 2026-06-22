@@ -1,3 +1,9 @@
+2.7.10
+Primary
+- Fix: Unguarded function call introduced by 2.7.9.
+
+
+
 2.7.9
 Primary
 - Add: Expose player conditional restriction for animation playability under MCM System Overview page.
