@@ -1,10 +1,13 @@
 Scriptname mzinUtility extends Quest  
 
+import PO3_SKSEFunctions
+
 mzinBatheMCMMenu Property Menu Auto
 mzinInit Property Init Auto
 mzinTextureUtility Property TexUtil Auto
 Package Property StopMovementPackage Auto
-Spell Property PlayBathingAnimation Auto
+MagicEffect Property PlayBathingAnimationEffect Auto
+MagicEffect Property PlayBathingAnimationFollowerEffect Auto
 
 Keyword[] Property arrkwDirtinessSpell Auto
 Keyword[] Property arrkwSoapBonusSpell Auto
@@ -71,12 +74,27 @@ Function ReloadMCMVariables(bool abSilent = false)
 	Menu.CorrectInvalidSettings()
 EndFunction
 
-Function RemoveSpells(Actor targetActor, FormList SpellFormList)
+Function RemoveSpells(Actor targetActor, FormList SpellFormList) ; unused
 	Int SpellListIndex = SpellFormList.GetSize()
 	While SpellListIndex
 		SpellListIndex -= 1
 		targetActor.RemoveSpell(SpellFormList.GetAt(SpellListIndex) As Spell)	
 	EndWhile
+EndFunction
+
+Bool Function RemoveEffectSources(Actor targetActor, Form[] sourceArray)
+	Int i = sourceArray.Length
+	If i < 1
+		Return False
+	EndIf
+	While i
+		i -= 1
+		Spell s = sourceArray[i] as Spell
+		If s
+			targetActor.RemoveSpell(s)
+		EndIf
+	EndWhile
+	Return True
 EndFunction
 
 Bool Function ExteriorHasKeyWordInList(Location[] ExteriorLocation, FormList KeyWordList)
@@ -351,12 +369,9 @@ Function ForbidSex(Actor akTarget, Bool Forbid)
 	EndIf
 EndFunction
 
-Function RescueActor(Actor akActor, Bool spellDependent)
-	if spellDependent
-		if !akActor.HasSpell(PlayBathingAnimation)
-			return
-		endIf
-		akActor.RemoveSpell(PlayBathingAnimation)
+Function RescueActor(Actor akActor, Bool effectDependent)
+	if effectDependent && !RemoveEffectSources(akActor, GetMagicEffectSource(akActor, PlayBathingAnimationEffect))
+		Return
 	endIf
 
 	Debug.SendAnimationEvent(akActor, "IdleForceDefaultState")
@@ -368,12 +383,9 @@ Function RescueActor(Actor akActor, Bool spellDependent)
 	Send_WashActorFinish(akActor)
 EndFunction
 
-Function RescueActor_NPC(Actor akActor, Bool spellDependent)
-	if spellDependent
-		if !akActor.HasSpell(PlayBathingAnimation)
-			return
-		endIf
-		akActor.RemoveSpell(PlayBathingAnimation)
+Function RescueActor_NPC(Actor akActor, Bool effectDependent)
+	if effectDependent && !RemoveEffectSources(akActor, GetMagicEffectSource(akActor, PlayBathingAnimationFollowerEffect))
+		Return
 	endIf
 
 	Debug.SendAnimationEvent(akActor, "IdleForceDefaultState")
