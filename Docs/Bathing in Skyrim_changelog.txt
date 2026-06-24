@@ -2,6 +2,7 @@
 Primary
 - Fix: Unguarded function call introduced by 2.7.9.
 - Change: Target all MGEF sources for RescueActor.
+- Change: Improve script handling for animation sequences.
 
 
 

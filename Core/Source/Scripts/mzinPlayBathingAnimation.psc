@@ -28,18 +28,20 @@ Idle[] Property mzinBathe_Tweens_S Auto
 Idle[] Property mzinBathe_Tweens_C Auto
 String[] Property mzinAnimEvent Auto
 Bool Property TargetIsPlayer Auto
-Actor      BathingActor
-Armor[]    Clothing
-Int[]      ClothingID
-Form[]     Objects
-Int[]      ObjectsID
-Idle       SelectedStyle
-MiscObject WashProp
-Bool       WashPropIsSoap
-Bool       IsShowering
+Actor       BathingActor
+Armor[]     Clothing
+Int[]       ClothingID
+Form[]      Objects
+Int[]       ObjectsID
+Idle        SelectedStyle
+MiscObject  WashProp
+Bool        WashPropIsSoap
+Bool        IsShowering
+MagicEffect SourceEffect
 
 Event OnEffectStart(Actor Target, Actor Caster)
 	BathingActor = Target
+	SourceEffect = GetBaseObject()
 	mzinUtil.ForbidSex(BathingActor, Forbid = true)
 	
 	IsShowering = StorageUtil.PluckIntValue(BathingActor, "mzin_LastWashState") as Bool
@@ -108,7 +110,7 @@ State InSequence
 
 		GetSoapy()
 
-		While (AnimationCyclesRemaining > 0) && (GetState() == "InSequence")
+		While (AnimationCyclesRemaining > 0) && BathingActor.HasMagicEffect(SourceEffect)
 			AnimationCyclesRemaining -= 1	
 			Debug.SendAnimationEvent(BathingActor, "IdleWarmArms")
 			Utility.Wait(2)
@@ -255,7 +257,7 @@ String Function GetAnimationMale_OVDE(int aiIdleSet)
 EndFunction
 
 Function StopAnimation(bool PlayRinseOff = false)
-	if !GetState()
+	if !(BathingActor.HasMagicEffect(SourceEffect) && GetState())
 		Return
 	endIf
 
