@@ -112,10 +112,10 @@ EndEvent
 
 Function RegisterHotKeys()
 	UnregisterForAllKeys()
-	If BatheKeyCode.GetValue() as int != 0
+	If BatheKeyCode.GetValue() as int > 0
 		RegisterForKey(BatheKeyCode.GetValue() as int)
 	EndIf
-	If CheckStatusKeyCode.GetValue() as int != 0
+	If CheckStatusKeyCode.GetValue() as int > 0
 		RegisterForKey(CheckStatusKeyCode.GetValue() as int)
 	EndIf
 EndFunction
