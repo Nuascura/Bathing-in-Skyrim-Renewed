@@ -1,3 +1,10 @@
+2.7.11
+Primary
+- Add: Fallback translations.
+- Fix: Unnecessary register for negative key code.
+
+
+
 2.7.10
 Primary
 - Fix: Unguarded function call introduced by 2.7.9.
