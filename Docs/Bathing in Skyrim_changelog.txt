@@ -1,6 +1,7 @@
 2.7.11
 Primary
-- Add: Fallback translations.
+- Add: Fallback translations (BAIN).
+- Add: Plugin localization strings (BAIN).
 - Fix: Unnecessary register for negative key code.
 
 
