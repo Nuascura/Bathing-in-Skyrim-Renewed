@@ -6,17 +6,17 @@ Scriptname mzinAPI Hidden
 
 ; Get - Mod Version
 string Function GetModVersion() Global
-    return "2.7.11"
+    return "2.8.0"
 EndFunction
 
 ; Get - Config Version
 Int Function GetConfigVersion() Global
-	return 22
+	return 23
 EndFunction
 
 ; Get - Script Version
 int Function GetVersion() Global
-	return 0x02071122 ; 0x01020304
+	return 0x02080023 ; 0x01020304
 EndFunction
 
 ; Get - Mod Name

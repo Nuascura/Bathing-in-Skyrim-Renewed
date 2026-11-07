@@ -19,7 +19,7 @@ Function BeginOverlay(Actor akTarget, Float Alpha, Int Tint)
 	Int i = 0
 	String TexPrefix = 	StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix", "")
 	If TexPrefix == ""
-		TexPrefix = TexUtil.PickRandomDirtSet(Gender, akTarget == PlayerRef)
+		TexPrefix = TexUtil.PickRandomDirtSet(Gender, akTarget)
 		if TexPrefix == ""
 			return
 		endIf

@@ -34,7 +34,7 @@ Float Property StartingAlpha = 0.15 Auto Hidden
 Int Property OverlayTint = 0xFFFFFF Auto Hidden
 Float Property TimeToClean = 10.0 Auto Hidden
 Float Property TimeToCleanInterval = 0.25 Auto Hidden
-Bool Property TexSetOverride = False Auto Hidden
+Bool Property RaceOverride = False Auto Hidden
 
 ; references
 Actor Property PlayerRef Auto
@@ -540,7 +540,7 @@ Function DisplayEffectsPage()
 	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DF_Decimal)
 	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DF_Decimal)
 	AddEmptyOption()
-	TexSetOverrideID = AddTextOption("$BIS_L_OVERLAYTEXSETOVERRIDE", TexSetOverride)
+	RaceOverrideID_T = AddTextOption("$BIS_L_OVERLAYRACEOVERRIDE", RaceOverride)
 	AddEmptyOption()
 	TexSetCountOID_T = AddTextOption("$BIS_L_OVERLAYTEXSETCOUNT_{" + TexUtil.DirtSetCount[0] + "}{" + TexUtil.DirtSetCount[1] + "}", "")
 	RedetectDirtSetsOID_T = AddTextOption("$BIS_L_OVERLAYREDETECT", "")
@@ -899,9 +899,9 @@ Function HandleOnOptionDefaultEffectsPage(Int OptionID)
 	ElseIf OptionID == OverlayTintOID_C
 		OverlayTint = 0xFFFFFF
 		SetColorOptionValue(OptionID, 0xFFFFFF)
-	ElseIf OptionID == TexSetOverrideID
-		TexSetOverride = false
-		SetTextOptionValue(OptionID, TexSetOverride)
+	ElseIf OptionID == RaceOverrideID_T
+		RaceOverride = false
+		SetTextOptionValue(OptionID, RaceOverride)
 	EndIf
 EndFunction
 Function HandleOnOptionDefaultTrackedActorsPage(Int OptionID)
@@ -1099,8 +1099,8 @@ Function HandleOnOptionHighlightEffectsPage(int OptionID)
 		SetInfoText("$BIS_DESC_TIMETOCLEAN")
 	ElseIf OptionID == TimeToCleanIntervalOID_S
 		SetInfoText("$BIS_DESC_TIMETOCLEANINTERVAL")
-	ElseIf OptionID == TexSetOverrideID
-		SetInfoText("$BIS_DESC_TEXSETOVERRIDE")
+	ElseIf OptionID == RaceOverrideID_T
+		SetInfoText("$BIS_DESC_RACEOVERRIDE")
 	ElseIf OptionID == TexSetCountOID_T
 		SetInfoText("$BIS_DESC_OVERLAYTEXSETCOUNT")
 	ElseIf OptionID == RedetectDirtSetsOID_T
@@ -1319,13 +1319,9 @@ Function HandleOnOptionSelectEffectsPage(Int OptionID)
 	If OptionID == DirtShaderEnabledOID_T
 		DirtShaderEnabled.SetValue((!DirtShaderEnabled.GetValue() As Bool) As Int)
 		SetToggleOptionValue(OptionID, DirtShaderEnabled.GetValue() As Bool)
-	ElseIf OptionID == TexSetOverrideID
-		if !TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
-			ShowMessage("$BIS_MSG_TEXSETOVERRIDE_WARN", false)
-		else
-			TexSetOverride = !TexSetOverride
-		endIf
-		SetTextOptionValue(OptionID, TexSetOverride)
+	ElseIf OptionID == RaceOverrideID_T
+		RaceOverride = !RaceOverride
+		SetTextOptionValue(OptionID, RaceOverride)
 	ElseIf OptionID == RedetectDirtSetsOID_T
 		TexUtil.DirtSetCount[0] = TexUtil.InitTexSets(0)
 		TexUtil.DirtSetCount[1] = TexUtil.InitTexSets(1)
@@ -2203,7 +2199,7 @@ Bool Function SavePapyrusSettings()
 	SetIntValue(config, "WadeDetection", WadeDetection as int)
 	SetIntValue(config, "AutoHideUI", AutoHideUI as int)
 	SetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
-	SetIntValue(config, "TexSetOverride", TexSetOverride as int)
+	SetIntValue(config, "RaceOverride", RaceOverride as int)
 
 	SetFloatValue(config, "FadeTatsFadeTime", FadeTatsFadeTime)
 	SetFloatValue(config, "FadeTatsSoapMult", FadeTatsSoapMult)
@@ -2313,7 +2309,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	WadeDetection = GetIntValue(config, "WadeDetection", WadeDetection as int)
 	AutoHideUI = GetIntValue(config, "AutoHideUI", AutoHideUI as int)
 	AutoPlayerTFC = GetIntValue(config, "AutoPlayerTFC", AutoPlayerTFC as int)
-	TexSetOverride = GetIntValue(config, "TexSetOverride", TexSetOverride as int)
+	RaceOverride = GetIntValue(config, "RaceOverride", RaceOverride as int)
 
 	FadeTatsFadeTime = GetFloatValue(config, "FadeTatsFadeTime", FadeTatsFadeTime)
 	FadeTatsSoapMult = GetFloatValue(config, "FadeTatsSoapMult", FadeTatsFadeTime)
@@ -2374,9 +2370,6 @@ Function CorrectInvalidSettings()
 		AnimCustomFSet3FreqFollowers = fDefault
 		AnimCustomFSet[2] = fDefault
 		AnimCustomFSetFollowers[2] = fDefault
-	endIf
-	if TexSetOverride && TexUtil.DirtSetCount[0] < 2 && TexUtil.DirtSetCount[1] < 2
-		TexSetOverride = false
 	endIf
 
 	int i = 1
@@ -2458,7 +2451,7 @@ Int StartingAlphaOID_S
 Int OverlayTintOID_C
 Int TimeToCleanOID_S
 Int TimeToCleanIntervalOID_S
-Int TexSetOverrideID
+Int RaceOverrideID_T
 Int TexSetCountOID_T
 Int RedetectDirtSetsOID_T
 Int RemoveAllOverlaysOID_T

@@ -1,3 +1,11 @@
+2.8.0
+Primary
+- Add: Targeted overlay application per owning mod plugin.
+- Fix: HMS mult magnitude values.
+- Remove: Player Override State.
+
+
+
 2.7.11
 Primary
 - Add: Fallback translations (BAIN).

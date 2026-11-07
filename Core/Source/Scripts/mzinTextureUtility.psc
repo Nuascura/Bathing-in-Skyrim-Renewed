@@ -1,5 +1,8 @@
 Scriptname mzinTextureUtility extends Quest  
 
+import MiscUtil
+import PO3_SKSEFunctions
+
 String[] Property TexNames Auto Hidden
 String[] Property TexPathsF Auto Hidden
 String[] Property TexPathsM Auto Hidden
@@ -53,7 +56,7 @@ Int Function InitTexSets(int aiSex)
 		SetCount += 1
 		SetPrefix = "data/Textures/mzin/Bathe/Set" + SetCount + "/" + SetGender + "/"
 		TexCount = 0
-		While TexCount < TexNames.Length && MiscUtil.FileExists(SetPrefix + TexNames[TexCount])
+		While TexCount < TexNames.Length && FileExists(SetPrefix + TexNames[TexCount])
 			Menu.UpdateProgressRedetectDirtSets((TexPaths[SetCount] + TexNames[TexCount]))
 			mzinUtil.LogTrace("Verified: " + SetPrefix + TexNames[TexCount])
 			TexCount += 1
@@ -72,16 +75,19 @@ Int Function InitTexSets(int aiSex)
 	Return SetCount
 EndFunction
 
-String Function PickRandomDirtSet(int aiSex, bool abPlayer)
-	int iDefault = (1 + (Menu.TexSetOverride as int))
-	if DirtSetCount[aiSex] >= iDefault
-		if Menu.TexSetOverride && abPlayer
-			Return "\\mzin\\Bathe\\Set1\\" + GetStringFromSex(aiSex) + "\\"
+String Function PickRandomDirtSet(int aiSex, actor akActor)
+	string ret = ""
+	if DirtSetCount[aiSex]
+		ret = "\\mzin\\Bathe\\Set" + Utility.RandomInt(1, DirtSetCount[aiSex]) + "\\" + GetStringFromSex(aiSex) + "\\"
+		if Menu.RaceOverride
+			string s = GetFormModName(GetFormFromEditorID(GetActorRaceEditorID(akActor)), false)
+			if s != "Skyrim.esm"
+				ret += s + "\\"
+			endIf
 		endIf
-		return "\\mzin\\Bathe\\Set" + Utility.RandomInt(iDefault, DirtSetCount[aiSex]) + "\\" + GetStringFromSex(aiSex) + "\\"
-	else
-		return ""
-	endIf 
+	endIf
+	mzinUtil.LogTrace("Selected texture path for " + akActor + " at:" + ret)
+	return ret
 EndFunction
 
 String Function GetStringFromSex(int aiSex)
