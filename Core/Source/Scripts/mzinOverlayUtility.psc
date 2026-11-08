@@ -1,5 +1,9 @@
 Scriptname mzinOverlayUtility extends Quest
 
+import PO3_SKSEFunctions
+import StorageUtil
+import NiOverride
+
 String[] Areas
 Actor Property PlayerRef Auto
 mzinTextureUtility Property TexUtil Auto
@@ -13,20 +17,19 @@ Event OnInit()
 	Areas[3] = "Face"
 EndEvent 
 
-Function BeginOverlay(Actor akTarget, Float Alpha, Int Tint)
+Function BeginOverlay(String OvlTag, Actor akTarget, Float Alpha = 1.0, Int Tint = 0xFFFFFF)
 	String TextureToApply
 	Int Gender = akTarget.GetLeveledActorBase().GetSex()
 	Int i = 0
-	String TexPrefix = 	StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix", "")
+	String TexPrefix = 	GetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix", "")
 	If TexPrefix == ""
-		TexPrefix = TexUtil.PickRandomDirtSet(Gender, akTarget)
+		TexPrefix = TexUtil.PickRandomOverlaySet(OvlTag, Gender, akTarget)
 		if TexPrefix == ""
 			return
 		endIf
-		StorageUtil.SetStringValue(akTarget, "mzin_DirtTexturePrefix", TexPrefix)
+		SetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix", TexPrefix)
 	EndIf
-	TextureToApply = TexPrefix + "DirtFX"
-	;StorageUtil.SetStringValue(akTarget, "mzin_DirtTexturePath", TextureToApply)
+	TextureToApply = TexPrefix + OvlTag + "FX"
 	While i < Areas.Length
 		ReadyOverlay(akTarget, Gender as Bool, Areas[i], (TextureToApply + Areas[i] + ".dds"), Alpha, Tint)
 		i += 1
@@ -44,37 +47,38 @@ EndFunction
 
 Function ApplyOverlay(Actor akTarget, Bool Gender, String Area, String OverlaySlot, String TextureToApply, Float Alpha, Int Tint)
 	String Node = Area + " [ovl" + OverlaySlot + "]"
-	If !NiOverride.HasOverlays(akTarget)
-		NiOverride.AddOverlays(akTarget)
+	If !HasOverlays(akTarget)
+		AddOverlays(akTarget)
 	EndIf
-	NiOverride.AddNodeOverrideString(akTarget, Gender, Node, 9, 0, TextureToApply, TRUE)
-	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 0, 0, 0, TRUE)
-	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 7, 0, 0, TRUE)
+	AddNodeOverrideString(akTarget, Gender, Node, 9, 0, TextureToApply, TRUE)
+	AddNodeOverrideInt(akTarget, Gender, Node, 0, 0, 0, TRUE)
+	AddNodeOverrideInt(akTarget, Gender, Node, 7, 0, 0, TRUE)
 	
-	NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 7, -1, Tint, TRUE)
-    NiOverride.AddNodeOverrideInt(akTarget, Gender, Node, 0, -1, 0, TRUE)
-    NiOverride.AddNodeOverrideFloat(akTarget, Gender, Node, 8, -1, Alpha, TRUE)
-	NiOverride.AddNodeOverrideFloat(akTarget, Gender, Node, 2, -1, 0.0, TRUE)
-	NiOverride.AddNodeOverrideFloat(akTarget, Gender, Node, 3, -1, 0.0, TRUE)
-	NiOverride.ApplyNodeOverrides(akTarget)
+	AddNodeOverrideInt(akTarget, Gender, Node, 7, -1, Tint, TRUE)
+    AddNodeOverrideInt(akTarget, Gender, Node, 0, -1, 0, TRUE)
+    AddNodeOverrideFloat(akTarget, Gender, Node, 8, -1, Alpha, TRUE)
+	AddNodeOverrideFloat(akTarget, Gender, Node, 3, -1, 0.0, TRUE)
+	AddNodeOverrideFloat(akTarget, Gender, Node, 2, -1, 0.0, TRUE)
+	
+	ApplyNodeOverrides(akTarget)
 EndFunction
 
-Function UpdateAlpha(Actor akTarget, Float Alpha)
+Function UpdateAlpha(String OvlTag, Actor akTarget, Float Alpha)
 	String Node
 	Bool Result = false
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
-	String TexPath = StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix")
+	String TexPath = GetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix")
 	String MatchString
 	Int i = Areas.Length
 	While i > 0
 		i -= 1
 		Int j = GetNumSlots(Areas[i])
-		MatchString = (TexPath + "DirtFX" + Areas[i] + ".dds")
+		MatchString = (TexPath + OvlTag + "FX" + Areas[i] + ".dds")
 		While j > 0 && !Result
 			j -= 1
 			Node = Areas[i] + " [ovl" + j + "]"
-			If NiOverride.GetNodeOverrideString(akTarget, Gender, Node, 9, 0) == MatchString
-				NiOverride.AddNodeOverrideFloat(akTarget, Gender, Node, 8, -1, Alpha, TRUE)
+			If GetNodeOverrideString(akTarget, Gender, Node, 9, 0) == MatchString
+				AddNodeOverrideFloat(akTarget, Gender, Node, 8, -1, Alpha, TRUE)
 				Result = true
 			EndIf
 		EndWhile
@@ -82,15 +86,15 @@ Function UpdateAlpha(Actor akTarget, Float Alpha)
 	EndWhile
 EndFunction
 
-String Function GetLastNode(Actor akTarget, Int aiArea)
+String Function GetLastNode(String OvlTag, Actor akTarget, Int aiArea)
 	String Node
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
-	String MatchString = (StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix") + "DirtFX" + Areas[aiArea] + ".dds")
+	String MatchString = (GetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix") + OvlTag + "FX" + Areas[aiArea] + ".dds")
 	Int i = GetNumSlots(Areas[aiArea])
 	While i > 0
 		i -= 1
 		Node = Areas[aiArea] + " [ovl" + i + "]"
-		If NiOverride.GetNodeOverrideString(akTarget, Gender, Node, 9, 0) == MatchString
+		If GetNodeOverrideString(akTarget, Gender, Node, 9, 0) == MatchString
 			return Node
 		EndIf
 	EndWhile
@@ -102,7 +106,7 @@ Int Function GetEmptySlot(Actor akTarget, Bool Gender, String Area)
 	String TexPath
 	While i > 0
 		i -= 1
-		TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender, Area + " [ovl" + i + "]", 9, 0)
+		TexPath = GetNodeOverrideString(akTarget, Gender, Area + " [ovl" + i + "]", 9, 0)
 		If TexPath == "" || TexPath == "actors\\character\\overlays\\default.dds"
 			mzinUtil.LogTrace("GetEmptySlot: Slot " + i + " chosen for area: " + area + " on " + akTarget.GetBaseObject().GetName())
 			Return i
@@ -114,20 +118,23 @@ EndFunction
 
 Int Function GetNumSlots(String Area)
 	If Area == "Body"
-		Return NiOverride.GetNumBodyOverlays()
+		Return GetNumBodyOverlays()
 	ElseIf Area == "Hands"
-		Return NiOverride.GetNumHandOverlays()
+		Return GetNumHandOverlays()
 	ElseIf Area == "Feet"
-		Return NiOverride.GetNumFeetOverlays()
-	Else
-		Return NiOverride.GetNumFaceOverlays()
+		Return GetNumFeetOverlays()
+	ElseIf Area == "Face"
+		Return GetNumFaceOverlays()
 	EndIf
+	mzinUtil.LogTrace("GetNumSlots: Error: Failed to recognize Overlay Area from String.")
+	Return 0
 EndFunction
 
-Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all sets from all overlay slots but takes a long time
-	mzinUtil.LogTrace("Called ClearDirtGameLoad on " + akTarget.GetBaseObject().GetName())
+Function RemoveDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all sets from all overlay slots but takes a long time
+	mzinUtil.LogTrace("Called RemoveDirtGameLoad on " + akTarget.GetBaseObject().GetName())
 	int Gender = akTarget.GetLeveledActorBase().GetSex()
 	String TexPath
+	String RacePath = mzinUtil.GetRacePath(akTarget)
 	String[] TexPrefixes
 	String Node
 	Int i = 0
@@ -144,40 +151,77 @@ Function ClearDirtGameLoad(Actor akTarget) ; Clears all dirt overlays from all s
 			Int k = TexUtil.DirtSetCount[Gender]
 			While k > 0
 				k -= 1
-				TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender as Bool, Node, 9, 0)
-				;mzinUtil.LogTrace("ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath)
-				If TexPath == (TexPrefixes[k] + "DirtFX" + Areas[i] + ".dds") || TexPath == ""
-					RemoveOverlay(akTarget, Gender as Bool, Node)
+				TexPath = GetNodeOverrideString(akTarget, Gender as Bool, Node, 9, 0)
+				If TexPath == (TexPrefixes[k] + RacePath + "DirtFX" + Areas[i] + ".dds") || TexPath == ""
+					RemoveOverlayNode(akTarget, Gender as Bool, Node)
 					;mzinUtil.LogTrace("Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
 				EndIf
 			EndWhile
 		EndWhile
 		i += 1
 	EndWhile
-	NiOverride.ApplyNodeOverrides(akTarget)
-	StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
+	ApplyNodeOverrides(akTarget)
+	UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
 EndFunction
 
-Function ClearDirt(Actor akTarget, Bool UnsetPrefix) ; Clears the first dirt overlay it finds from each overlay area - faster
-	mzinUtil.LogTrace("Clearing dirt from " + akTarget.GetBaseObject().GetName())
-	;StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
+Function RemoveBloodGameLoad(Actor akTarget) ; Clears all blood overlays from all sets from all overlay slots but takes a long time
+	mzinUtil.LogTrace("Called RemoveBloodGameLoad on " + akTarget.GetBaseObject().GetName())
+	int Gender = akTarget.GetLeveledActorBase().GetSex()
+	String TexPath
+	String RacePath = mzinUtil.GetRacePath(akTarget)
+	String[] TexPrefixes
+	String Node
+	Int i = 0
+	if Gender as bool
+		TexPrefixes = TexUtil.TexPathsF
+	else
+		TexPrefixes = TexUtil.TexPathsM
+	endIf
+	While i < Areas.Length
+		Int j = GetNumSlots(Areas[i])
+		While j > 0
+			j -= 1
+			Node = Areas[i] + " [ovl" + j + "]"
+			Int k = TexUtil.BloodSetCount[Gender]
+			While k > 0
+				k -= 1
+				TexPath = GetNodeOverrideString(akTarget, Gender as Bool, Node, 9, 0)
+				If TexPath == (TexPrefixes[k] + RacePath + "BloodFX" + Areas[i] + ".dds") || TexPath == ""
+					RemoveOverlayNode(akTarget, Gender as Bool, Node)
+					;mzinUtil.LogTrace("Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
+				EndIf
+			EndWhile
+		EndWhile
+		i += 1
+	EndWhile
+	ApplyNodeOverrides(akTarget)
+	UnSetStringValue(akTarget, "mzin_BloodTexturePrefix")
+EndFunction
+
+Function RemoveOverlayGameLoad(Actor akTarget)
+	RemoveDirtGameLoad(akTarget)
+	RemoveBloodGameLoad(akTarget)
+EndFunction
+
+Function RemoveOverlay(String OvlTag, Actor akTarget, Bool UnsetPrefix) ; Clears the first texture it finds from each overlay area - faster
+	mzinUtil.LogTrace("Clearing overlay from " + akTarget.GetBaseObject().GetName())
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
 	String TexPath
 	String Node
 	String MatchString
-	String TexPrefix = StorageUtil.GetStringValue(akTarget, "mzin_DirtTexturePrefix", "")
+	String TexPrefix = GetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix", "")
 	Bool Result = false
 	Int i = 0
 	While i < Areas.Length
 		Int j = GetNumSlots(Areas[i])
-		MatchString = (TexPrefix + "DirtFX" + Areas[i] + ".dds")
+		MatchString = (TexPrefix + OvlTag + "FX" + Areas[i] + ".dds")
 		While j > 0 && !Result
 			j -= 1
 			Node = Areas[i] + " [ovl" + j + "]"
-			TexPath = NiOverride.GetNodeOverrideString(akTarget, Gender, Node, 9, 0)
-			;mzinUtil.LogTrace("ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath + ". MatchString: " + MatchString)
+			TexPath = GetNodeOverrideString(akTarget, Gender, Node, 9, 0)
+			;mzinUtil.LogTrace("RemoveOverlay(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". TexPath: " + TexPath + ". MatchString: " + MatchString)
 			If TexPath == MatchString
-				RemoveOverlay(akTarget, Gender, Node)
+				RemoveOverlayNode(akTarget, Gender, Node)
 				Result = true
 				mzinUtil.LogTrace("_mzin_: Removing overlay from slot " + j + " of area: " + Areas[i] + " on " + akTarget.GetBaseObject().GetName())
 			EndIf
@@ -185,37 +229,53 @@ Function ClearDirt(Actor akTarget, Bool UnsetPrefix) ; Clears the first dirt ove
 		Result = false
 		i += 1
 	EndWhile
-	NiOverride.ApplyNodeOverrides(akTarget)
+	ApplyNodeOverrides(akTarget)
 	if UnsetPrefix
-		StorageUtil.UnSetStringValue(akTarget, "mzin_DirtTexturePrefix")
+		UnSetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix")
 	endIf
 EndFunction
 
-Function RemoveOverlay(Actor akTarget, Bool Gender, String Node)
-	;mzinUtil.LogTrace("ClearDirt(): Target: " + akTarget.GetBaseObject().GetName() + ". Node: " + Node + ". Clearing ! TexPath: " + TexPath)
-	NiOverride.AddNodeOverrideString(akTarget, Gender, Node, 9, 0, "actors\\character\\overlays\\default.dds", true)
+Function RemoveOverlayNode(Actor akTarget, Bool Gender, String Node)
+	AddNodeOverrideString(akTarget, Gender, Node, 9, 0, "actors\\character\\overlays\\default.dds", true)
 	
-	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 9, 0)
-	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 7, -1)
-	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 0, -1)
-	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 8, -1)
-	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 2, -1)
-	NiOverride.RemoveNodeOverride(akTarget, Gender, Node, 3, -1)
+	RemoveNodeOverride(akTarget, Gender, Node, 9, 0)
+	RemoveNodeOverride(akTarget, Gender, Node, 7, -1)
+	RemoveNodeOverride(akTarget, Gender, Node, 0, -1)
+	RemoveNodeOverride(akTarget, Gender, Node, 8, -1)
+	RemoveNodeOverride(akTarget, Gender, Node, 2, -1)
+	RemoveNodeOverride(akTarget, Gender, Node, 3, -1)
 EndFunction
 
 Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint, Bool UnsetPrefix = true)
-	ClearDirt(akTarget, UnsetPrefix)
-	BeginOverlay(akTarget, Alpha, Tint)
+	RemoveOverlay("Dirt", akTarget, UnsetPrefix)
+	BeginOverlay("Dirt", akTarget, Alpha, Tint)
 EndFunction
 
 Function ReapplyDirt(Actor akTarget)
-	If !StorageUtil.HasStringValue(akTarget, "mzin_DirtTexturePrefix")
+	If !HasStringValue(akTarget, "mzin_DirtTexturePrefix")
 		Return
 	EndIf
 
-	String Node = GetLastNode(akTarget, 0)
+	String Node = GetLastNode("Dirt", akTarget, 0)
 	ApplyDirt(akTarget, \
-	NiOverride.GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 8, -1), \
-	NiOverride.GetNodeOverrideInt(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 7, -1), \
+	GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 8, -1), \
+	GetNodeOverrideInt(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 7, -1), \
+	false)
+EndFunction
+
+Function ApplyBlood(Actor akTarget, Int Tint, Bool UnsetPrefix = true)
+	RemoveOverlay("Blood", akTarget, UnsetPrefix)
+	BeginOverlay("Blood", akTarget, 100.0, Tint)
+EndFunction
+
+Function ReapplyBlood(Actor akTarget)
+	If !HasStringValue(akTarget, "mzin_BloodTexturePrefix")
+		Return
+	EndIf
+
+	String Node = GetLastNode("Blood", akTarget, 0)
+	ApplyDirt(akTarget, \
+	GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 4, -1), \
+	GetNodeOverrideInt(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 7, -1), \
 	false)
 EndFunction

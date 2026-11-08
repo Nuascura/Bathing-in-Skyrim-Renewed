@@ -29,9 +29,11 @@ Float Property SexInterval = 1.0 Auto Hidden
 
 ; effects settings
 GlobalVariable Property DirtShaderEnabled Auto
-Float Property OverlayApplyAt = 0.40 Auto Hidden
-Float Property StartingAlpha = 0.15 Auto Hidden
-Int Property OverlayTint = 0xFFFFFF Auto Hidden
+Float Property DirtOverlayApplyAt = 0.40 Auto Hidden
+Float Property DirtAlphaStart = 0.15 Auto Hidden
+Int Property DirtOverlayTint = 0xFFFFFF Auto Hidden
+Float Property BloodLightFinish = 0.85 Auto Hidden
+Int Property BloodOverlayTint = 0xFFFFFF Auto Hidden
 Float Property TimeToClean = 10.0 Auto Hidden
 Float Property TimeToCleanInterval = 0.25 Auto Hidden
 Bool Property RaceOverride = False Auto Hidden
@@ -529,21 +531,26 @@ Function DisplaySettingsPage()
 	DirtinessThresholdTier4SliderID = AddSliderOption("$BIS_L_GET_FILTHY", (DirtinessThresholdList.GetAt(4) As GlobalVariable).GetValue() * 100, DF_Percentage)
 EndFunction
 Function DisplayEffectsPage()
-	AddHeaderOption("$BIS_HEADER_SHADERS")
+	AddHeaderOption("$BIS_HEADER_DIRT")
 	DirtShaderEnabledOID_T = AddToggleOption("$BIS_L_DIRTSHADERENABLED", DirtShaderEnabled.GetValue() As Bool)
+	DirtOverlayApplyAtOID_S = AddSliderOption("$BIS_L_DIRTOVERLAYAPPLYAT", DirtOverlayApplyAt * 100.0, DF_Percentage_Dirt)
+	DirtAlphaStartOID_S = AddSliderOption("$BIS_L_DIRTALPHASTART", DirtAlphaStart * 100.0, DF_Percentage)
+	DirtOverlayTintOID_C = AddColorOption("$BIS_L_DIRTOVERLAYTINT", DirtOverlayTint)
+
+	AddHeaderOption("$BIS_HEADER_BLOOD")
+	BloodLightFinishOID_S = AddSliderOption("$BIS_L_BLOODLIGHTFINISH", BloodLightFinish * 100.0, DF_Percentage)
+	BloodOverlayTintOID_C = AddColorOption("$BIS_L_BLOODOVERLAYTINT", BloodOverlayTint)
 
 	SetCursorPosition(1)
-	AddHeaderOption("$BIS_HEADER_OVERLAYS")
-	OverlayApplyAtOID_S = AddSliderOption("$BIS_L_OVERLAYAPPLY", OverlayApplyAt * 100.0, DF_Percentage_Dirt)
-	StartingAlphaOID_S = AddSliderOption("$BIS_L_OVERLAYALPHA", StartingAlpha * 100.0, DF_Percentage)
-	OverlayTintOID_C = AddColorOption("$BIS_L_OVERLAYTINT", OverlayTint)
+	AddHeaderOption("$BIS_HEADER_OVERLAY_SETTINGS_SHARED")
 	TimeToCleanOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEAN", TimeToClean, DF_Decimal)
 	TimeToCleanIntervalOID_S = AddSliderOption("$BIS_L_OVERLAYTIMETOCLEANINTERVAL", TimeToCleanInterval, DF_Decimal)
 	AddEmptyOption()
 	RaceOverrideID_T = AddTextOption("$BIS_L_OVERLAYRACEOVERRIDE", RaceOverride)
 	AddEmptyOption()
-	TexSetCountOID_T = AddTextOption("$BIS_L_OVERLAYTEXSETCOUNT_{" + TexUtil.DirtSetCount[0] + "}{" + TexUtil.DirtSetCount[1] + "}", "")
-	RedetectDirtSetsOID_T = AddTextOption("$BIS_L_OVERLAYREDETECT", "")
+	DirtSetCountOID_T = AddTextOption("$BIS_L_DIRTSETCOUNT_{" + TexUtil.DirtSetCount[0] + "}{" + TexUtil.DirtSetCount[1] + "}", "")
+	BloodSetCountOID_T = AddTextOption("$BIS_L_BLOODSETCOUNT_{" + TexUtil.BloodSetCount[0] + "}{" + TexUtil.BloodSetCount[1] + "}", "")
+	RedetectTexSetsOID_T = AddTextOption("$BIS_L_OVERLAYREDETECT", "")
 	RemoveAllOverlaysOID_T = AddTextOption("$BIS_L_OVERLAYREMOVEALL", "")
 	OverlayProgressOID_T = AddTextOption("", "$BIS_L_INACTIVE")
 EndFunction
@@ -896,8 +903,11 @@ Function HandleOnOptionDefaultEffectsPage(Int OptionID)
 	If OptionID == DirtShaderEnabledOID_T
 		DirtShaderEnabled.SetValue(1.0)
 		SetToggleOptionValue(OptionID, DirtShaderEnabled.GetValue() as Bool)
-	ElseIf OptionID == OverlayTintOID_C
-		OverlayTint = 0xFFFFFF
+	ElseIf OptionID == DirtOverlayTintOID_C
+		DirtOverlayTint = 0xFFFFFF
+		SetColorOptionValue(OptionID, 0xFFFFFF)
+	ElseIf OptionID == BloodOverlayTintOID_C
+		BloodOverlayTint = 0xFFFFFF
 		SetColorOptionValue(OptionID, 0xFFFFFF)
 	ElseIf OptionID == RaceOverrideID_T
 		RaceOverride = false
@@ -1089,21 +1099,27 @@ EndFunction
 Function HandleOnOptionHighlightEffectsPage(int OptionID)
 	If OptionID == DirtShaderEnabledOID_T
 		SetInfoText("$BIS_DESC_DIRTSHADERENABLED")
-	ElseIf OptionID == OverlayApplyAtOID_S
-		SetInfoText("$BIS_DESC_OVERLAYAPPLY")
-	ElseIf OptionID == StartingAlphaOID_S
-		SetInfoText("$BIS_DESC_OVERLAYALPHA")
-	ElseIf OptionID == OverlayTintOID_C
-		SetInfoText("$BIS_DESC_OVERLAYTINT")
+	ElseIf OptionID == DirtOverlayApplyAtOID_S
+		SetInfoText("$BIS_DESC_DIRTOVERLAYAPPLYAT")
+	ElseIf OptionID == DirtAlphaStartOID_S
+		SetInfoText("$BIS_DESC_DIRTALPHASTART")
+	ElseIf OptionID == DirtOverlayTintOID_C
+		SetInfoText("$BIS_DESC_DIRTOVERLAYTINT")
+	ElseIf OptionID == BloodLightFinishOID_S
+		SetInfoText("$BIS_DESC_BLOODLIGHTFINISH")
+	ElseIf OptionID == BloodOverlayTintOID_C
+		SetInfoText("$BIS_DESC_BLOODOVERLAYTINT")
 	ElseIf OptionID == TimeToCleanOID_S
 		SetInfoText("$BIS_DESC_TIMETOCLEAN")
 	ElseIf OptionID == TimeToCleanIntervalOID_S
 		SetInfoText("$BIS_DESC_TIMETOCLEANINTERVAL")
 	ElseIf OptionID == RaceOverrideID_T
 		SetInfoText("$BIS_DESC_RACEOVERRIDE")
-	ElseIf OptionID == TexSetCountOID_T
-		SetInfoText("$BIS_DESC_OVERLAYTEXSETCOUNT")
-	ElseIf OptionID == RedetectDirtSetsOID_T
+	ElseIf OptionID == DirtSetCountOID_T
+		SetInfoText("$BIS_DESC_DIRTSETCOUNT")
+	ElseIf OptionID == BloodSetCountOID_T
+		SetInfoText("$BIS_DESC_BLOODSETCOUNT")
+	ElseIf OptionID == RedetectTexSetsOID_T
 		SetInfoText("$BIS_DESC_OVERLAYREDETECT")
 	ElseIf OptionID == RemoveAllOverlaysOID_T
 		SetInfoText("$BIS_DESC_OVERLAYREMOVEALL")
@@ -1199,8 +1215,11 @@ Event OnOptionColorOpen(Int OptionID)
 	EndIf
 EndEvent
 Function HandleOnOptionColorOpenEffectsPage(Int OptionID)
-	If OptionID == OverlayTintOID_C
-		SetColorDialogStartColor(OverlayTint)
+	If OptionID == DirtOverlayTintOID_C
+		SetColorDialogStartColor(DirtOverlayTint)
+		SetColorDialogDefaultColor(0xFFFFFF)
+	ElseIf OptionID == BloodOverlayTintOID_C
+		SetColorDialogStartColor(BloodOverlayTint)
 		SetColorDialogDefaultColor(0xFFFFFF)
 	EndIf
 EndFunction
@@ -1211,8 +1230,10 @@ Event OnOptionColorAccept(Int OptionID, Int Color)
 	EndIf
 EndEvent
 Function HandleOnOptionColorAcceptEffectsPage(Int OptionID, Int Color)
-	If OptionID == OverlayTintOID_C
-		OverlayTint = Color
+	If OptionID == DirtOverlayTintOID_C
+		DirtOverlayTint = Color
+	ElseIf OptionID == BloodOverlayTintOID_C
+		BloodOverlayTint = Color
 	EndIf
 	SetColorOptionValue(OptionID, Color)
 EndFunction
@@ -1322,9 +1343,8 @@ Function HandleOnOptionSelectEffectsPage(Int OptionID)
 	ElseIf OptionID == RaceOverrideID_T
 		RaceOverride = !RaceOverride
 		SetTextOptionValue(OptionID, RaceOverride)
-	ElseIf OptionID == RedetectDirtSetsOID_T
-		TexUtil.DirtSetCount[0] = TexUtil.InitTexSets(0)
-		TexUtil.DirtSetCount[1] = TexUtil.InitTexSets(1)
+	ElseIf OptionID == RedetectTexSetsOID_T
+		TexUtil.DetectTexSets()
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_TXT_DONE", false)
 		ForcePageReset()
 	ElseIf OptionID == RemoveAllOverlaysOID_T
@@ -1653,15 +1673,20 @@ Function HandleOnOptionSliderAcceptEffectsPage(Int OptionID, Float OptionValue)
 	Float SliderValue = OptionValue
 	String DisplayFormat
 
-	If OptionID == OverlayApplyAtOID_S
+	If OptionID == DirtOverlayApplyAtOID_S
 		DisplayFormat = DF_Percentage_Dirt
 		SliderValue = OptionValue
-		OverlayApplyAt = SliderValue / 100.0
+		DirtOverlayApplyAt = SliderValue / 100.0
 		UpdateAllActors()
-	ElseIf OptionID == StartingAlphaOID_S
+	ElseIf OptionID == DirtAlphaStartOID_S
 		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue
-		StartingAlpha = SliderValue / 100.0
+		DirtAlphaStart = SliderValue / 100.0
+		UpdateAllActors()
+	ElseIf OptionID == BloodLightFinishOID_S
+		DisplayFormat = DF_Percentage
+		SliderValue = OptionValue
+		BloodLightFinish = SliderValue / 100.0
 		UpdateAllActors()
 	ElseIf OptionID == TimeToCleanOID_S
 		DisplayFormat = DF_Decimal
@@ -1937,18 +1962,24 @@ Function HandleOnOptionSliderOpenEffectsPage(int OptionID)
 	Float SliderValue = 0.0
 	String DisplayFormat
 
-	If OptionID == OverlayApplyAtOID_S
+	If OptionID == DirtOverlayApplyAtOID_S
 		DisplayFormat = DF_Percentage_Dirt
 		SetSliderDialogDefaultValue(40.0)
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
-		SliderValue = OverlayApplyAt * 100.0	
-	ElseIf OptionID == StartingAlphaOID_S
+		SliderValue = DirtOverlayApplyAt * 100.0	
+	ElseIf OptionID == DirtAlphaStartOID_S
 		DisplayFormat = DF_Percentage
 		SetSliderDialogDefaultValue(15.0)
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
-		SliderValue = StartingAlpha * 100.0
+		SliderValue = DirtAlphaStart * 100.0
+	ElseIf OptionID == BloodLightFinishOID_S
+		DisplayFormat = DF_Percentage
+		SetSliderDialogDefaultValue(85.0)
+		SetSliderDialogRange(0.0, 100.0)
+		SetSliderDialogInterval(0.5)
+		SliderValue = BloodLightFinish * 100.0
 	ElseIf OptionID == TimeToCleanOID_S
 		DisplayFormat = DF_Decimal
 		SetSliderDialogDefaultValue(10.0)
@@ -2081,7 +2112,7 @@ Function DisableBathingInSkyrim()
 	ForcePageReset()
 EndFunction
 
-Function UpdateProgressRedetectDirtSets(String CurrentTex)
+Function UpdateProgressRedetectTexSets(String CurrentTex)
 	If IsConfigOpen
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_NOTIF_CHECKINGSET_{" + CurrentTex + "}", false)
 	EndIF
@@ -2107,7 +2138,7 @@ Function DoRemoveOverlays(Actor akTarget, bool displayProgress = true)
 	If IsConfigOpen && displayProgress
 		SetTextOptionValue(OverlayProgressOID_T, "$BIS_NOTIF_PROCING_{" + akTarget.GetBaseObject().GetName() + "}", false)
 	EndIf
-	OlUtil.ClearDirtGameLoad(akTarget)
+	OlUtil.RemoveOverlayGameLoad(akTarget)
 EndFunction
 
 Bool Function SavePapyrusSettings()
@@ -2183,9 +2214,11 @@ Bool Function SavePapyrusSettings()
 	
 	SetFloatValue(config, "DirtinessPerSexActor", DirtinessPerSexActor)
 	SetFloatValue(config, "VictimMult", VictimMult)
-	SetFloatValue(config, "OverlayApplyAt", OverlayApplyAt)
-	SetFloatValue(config, "StartingAlpha", StartingAlpha)
-	SetIntValue(config, "OverlayTint", OverlayTint)
+	SetFloatValue(config, "DirtOverlayApplyAt", DirtOverlayApplyAt)
+	SetFloatValue(config, "DirtAlphaStart", DirtAlphaStart)
+	SetIntValue(config, "DirtOverlayTint", DirtOverlayTint)
+	SetFloatValue(config, "BloodLightFinish", BloodLightFinish)
+	SetIntValue(config, "BloodOverlayTint", BloodOverlayTint)
 	SetFloatValue(config, "SexIntervalDirt", SexIntervalDirt)
 	SetFloatValue(config, "SexInterval", SexInterval)
 	SetFloatValue(config, "TimeToClean", TimeToClean)
@@ -2292,10 +2325,12 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	AnimCustomTierCondFollowers = GetIntValue(config, "AnimCustomTierCondFollowers", AnimCustomTierCondFollowers)
 
 	DirtinessPerSexActor = GetFloatValue(config, "DirtinessPerSexActor", DirtinessPerSexActor)
-	StartingAlpha = GetFloatValue(config, "StartingAlpha", StartingAlpha)
-	OverlayTint = GetIntValue(config, "OverlayTint", OverlayTint)
+	DirtAlphaStart = GetFloatValue(config, "DirtAlphaStart", DirtAlphaStart)
+	DirtOverlayTint = GetIntValue(config, "DirtOverlayTint", DirtOverlayTint)
+	BloodLightFinish = GetFloatValue(config, "BloodLightFinish", BloodLightFinish)
+	BloodOverlayTint = GetIntValue(config, "BloodOverlayTint", BloodOverlayTint)
 	VictimMult = GetFloatValue(config, "VictimMult", VictimMult)
-	OverlayApplyAt = GetFloatValue(config, "OverlayApplyAt", OverlayApplyAt)
+	DirtOverlayApplyAt = GetFloatValue(config, "DirtOverlayApplyAt", DirtOverlayApplyAt)
 	SexIntervalDirt = GetFloatValue(config, "SexIntervalDirt", SexIntervalDirt)
 	SexInterval = GetFloatValue(config, "SexInterval", SexInterval)
 	TimeToClean = GetFloatValue(config, "TimeToClean", TimeToClean)
@@ -2446,14 +2481,17 @@ Int CleansingSwimOID_S
 
 ; menu - Effects
 Int DirtShaderEnabledOID_T
-Int OverlayApplyAtOID_S
-Int StartingAlphaOID_S
-Int OverlayTintOID_C
+Int DirtOverlayApplyAtOID_S
+Int DirtAlphaStartOID_S
+Int DirtOverlayTintOID_C
+Int BloodLightFinishOID_S
+Int BloodOverlayTintOID_C
 Int TimeToCleanOID_S
 Int TimeToCleanIntervalOID_S
 Int RaceOverrideID_T
-Int TexSetCountOID_T
-Int RedetectDirtSetsOID_T
+Int DirtSetCountOID_T
+Int BloodSetCountOID_T
+Int RedetectTexSetsOID_T
 Int RemoveAllOverlaysOID_T
 Int OverlayProgressOID_T
 

@@ -2,6 +2,7 @@ ScriptName mzinGetDirtyOverTime Extends ActiveMagicEffect
 { this script increases the player's dirtiness over time }
 
 import PO3_SKSEFunctions
+import StorageUtil
 
 mzinBatheQuest Property BatheQuest Auto
 mzinBatheMCMMenu Property Menu Auto
@@ -281,7 +282,7 @@ Function StartDirtCycle(Actor Target)
 		endIf
 	Else
 		DirtyActor.AddToFaction(TrackedBatherFaction)
-		LocalDirtinessPercentage = StorageUtil.GetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue())
+		LocalDirtinessPercentage = GetFloatValue(DirtyActor, "BiS_Dirtiness", (DirtinessThresholdList.GetAt(InitialDirtinessTier) As GlobalVariable).GetValue())
 	EndIf
 
 	AddKeywordToRef(DirtyActor, TrackedBatherActor)
@@ -290,7 +291,7 @@ Function StartDirtCycle(Actor Target)
 		If !InitialDirtinessTier
 			LocalDirtinessPercentage = 0.0
 		Else
-			ApplyDirtLeadIn(Menu.StartingAlpha)
+			ApplyDirtLeadIn(Menu.DirtAlphaStart)
 		EndIf
 		DirtyActor.AddSpell(DirtinessSpellList.GetAt(InitialDirtinessTier) As Spell, False)
 	EndIf
@@ -298,11 +299,11 @@ Function StartDirtCycle(Actor Target)
 	BatheQuest.UpdateActorDirtPercent(Target, LocalDirtinessPercentage)
 	ProgressAlpha()
 
-	Float LastUpdate = StorageUtil.GetFloatValue(DirtyActor, "BiS_LastUpdate", -100.0)
+	Float LastUpdate = GetFloatValue(DirtyActor, "BiS_LastUpdate", -100.0)
 	Float CurrentGameTime = GameDaysPassed.GetValue()
 	If LastUpdate == -100.0
 		LocalLastUpdateTime = CurrentGameTime
-		StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", LocalLastUpdateTime)
+		SetFloatValue(DirtyActor, "BiS_LastUpdate", LocalLastUpdateTime)
 		RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
 	Else
 		LocalLastUpdateTime = LastUpdate
@@ -320,8 +321,8 @@ EndFunction
 Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanInterval)
 	; Lowers the Alpha value of a target actor's dirt overlay to the Alpha value at which typical overlays begin applying
 
-	If Menu.StartingAlpha < TargetLevel
-		TargetLevel = Menu.StartingAlpha
+	If Menu.DirtAlphaStart < TargetLevel
+		TargetLevel = Menu.DirtAlphaStart
 	EndIf
 	If TimeToClean < TimeToCleanInterval
 		TimeToClean = TimeToCleanInterval
@@ -329,7 +330,7 @@ Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanI
 	
 	Bool BreakCondition = DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
 	Float DirtToClean = ((LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval))
-	if !StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix") || !(DirtToClean > 0)
+	if !HasStringValue(DirtyActor, "mzin_DirtTexturePrefix") || !(DirtToClean > 0)
 		return
 	endIf
 	
@@ -341,7 +342,7 @@ Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanI
 		Else
 			LocalDirtinessPercentage -= DirtToClean
 		endIf
-		OlUtil.UpdateAlpha(DirtyActor, LocalDirtinessPercentage)
+		OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
 		Utility.Wait(TimeToCleanInterval)
 	EndWhile
 EndFunction
@@ -368,10 +369,10 @@ Function ModDirtState(Float ModAmount, Float ModRate, Float ModThreshold)
 EndFunction
 
 Function ModDirtState_Increase(Float ModTarget, Float ModIncrement, Float ModRate, Float ModThreshold)
-	Bool bFlag = StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+	Bool bFlag = HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 
 	If !(ModThreshold as int)
-		ModThreshold = Menu.OverlayApplyAt
+		ModThreshold = Menu.DirtOverlayApplyAt
 	EndIf
 	While LocalDirtinessPercentage != ModTarget
 		If ModTarget < (LocalDirtinessPercentage + ModIncrement)
@@ -380,9 +381,9 @@ Function ModDirtState_Increase(Float ModTarget, Float ModIncrement, Float ModRat
 			LocalDirtinessPercentage += ModIncrement
 		EndIf
 		If bFlag
-			OlUtil.UpdateAlpha(DirtyActor, LocalDirtinessPercentage)
+			OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
 		ElseIf LocalDirtinessPercentage >= ModThreshold
-			OlUtil.BeginOverlay(DirtyActor, ModThreshold, Menu.OverlayTint)
+			OlUtil.BeginOverlay("Dirt", DirtyActor, ModThreshold, Menu.DirtOverlayTint)
 			bFlag = !bFlag
 		EndIf
 		Utility.Wait(ModRate)
@@ -392,10 +393,10 @@ Function ModDirtState_Increase(Float ModTarget, Float ModIncrement, Float ModRat
 EndFunction
 
 Function ModDirtState_Decrease(Float ModTarget, Float ModDecrement, Float ModRate, Float ModThreshold)
-	Bool bFlag = StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+	Bool bFlag = HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
 	
 	If !(ModThreshold as int)
-		ModThreshold = Menu.OverlayApplyAt
+		ModThreshold = Menu.DirtOverlayApplyAt
 	EndIf
 
 	While LocalDirtinessPercentage != ModTarget
@@ -406,10 +407,10 @@ Function ModDirtState_Decrease(Float ModTarget, Float ModDecrement, Float ModRat
 		EndIf
 		If bFlag
 			If (LocalDirtinessPercentage < ModThreshold)
-				OlUtil.ClearDirt(DirtyActor, true)
+				OlUtil.RemoveOverlay("Dirt", DirtyActor, true)
 				bFlag = !bFlag
 			else
-				OlUtil.UpdateAlpha(DirtyActor, LocalDirtinessPercentage)
+				OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
 			EndIf
 		EndIf
 		Utility.Wait(ModRate)
@@ -429,7 +430,7 @@ EndFunction
 Function SetLastUpdate()
 	Float CurrentGameTime = GameDaysPassed.GetValue()
 	LocalLastUpdateTime = CurrentGameTime
-	StorageUtil.SetFloatValue(DirtyActor, "BiS_LastUpdate", CurrentGameTime)
+	SetFloatValue(DirtyActor, "BiS_LastUpdate", CurrentGameTime)
 EndFunction
 
 Function ApplyDirt()
@@ -503,14 +504,14 @@ Bool Function ProgressDirtSpell()
 EndFunction
 
 Function ApplyDirtLeadIn(Float targetAlpha)
-	If (LocalDirtinessPercentage >= Menu.OverlayApplyAt) && !StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-		OlUtil.BeginOverlay(DirtyActor, targetAlpha, Menu.OverlayTint)
+	If (LocalDirtinessPercentage >= Menu.DirtOverlayApplyAt) && !HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+		OlUtil.BeginOverlay("Dirt", DirtyActor, targetAlpha, Menu.DirtOverlayTint)
 	EndIf
 EndFunction
 
 Function RenewDirtSpell(bool abRegress = false)
 	BatheQuest.UpdateActorDirtPercent(DirtyActor, LocalDirtinessPercentage)
-	ApplyDirtLeadIn(Menu.StartingAlpha)
+	ApplyDirtLeadIn(Menu.DirtAlphaStart)
 	if abRegress
 		RegressDirtSpell()
 	else
@@ -536,12 +537,12 @@ Float Function GetDirtPerHour()
 EndFunction
 
 Function ProgressAlpha()
-	if StorageUtil.HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-		Float Alpha = Menu.StartingAlpha + (LocalDirtinessPercentage * LocalDirtinessPercentage * LocalDirtinessPercentage)
+	if HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+		Float Alpha = Menu.DirtAlphaStart + (LocalDirtinessPercentage * LocalDirtinessPercentage * LocalDirtinessPercentage)
 		If Alpha > 1.0
 			Alpha = 1.0
 		EndIf
-		OlUtil.UpdateAlpha(DirtyActor, Alpha)
+		OlUtil.UpdateAlpha("Dirt", DirtyActor, Alpha)
 	endIf
 EndFunction
 

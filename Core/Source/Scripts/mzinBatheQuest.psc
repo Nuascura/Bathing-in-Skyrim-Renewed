@@ -3,6 +3,7 @@ ScriptName mzinBatheQuest Extends Quest
 
 import PO3_SKSEFunctions
 import MiscUtil
+import StorageUtil
 import PapyrusUtil
 import SPE_Actor
 import SPE_ObjectRef
@@ -131,8 +132,8 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower =
 				endIf
 			EndIf
 		EndIf
-		StorageUtil.SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
-		StorageUtil.SetIntValue(DirtyActor, "mzin_LastWashState", DoShower as int)
+		SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
+		SetIntValue(DirtyActor, "mzin_LastWashState", DoShower as int)
 		mzinUtil.Send_ResetActorDirt(DirtyActor, DoFullClean)
 		DirtyActor.AddSpell(PlayBathingAnimation, False)
 	Else
@@ -170,15 +171,15 @@ Function ResetGDOTSpell(Actor targetActor, Float targetValue)
 	Else
 		targetValue = currentValue
 	EndIf
-	If StorageUtil.HasStringValue(targetActor, "mzin_DirtTexturePrefix")
-		If targetValue < Menu.OverlayApplyAt
-			OlUtil.ClearDirt(targetActor, true)
+	If HasStringValue(targetActor, "mzin_DirtTexturePrefix")
+		If targetValue < Menu.DirtOverlayApplyAt
+			OlUtil.RemoveOverlay("Dirt", targetActor, true)
 		Else
-			OlUtil.UpdateAlpha(targetActor, Menu.StartingAlpha)
+			OlUtil.UpdateAlpha("Dirt", targetActor, Menu.DirtAlphaStart)
 		EndIf
 	EndIf
 	targetActor.AddSpell(GetGDOTSpell(targetValue, GetDirtyOverTimeSpellList.GetSize()), False)
-	StorageUtil.SetFloatValue(targetActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
+	SetFloatValue(targetActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
 EndFunction
 
 Spell Function GetGDOTSpell(Float targetValue, int iMax, int iInit = 0)
@@ -315,10 +316,10 @@ Bool Function IsDeviceBlocked(Actor akTarget)
 EndFunction
 
 Bool Function IsNotPermitted(Actor akTarget)
-	Int Index = StorageUtil.FormListFind(none, "BiS_ForbiddenActors", akTarget)
+	Int Index = FormListFind(none, "BiS_ForbiddenActors", akTarget)
 	If Index != -1
-		Int ForbiddenCount = StorageUtil.StringListCount(akTarget, "BiS_ForbiddenString") - 1
-		String ForbiddenString = StorageUtil.StringListGet(akTarget, "BiS_ForbiddenString", ForbiddenCount)
+		Int ForbiddenCount = StringListCount(akTarget, "BiS_ForbiddenString") - 1
+		String ForbiddenString = StringListGet(akTarget, "BiS_ForbiddenString", ForbiddenCount)
 		If ForbiddenString != ""
 			mzinUtil.LogNotification(ForbiddenString)
 		Else
@@ -411,9 +412,10 @@ EndFunction
 
 Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	if abRemoveOverlays
-		OlUtil.ClearDirtGameLoad(DirtyActor)
+		OlUtil.RemoveOverlayGameLoad(DirtyActor)
 	else
-		StorageUtil.UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+		UnSetStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+		UnSetStringValue(DirtyActor, "mzin_BloodTexturePrefix")
 	endIf
 
 	RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwGDOTSpell, false)
@@ -422,10 +424,10 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 
 	RemoveKeywordFromRef(DirtyActor, TrackedBatherActor)
 
-	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
-	StorageUtil.UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
-	StorageUtil.UnSetFormValue(DirtyActor, "mzin_LastWashProp")
-	StorageUtil.UnSetIntValue(DirtyActor, "mzin_LastWashState")
+	UnSetFloatValue(DirtyActor, "BiS_Dirtiness")
+	UnSetFloatValue(DirtyActor, "BiS_LastUpdate")
+	UnSetFormValue(DirtyActor, "mzin_LastWashProp")
+	UnSetIntValue(DirtyActor, "mzin_LastWashState")
 
 	if DirtyActor != PlayerRef
 		DirtyActor.RemoveFromFaction(TrackedBatherFaction)
@@ -439,7 +441,7 @@ Function UpdateActorDirtPercent(Actor akActor, float afNewValue)
 	If akActor == PlayerRef
 		DirtinessPercentage.SetValue(afNewValue)
 	elseIf akActor.IsInFaction(TrackedBatherFaction)
-		StorageUtil.SetFloatValue(akActor, "BiS_Dirtiness", afNewValue)
+		SetFloatValue(akActor, "BiS_Dirtiness", afNewValue)
 	EndIf
 EndFunction
 
@@ -447,6 +449,6 @@ Float Function GetActorDirtPercent(Actor akActor)
 	If akActor == PlayerRef
 		return DirtinessPercentage.GetValue()
 	ElseIf akActor.IsInFaction(TrackedBatherFaction)
-		StorageUtil.GetFloatValue(akActor, "BiS_Dirtiness")
+		GetFloatValue(akActor, "BiS_Dirtiness")
 	EndIf
 EndFunction

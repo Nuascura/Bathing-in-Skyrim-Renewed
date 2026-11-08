@@ -1,5 +1,6 @@
 Scriptname mzinUtility extends Quest  
 
+import MiscUtil
 import PO3_SKSEFunctions
 
 mzinBatheMCMMenu Property Menu Auto
@@ -315,6 +316,16 @@ Int Function GetDirtinessTier(Actor TargetActor, FormList TargetSpellList)
 			return DirtinessTierIndex
 		EndIf
 	EndWhile
+EndFunction
+
+String Function GetRacePath(Actor TargetActor)
+	If Menu.RaceOverride
+		string s = GetFormModName(GetFormFromEditorID(GetActorRaceEditorID(TargetActor)), false)
+		If s != "Skyrim.esm"
+			Return s + "\\"
+		EndIf
+	EndIf
+	Return ""
 EndFunction
 
 Function Send_ResetActorDirt(Form akTarget, Bool UsedSoap)
