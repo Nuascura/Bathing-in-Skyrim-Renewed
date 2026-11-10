@@ -50,6 +50,7 @@ Float LocalDirtinessPercentage
 Float LocalLastUpdateTime
 Float SexDirt
 Int SexTID
+Int DirtyActorFID
 
 ; ---------- Events ----------
 
@@ -173,14 +174,14 @@ EndEvent
 ; ---------- Common Functions ----------
 
 Function RegisterForEvents()
-	RegisterForModEvent("BiS_SetDefaultState_" + DirtyActor.GetFormID(), "OnBiS_SetDefaultState")
-	RegisterForModEvent("BiS_UpdateAlpha_" + DirtyActor.GetFormID(), "OnBiS_UpdateAlpha")
-	RegisterForModEvent("BiS_ModActorDirt_" + DirtyActor.GetFormID(), "OnBiS_ModActorDirt")
-	RegisterForModEvent("BiS_IncreaseActorDirt_" + DirtyActor.GetFormID(), "OnBiS_IncreaseActorDirt")
-	RegisterForModEvent("BiS_DecreaseActorDirt_" + DirtyActor.GetFormID(), "OnBiS_DecreaseActorDirt")
-	RegisterForModEvent("BiS_ResumeActorDirt_" + DirtyActor.GetFormID(), "OnBiS_ResumeActorDirt")
-	RegisterForModEvent("BiS_PauseActorDirt_" + DirtyActor.GetFormID(), "OnBiS_PauseActorDirt")
-	RegisterForModEvent("BiS_ResetActorDirt_" + DirtyActor.GetFormID(), "OnBiS_ResetActorDirt")
+	RegisterForModEvent("BiS_SetDefaultState_" + DirtyActorFID, "OnBiS_SetDefaultState")
+	RegisterForModEvent("BiS_UpdateAlpha_" + DirtyActorFID, "OnBiS_UpdateAlpha")
+	RegisterForModEvent("BiS_ModActorDirt_" + DirtyActorFID, "OnBiS_ModActorDirt")
+	RegisterForModEvent("BiS_IncreaseActorDirt_" + DirtyActorFID, "OnBiS_IncreaseActorDirt")
+	RegisterForModEvent("BiS_DecreaseActorDirt_" + DirtyActorFID, "OnBiS_DecreaseActorDirt")
+	RegisterForModEvent("BiS_ResumeActorDirt_" + DirtyActorFID, "OnBiS_ResumeActorDirt")
+	RegisterForModEvent("BiS_PauseActorDirt_" + DirtyActorFID, "OnBiS_PauseActorDirt")
+	RegisterForModEvent("BiS_ResetActorDirt_" + DirtyActorFID, "OnBiS_ResetActorDirt")
 	RegisterForModEvent("BiS_UpdateActorsAll", "OnBiS_UpdateActorsAll")
 	
 	If Init.IsSexLabInstalled
@@ -188,10 +189,9 @@ Function RegisterForEvents()
 			RegisterForModEvent("PlayerTrack_Start", "OnAnimationStart_SexLab")
 			RegisterForModEvent("PlayerTrack_End", "OnAnimationEnd_SexLab")
 		Else
-			Int fid = DirtyActor.GetFormID()
-			mzinInterfaceSexLab.TrackActor(Init.SL_API, DirtyActor, fid)
-			RegisterForModEvent("BiS_" + fid + "Track_Start", "OnAnimationStart_SexLab")
-			RegisterForModEvent("BiS_" + fid + "Track_End", "OnAnimationEnd_SexLab")
+			mzinInterfaceSexLab.TrackActor(Init.SL_API, DirtyActor, DirtyActorFID)
+			RegisterForModEvent("BiS_" + DirtyActorFID + "Track_Start", "OnAnimationStart_SexLab")
+			RegisterForModEvent("BiS_" + DirtyActorFID + "Track_End", "OnAnimationEnd_SexLab")
 		EndIf
 	EndIf
 	If Init.IsOStimInstalled
@@ -227,7 +227,7 @@ Function CloseInventory()
 EndFunction
 
 Function Send_GDOTStateChange(string StateName = "")
-	int targetEvent = ModEvent.Create("BiS_GDOTStateChange_" + DirtyActor.GetFormID())
+	int targetEvent = ModEvent.Create("BiS_GDOTStateChange_" + DirtyActorFID)
 	ModEvent.PushString(targetEvent, StateName)
 	ModEvent.PushString(targetEvent, DefaultState)
 	ModEvent.Send(targetEvent)
@@ -271,6 +271,7 @@ EndState
 Function StartDirtCycle(Actor Target)
 	DirtyActor = Target
 	DirtyActorIsPlayer = (Target == PlayerRef)
+	DirtyActorFID = Target.GetFormID()
 	RegisterForEvents()
 	Send_GDOTStateChange()
 
