@@ -86,6 +86,24 @@ Function UpdateAlpha(String OvlTag, Actor akTarget, Float Alpha)
 	EndWhile
 EndFunction
 
+Float Function GetAlphaOverride(String OvlTag, Actor akTarget)
+	String Node
+	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
+	Int j = GetNumSlots("Body")
+	String TexPath = GetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix")
+	If TexPath
+		String MatchString = (TexPath + OvlTag + "FXBody.dds")
+		While j > 0
+			j -= 1
+			Node = "Body [ovl" + j + "]"
+			If GetNodeOverrideString(akTarget, Gender, Node, 9, 0) == MatchString
+				Return GetNodeOverrideFloat(akTarget, Gender, Node, 8, -1)
+			EndIf
+		EndWhile
+	EndIf
+	Return 0.0
+EndFunction
+
 String Function GetLastNode(String OvlTag, Actor akTarget, Int aiArea)
 	String Node
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
@@ -265,7 +283,7 @@ EndFunction
 
 Function ApplyBlood(Actor akTarget, Int Tint, Bool UnsetPrefix = true)
 	RemoveOverlay("Blood", akTarget, UnsetPrefix)
-	BeginOverlay("Blood", akTarget, 100.0, Tint)
+	BeginOverlay("Blood", akTarget, 1.0, Tint)
 EndFunction
 
 Function ReapplyBlood(Actor akTarget)
@@ -274,8 +292,7 @@ Function ReapplyBlood(Actor akTarget)
 	EndIf
 
 	String Node = GetLastNode("Blood", akTarget, 0)
-	ApplyDirt(akTarget, \
-	GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 4, -1), \
+	ApplyBlood(akTarget, \
 	GetNodeOverrideInt(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 7, -1), \
 	false)
 EndFunction

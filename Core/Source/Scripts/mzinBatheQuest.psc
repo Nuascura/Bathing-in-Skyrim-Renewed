@@ -178,6 +178,9 @@ Function ResetGDOTSpell(Actor targetActor, Float targetValue)
 			OlUtil.UpdateAlpha("Dirt", targetActor, Menu.DirtAlphaStart)
 		EndIf
 	EndIf
+	If HasStringValue(targetActor, "mzin_BloodTexturePrefix")
+		OlUtil.RemoveOverlay("Blood", targetActor, true)
+	EndIf
 	targetActor.AddSpell(GetGDOTSpell(targetValue, GetDirtyOverTimeSpellList.GetSize()), False)
 	SetFloatValue(targetActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
 EndFunction

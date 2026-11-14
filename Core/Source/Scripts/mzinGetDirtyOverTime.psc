@@ -75,7 +75,7 @@ Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 EndEvent
 
 Event OnUpdateGameTime()
-	RunDirtCycle(BatheQuest.IsSubmerged(DirtyActor) || BatheQuest.IsWeatherWet(DirtyActor))
+	OnUpdate()
 EndEvent
 
 Event OnUpdate()
@@ -106,6 +106,7 @@ Event OnBiS_UpdateActorsAll()
 		OnDeath(none)
 	ElseIf DirtyActor.Is3DLoaded()
 		OlUtil.ReapplyDirt(DirtyActor)
+		OlUtil.ReapplyBlood(DirtyActor)
 	EndIf
 EndEvent
 
@@ -328,24 +329,41 @@ Function ResetDirtState(Float TargetLevel, Float TimeToClean, Float TimeToCleanI
 	If TimeToClean < TimeToCleanInterval
 		TimeToClean = TimeToCleanInterval
 	EndIf
+
+	Float DirtinessSum = LocalDirtinessPercentage
+	Float DirtAlpha = OlUtil.GetAlphaOverride("Dirt", DirtyActor)
+	Float BloodAlpha = OlUtil.GetAlphaOverride("Blood", DirtyActor)
+	If DirtAlpha > DirtinessSum
+		DirtinessSum = DirtAlpha
+	EndIf
+	If BloodAlpha > DirtinessSum
+		DirtinessSum = BloodAlpha
+	EndIf
 	
 	Bool BreakCondition = DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
-	Float DirtToClean = ((LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval))
-	if !HasStringValue(DirtyActor, "mzin_DirtTexturePrefix") || !(DirtToClean > 0)
+	Float DirtToClean = ((DirtinessSum - TargetLevel) / (TimeToClean / TimeToCleanInterval))
+	if !(DirtToClean > 0)
 		return
 	endIf
 	
 	Utility.Wait(3.0)
 
-	While (LocalDirtinessPercentage != TargetLevel) && (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
-		if TargetLevel > (LocalDirtinessPercentage - DirtToClean)
-			LocalDirtinessPercentage = TargetLevel
+	While (DirtinessSum != TargetLevel) && (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
+		if TargetLevel > (DirtinessSum - DirtToClean)
+			DirtinessSum = TargetLevel
 		Else
-			LocalDirtinessPercentage -= DirtToClean
+			DirtinessSum -= DirtToClean
 		endIf
-		OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
+		if HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+			OlUtil.UpdateAlpha("Dirt", DirtyActor, DirtinessSum)
+		endIf
+		if HasStringValue(DirtyActor, "mzin_BloodTexturePrefix")
+			OlUtil.UpdateAlpha("Blood", DirtyActor, DirtinessSum)
+		endIf
 		Utility.Wait(TimeToCleanInterval)
 	EndWhile
+
+	LocalDirtinessPercentage = DirtinessSum
 EndFunction
 
 Function ModDirtState(Float ModAmount, Float ModRate, Float ModThreshold)
