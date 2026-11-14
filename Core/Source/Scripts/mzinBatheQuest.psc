@@ -163,11 +163,11 @@ Function ResetGDOTSpell(Actor targetActor, Float targetValue)
 		Return
 	EndIf
 
-	Float currentValue = GetActorDirtPercent(targetActor)
+	Float currentValue = GetActorDirtinessPercent(targetActor)
 	RemoveAddedSpells(targetActor, "", mzinUtil.arrkwDirtinessSpell, false)
 	RemoveAddedSpells(targetActor, "", mzinUtil.arrkwGDOTSpell, false)
 	If targetValue < currentValue
-		UpdateActorDirtPercent(targetActor, targetValue)
+		UpdateActorDirtinessPercent(targetActor, targetValue)
 	Else
 		targetValue = currentValue
 	EndIf
@@ -179,7 +179,11 @@ Function ResetGDOTSpell(Actor targetActor, Float targetValue)
 		EndIf
 	EndIf
 	If HasStringValue(targetActor, "mzin_BloodTexturePrefix")
-		OlUtil.RemoveOverlay("Blood", targetActor, true)
+		If targetValue < Menu.DirtOverlayApplyAt
+			OlUtil.RemoveOverlay("Blood", targetActor, true)
+		Else
+			OlUtil.UpdateAlpha("Blood", targetActor, Menu.DirtAlphaStart)
+		EndIf
 	EndIf
 	targetActor.AddSpell(GetGDOTSpell(targetValue, GetDirtyOverTimeSpellList.GetSize()), False)
 	SetFloatValue(targetActor, "BiS_LastUpdate", GameDaysPassed.GetValue())
@@ -440,7 +444,7 @@ Function UntrackActor(Actor DirtyActor, Bool abRemoveOverlays = true)
 	endIf
 EndFunction
 
-Function UpdateActorDirtPercent(Actor akActor, float afNewValue)
+Function UpdateActorDirtinessPercent(Actor akActor, float afNewValue)
 	If akActor == PlayerRef
 		DirtinessPercentage.SetValue(afNewValue)
 	elseIf akActor.IsInFaction(TrackedBatherFaction)
@@ -448,7 +452,7 @@ Function UpdateActorDirtPercent(Actor akActor, float afNewValue)
 	EndIf
 EndFunction
 
-Float Function GetActorDirtPercent(Actor akActor)
+Float Function GetActorDirtinessPercent(Actor akActor)
 	If akActor == PlayerRef
 		return DirtinessPercentage.GetValue()
 	ElseIf akActor.IsInFaction(TrackedBatherFaction)

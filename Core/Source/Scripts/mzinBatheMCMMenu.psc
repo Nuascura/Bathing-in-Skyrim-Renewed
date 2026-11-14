@@ -2084,7 +2084,7 @@ Function DisableBathingInSkyrim()
 	RemoveAllOverlays(false)
 	
 	BatheQuest.UntrackActor(PlayerRef, false)
-	BatheQuest.UpdateActorDirtPercent(PlayerRef, 0.0)
+	BatheQuest.UpdateActorDirtinessPercent(PlayerRef, 0.0)
 
 	Actor[] arrDirtyActors = GetAllActorsInFaction(TrackedBatherFaction)
 	Int i = arrDirtyActors.Length

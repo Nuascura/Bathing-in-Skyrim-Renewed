@@ -16,7 +16,7 @@ State mzinCondition_Swimming
         RegisterForSingleUpdate(3.0)
     EndEvent
     Event OnUpdate()
-        int targetEvent = Create("BiS_DecreaseActorDirt_" + targetActor.GetFormID())
+        int targetEvent = Create("BiS_DecreaseActorDirtiness_" + targetActor.GetFormID())
         PushFloat(targetEvent, targetPercentage.GetValue())
         PushFloat(targetEvent, 4.2)
         PushFloat(targetEvent, 0.0)
