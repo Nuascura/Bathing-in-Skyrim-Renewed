@@ -377,29 +377,39 @@ Function ModDirtinessState_Increase(Float ModTarget, Float ModIncrement, Float M
 	If DoOverlay
 		Float fAlpha_Dirt = OlUtil.GetAlphaOverride("Dirt", DirtyActor)
 		Float fAlpha_Blood = OlUtil.GetAlphaOverride("Blood", DirtyActor)
+		Float fAugend = LocalDirtinessPercentage
+
+		If fAlpha_Dirt < fAugend && HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+			fAugend = fAlpha_Dirt
+		EndIf
+		If fAlpha_Blood < fAugend && HasStringValue(DirtyActor, "mzin_BloodTexturePrefix")
+			fAugend = fAlpha_Blood
+		EndIf
 
 		If !(ModThreshold as int)
 			ModThreshold = Menu.DirtOverlayApplyAt
 		EndIf
-		While LocalDirtinessPercentage != ModTarget
-			If ModTarget < (LocalDirtinessPercentage + ModIncrement)
-				LocalDirtinessPercentage = ModTarget
+
+		While fAugend != ModTarget
+			If ModTarget < (fAugend + ModIncrement)
+				fAugend = ModTarget
 			Else
-				LocalDirtinessPercentage += ModIncrement
+				fAugend += ModIncrement
 			EndIf
-			If fAlpha_Dirt && (fAlpha_Dirt < LocalDirtinessPercentage)
-				OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
-			ElseIf LocalDirtinessPercentage >= ModThreshold
+			If fAlpha_Dirt
+				If fAlpha_Dirt < fAugend
+					OlUtil.UpdateAlpha("Dirt", DirtyActor, fAugend)
+				EndIf
+			ElseIf fAugend >= ModThreshold
 				OlUtil.BeginOverlay("Dirt", DirtyActor, ModThreshold, Menu.DirtOverlayTint)
 			EndIf
-			If fAlpha_Blood && (fAlpha_Blood < LocalDirtinessPercentage)
-				OlUtil.UpdateAlpha("Blood", DirtyActor, LocalDirtinessPercentage)
+			If fAlpha_Blood && (fAlpha_Blood < fAugend)
+				OlUtil.UpdateAlpha("Blood", DirtyActor, fAugend)
 			EndIf
 			Utility.Wait(ModRate)
 		EndWhile
-	Else
-		LocalDirtinessPercentage = ModTarget
 	EndIf
+	LocalDirtinessPercentage = ModTarget
 	SetLastUpdate()
 	RenewDirtSpell(false)
 EndFunction
@@ -408,18 +418,26 @@ Function ModDirtinessState_Decrease(Float ModTarget, Float ModDecrement, Float M
 	If DoOverlay
 		Float fAlpha_Dirt = OlUtil.GetAlphaOverride("Dirt", DirtyActor)
 		Float fAlpha_Blood = OlUtil.GetAlphaOverride("Blood", DirtyActor)
+		Float fMinuend = LocalDirtinessPercentage
+
+		If fAlpha_Dirt > fMinuend && HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+			fMinuend = fAlpha_Dirt
+		EndIf
+		If fAlpha_Blood > fMinuend && HasStringValue(DirtyActor, "mzin_BloodTexturePrefix")
+			fMinuend = fAlpha_Blood
+		EndIf
 		
 		If !(ModThreshold as int)
 			ModThreshold = Menu.DirtOverlayApplyAt
 		EndIf
 
-		While LocalDirtinessPercentage != ModTarget
-			If ModTarget > (LocalDirtinessPercentage - ModDecrement)
-				LocalDirtinessPercentage = ModTarget
+		While fMinuend != ModTarget
+			If ModTarget > (fMinuend - ModDecrement)
+				fMinuend = ModTarget
 			Else
-				LocalDirtinessPercentage -= ModDecrement
+				fMinuend -= ModDecrement
 			EndIf
-			If (LocalDirtinessPercentage < ModThreshold)
+			If (fMinuend < ModThreshold)
 				if fAlpha_Dirt
 					OlUtil.RemoveOverlay("Dirt", DirtyActor, true)
 					fAlpha_Dirt = 0.0
@@ -429,18 +447,17 @@ Function ModDirtinessState_Decrease(Float ModTarget, Float ModDecrement, Float M
 					fAlpha_Blood = 0.0
 				endIf
 			else
-				if fAlpha_Dirt > LocalDirtinessPercentage
-					OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
+				if fAlpha_Dirt > fMinuend
+					OlUtil.UpdateAlpha("Dirt", DirtyActor, fMinuend)
 				endIf
-				if fAlpha_Blood > LocalDirtinessPercentage
-					OlUtil.UpdateAlpha("Blood", DirtyActor, LocalDirtinessPercentage)
+				if fAlpha_Blood > fMinuend
+					OlUtil.UpdateAlpha("Blood", DirtyActor, fMinuend)
 				endIf
 			EndIf
 			Utility.Wait(ModRate)
 		EndWhile
-	Else
-		LocalDirtinessPercentage = ModTarget
 	EndIf
+	LocalDirtinessPercentage = ModTarget
 	SetLastUpdate()
 	RenewDirtSpell(true)
 EndFunction
