@@ -64,6 +64,9 @@ Function ApplyOverlay(Actor akTarget, Bool Gender, String Area, String OverlaySl
 EndFunction
 
 Function UpdateAlpha(String OvlTag, Actor akTarget, Float Alpha)
+	If Alpha < 0
+		Alpha = 0
+	EndIf
 	String Node
 	Bool Result = false
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
@@ -87,11 +90,11 @@ Function UpdateAlpha(String OvlTag, Actor akTarget, Float Alpha)
 EndFunction
 
 Float Function GetAlphaOverride(String OvlTag, Actor akTarget)
-	String Node
-	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
-	Int j = GetNumSlots("Body")
 	String TexPath = GetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix")
 	If TexPath
+		String Node
+		Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
+		Int j = GetNumSlots("Body")
 		String MatchString = (TexPath + OvlTag + "FXBody.dds")
 		While j > 0
 			j -= 1

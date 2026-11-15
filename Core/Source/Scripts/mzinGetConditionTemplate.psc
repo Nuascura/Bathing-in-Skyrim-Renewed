@@ -21,6 +21,7 @@ State mzinCondition_Swimming
         PushFloat(targetEvent, 4.2)
         PushFloat(targetEvent, 0.0)
         PushBool(targetEvent, true)
+        PushBool(targetEvent, true)
         Send(targetEvent)
     EndEvent
 EndState

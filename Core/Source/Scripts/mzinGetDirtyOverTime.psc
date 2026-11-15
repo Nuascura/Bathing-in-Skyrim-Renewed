@@ -3,6 +3,7 @@ ScriptName mzinGetDirtyOverTime Extends ActiveMagicEffect
 
 import PO3_SKSEFunctions
 import StorageUtil
+import Math
 
 mzinBatheQuest Property BatheQuest Auto
 mzinBatheMCMMenu Property Menu Auto
@@ -130,34 +131,34 @@ Event OnBiS_ResumeActorDirtiness()
 	GoToState(DefaultState)
 EndEvent
 
-Event OnBiS_ModActorDirtiness(Float afModAmount, Float afModRate, Float afModThreshold, Bool abAutoResume)
+Event OnBiS_ModActorDirtiness(Float afModAmount, Float afModRate, Float afModThreshold, Bool abDoOverlay, Bool abAutoResume)
 	If GetState() != DefaultState
 		Return
 	EndIf
 	GoToState("PAUSED")
-	ModDirtinessState(afModAmount, afModRate, afModThreshold)
+	ModDirtinessState(afModAmount, afModRate, afModThreshold, abDoOverlay)
 	if abAutoResume
 		GoToState(DefaultState)
 	endIf
 EndEvent
 
-Event OnBiS_IncreaseActorDirtiness(Float afTargetLevel, Float afModRate, Float afModThreshold, Bool abAutoResume)
+Event OnBiS_IncreaseActorDirtiness(Float afTargetLevel, Float afModRate, Float afModThreshold, Bool abDoOverlay, Bool abAutoResume)
 	If (GetState() != DefaultState) || (LocalDirtinessPercentage >= afTargetLevel)
 		Return
 	EndIf
 	GoToState("PAUSED")
-	ModDirtinessState_Increase(afTargetLevel, (afTargetLevel - LocalDirtinessPercentage) / afModRate, afModRate, afModThreshold)
+	ModDirtinessState_Increase(afTargetLevel, (afTargetLevel - LocalDirtinessPercentage) / afModRate, afModRate, afModThreshold, abDoOverlay)
 	if abAutoResume
 		GoToState(DefaultState)
 	endIf
 EndEvent
 
-Event OnBiS_DecreaseActorDirtiness(Float afTargetLevel, Float afModRate, Float afModThreshold, Bool abAutoResume)
+Event OnBiS_DecreaseActorDirtiness(Float afTargetLevel, Float afModRate, Float afModThreshold, Bool abDoOverlay, Bool abAutoResume)
 	If (GetState() != DefaultState) || (LocalDirtinessPercentage <= afTargetLevel)
 		Return
 	EndIf
 	GoToState("PAUSED")
-	ModDirtinessState_Decrease(afTargetLevel, (LocalDirtinessPercentage - afTargetLevel) / afModRate, afModRate, afModThreshold)
+	ModDirtinessState_Decrease(afTargetLevel, (LocalDirtinessPercentage - afTargetLevel) / afModRate, afModRate, afModThreshold, abDoOverlay)
 	if abAutoResume
 		GoToState(DefaultState)
 	endIf
@@ -293,12 +294,12 @@ Function StartDirtCycle(Actor Target)
 		If !InitialDirtinessTier
 			LocalDirtinessPercentage = 0.0
 		Else
-			ApplyDirtLeadIn(Menu.DirtAlphaStart)
+			ApplyDirtLeadIn(Menu.OverlayAlphaMin)
 		EndIf
 		DirtyActor.AddSpell(DirtinessSpellList.GetAt(InitialDirtinessTier) As Spell, False)
 	EndIf
 
-	BatheQuest.UpdateActorDirtinessPercent(Target, LocalDirtinessPercentage)
+	BatheQuest.SetActorDirtinessPercent(Target, LocalDirtinessPercentage)
 	ProgressAlpha()
 
 	Float LastUpdate = GetFloatValue(DirtyActor, "BiS_LastUpdate", -100.0)
@@ -321,52 +322,44 @@ Function StartDirtCycle(Actor Target)
 EndFunction
 
 Function ResetDirtinessState(Float TargetLevel, Float TimeToClean, Float TimeToCleanInterval)
-	; Lowers the Alpha value of a target actor's dirt overlay to the Alpha value at which typical overlays begin applying
+	; Lowers the Alpha value of a target actor's overlays to the Alpha value at which typical overlays begin applying
 
-	If Menu.DirtAlphaStart < TargetLevel
-		TargetLevel = Menu.DirtAlphaStart
+	If Menu.OverlayAlphaMin < TargetLevel
+		TargetLevel = Menu.OverlayAlphaMin
 	EndIf
 	If TimeToClean < TimeToCleanInterval
 		TimeToClean = TimeToCleanInterval
 	EndIf
 
-	Float DirtinessSum = LocalDirtinessPercentage
 	Float DirtAlpha = OlUtil.GetAlphaOverride("Dirt", DirtyActor)
 	Float BloodAlpha = OlUtil.GetAlphaOverride("Blood", DirtyActor)
-	If DirtAlpha > DirtinessSum
-		DirtinessSum = DirtAlpha
-	EndIf
-	If BloodAlpha > DirtinessSum
-		DirtinessSum = BloodAlpha
-	EndIf
-	
 	Bool BreakCondition = DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
-	Float DirtToClean = ((DirtinessSum - TargetLevel) / (TimeToClean / TimeToCleanInterval))
-	if !(DirtToClean > 0)
+	Float AmtToClean = ((LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval))
+	if !(AmtToClean > 0)
 		return
 	endIf
 	
 	Utility.Wait(3.0)
 
-	While (DirtinessSum != TargetLevel) && (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
-		if TargetLevel > (DirtinessSum - DirtToClean)
-			DirtinessSum = TargetLevel
+	While (LocalDirtinessPercentage != TargetLevel) && (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
+		if TargetLevel > (LocalDirtinessPercentage - AmtToClean)
+			LocalDirtinessPercentage = TargetLevel
 		Else
-			DirtinessSum -= DirtToClean
+			LocalDirtinessPercentage -= AmtToClean
 		endIf
-		if HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-			OlUtil.UpdateAlpha("Dirt", DirtyActor, DirtinessSum)
+		if DirtAlpha > 0
+			DirtAlpha -= AmtToClean
+			OlUtil.UpdateAlpha("Dirt", DirtyActor, DirtAlpha)
 		endIf
-		if HasStringValue(DirtyActor, "mzin_BloodTexturePrefix")
-			OlUtil.UpdateAlpha("Blood", DirtyActor, DirtinessSum)
+		if BloodAlpha > 0
+			BloodAlpha -= AmtToClean
+			OlUtil.UpdateAlpha("Blood", DirtyActor, BloodAlpha)
 		endIf
 		Utility.Wait(TimeToCleanInterval)
 	EndWhile
-
-	LocalDirtinessPercentage = DirtinessSum
 EndFunction
 
-Function ModDirtinessState(Float ModAmount, Float ModRate, Float ModThreshold)
+Function ModDirtinessState(Float ModAmount, Float ModRate, Float ModThreshold, Bool DoOverlay)
 	; Lowers or raises the dirt percentage and overlay alpha of a target actor
 
 	ModAmount += LocalDirtinessPercentage
@@ -378,72 +371,83 @@ Function ModDirtinessState(Float ModAmount, Float ModRate, Float ModThreshold)
 		If ModAmount > 1.0
 			ModAmount = 1.0
 		EndIf
-		ModDirtinessState_Increase(ModAmount, (ModAmount - LocalDirtinessPercentage) / ModRate, ModRate, ModThreshold)
+		ModDirtinessState_Increase(ModAmount, (ModAmount - LocalDirtinessPercentage) / ModRate, ModRate, ModThreshold, DoOverlay)
 	elseIf ModAmount < LocalDirtinessPercentage
 		If ModAmount < 0.0
 			ModAmount = 0.0
 		EndIf
-		ModDirtinessState_Decrease(ModAmount, (LocalDirtinessPercentage - ModAmount) / ModRate, ModRate, ModThreshold)
+		ModDirtinessState_Decrease(ModAmount, (LocalDirtinessPercentage - ModAmount) / ModRate, ModRate, ModThreshold, DoOverlay)
 	endIf
 EndFunction
 
-Function ModDirtinessState_Increase(Float ModTarget, Float ModIncrement, Float ModRate, Float ModThreshold)
-	Bool bFlag_Dirt = HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
+Function ModDirtinessState_Increase(Float ModTarget, Float ModIncrement, Float ModRate, Float ModThreshold, Bool DoOverlay)
+	If DoOverlay
+		Float fAlpha_Dirt = OlUtil.GetAlphaOverride("Dirt", DirtyActor)
+		Float fAlpha_Blood = OlUtil.GetAlphaOverride("Blood", DirtyActor)
 
-	If !(ModThreshold as int)
-		ModThreshold = Menu.DirtOverlayApplyAt
+		If !(ModThreshold as int)
+			ModThreshold = Menu.DirtOverlayApplyAt
+		EndIf
+		While LocalDirtinessPercentage != ModTarget
+			If ModTarget < (LocalDirtinessPercentage + ModIncrement)
+				LocalDirtinessPercentage = ModTarget
+			Else
+				LocalDirtinessPercentage += ModIncrement
+			EndIf
+			If fAlpha_Dirt && (fAlpha_Dirt < LocalDirtinessPercentage)
+				OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
+			ElseIf LocalDirtinessPercentage >= ModThreshold
+				OlUtil.BeginOverlay("Dirt", DirtyActor, ModThreshold, Menu.DirtOverlayTint)
+			EndIf
+			If fAlpha_Blood && (fAlpha_Blood < LocalDirtinessPercentage)
+				OlUtil.UpdateAlpha("Blood", DirtyActor, LocalDirtinessPercentage)
+			EndIf
+			Utility.Wait(ModRate)
+		EndWhile
+	Else
+		LocalDirtinessPercentage = ModTarget
 	EndIf
-	While LocalDirtinessPercentage != ModTarget
-		If ModTarget < (LocalDirtinessPercentage + ModIncrement)
-			LocalDirtinessPercentage = ModTarget
-		Else
-			LocalDirtinessPercentage += ModIncrement
-		EndIf
-		If bFlag_Dirt
-			OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
-		ElseIf LocalDirtinessPercentage >= ModThreshold
-			OlUtil.BeginOverlay("Dirt", DirtyActor, ModThreshold, Menu.DirtOverlayTint)
-			bFlag_Dirt = !bFlag_Dirt
-		EndIf
-		Utility.Wait(ModRate)
-	EndWhile
 	SetLastUpdate()
 	RenewDirtSpell(false)
 EndFunction
 
-Function ModDirtinessState_Decrease(Float ModTarget, Float ModDecrement, Float ModRate, Float ModThreshold)
-	Bool bFlag_Dirt = HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-	Bool bFlag_Blood = HasStringValue(DirtyActor, "mzin_BloodTexturePrefix")
-	
-	If !(ModThreshold as int)
-		ModThreshold = Menu.DirtOverlayApplyAt
-	EndIf
+Function ModDirtinessState_Decrease(Float ModTarget, Float ModDecrement, Float ModRate, Float ModThreshold, Bool DoOverlay)
+	If DoOverlay
+		Float fAlpha_Dirt = OlUtil.GetAlphaOverride("Dirt", DirtyActor)
+		Float fAlpha_Blood = OlUtil.GetAlphaOverride("Blood", DirtyActor)
+		
+		If !(ModThreshold as int)
+			ModThreshold = Menu.DirtOverlayApplyAt
+		EndIf
 
-	While LocalDirtinessPercentage != ModTarget
-		If ModTarget > (LocalDirtinessPercentage - ModDecrement)
-			LocalDirtinessPercentage = ModTarget
-		Else
-			LocalDirtinessPercentage -= ModDecrement
-		EndIf
-		If (LocalDirtinessPercentage < ModThreshold)
-			if bFlag_Dirt
-				OlUtil.RemoveOverlay("Dirt", DirtyActor, true)
-				bFlag_Dirt = !bFlag_Dirt
-			endIf
-			if bFlag_Blood
-				OlUtil.RemoveOverlay("Blood", DirtyActor, true)
-				bFlag_Blood = !bFlag_Blood
-			endIf
-		else
-			if bFlag_Dirt
-				OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
-			endIf
-			if bFlag_Blood
-				OlUtil.UpdateAlpha("Blood", DirtyActor, LocalDirtinessPercentage)
-			endIf
-		EndIf
-		Utility.Wait(ModRate)
-	EndWhile
+		While LocalDirtinessPercentage != ModTarget
+			If ModTarget > (LocalDirtinessPercentage - ModDecrement)
+				LocalDirtinessPercentage = ModTarget
+			Else
+				LocalDirtinessPercentage -= ModDecrement
+			EndIf
+			If (LocalDirtinessPercentage < ModThreshold)
+				if fAlpha_Dirt
+					OlUtil.RemoveOverlay("Dirt", DirtyActor, true)
+					fAlpha_Dirt = 0.0
+				endIf
+				if fAlpha_Blood
+					OlUtil.RemoveOverlay("Blood", DirtyActor, true)
+					fAlpha_Blood = 0.0
+				endIf
+			else
+				if fAlpha_Dirt > LocalDirtinessPercentage
+					OlUtil.UpdateAlpha("Dirt", DirtyActor, LocalDirtinessPercentage)
+				endIf
+				if fAlpha_Blood > LocalDirtinessPercentage
+					OlUtil.UpdateAlpha("Blood", DirtyActor, LocalDirtinessPercentage)
+				endIf
+			EndIf
+			Utility.Wait(ModRate)
+		EndWhile
+	Else
+		LocalDirtinessPercentage = ModTarget
+	EndIf
 	SetLastUpdate()
 	RenewDirtSpell(true)
 EndFunction
@@ -493,43 +497,45 @@ Int Function GetCurrentDirtSpellIndex(Int Index, Int Constraint)
 	Return -1
 EndFunction
 
-Bool Function RegressDirtSpell()
+Int Function RegressDirtSpell()
 	Int Index = 0
 	While Index < DirtinessSpellList.GetSize() - 1
 		If LocalDirtinessPercentage < (DirtinessThresholdList.GetAt(Index + 1) As GlobalVariable).GetValue()
 			if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
-				Return True
+				Return Index
 			else
 				If DirtyActorIsPlayer
 					mzinUtil.GameMessage(ExitTierMessageList.GetAt(GetCurrentDirtSpellIndex(Index + 1, DirtinessSpellList.GetSize())) As Message)
 				EndIf
 				RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwDirtinessSpell, false)
-				Return DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
+				DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
+				Return Index
 			endIf
 		EndIf
 		Index += 1
 	EndWhile
-	Return False
+	Return -1
 EndFunction
 
-Bool Function ProgressDirtSpell()
+Int Function ProgressDirtSpell()
 	Int Index = DirtinessSpellList.GetSize()
 	While Index > 0
 		Index -= 1
 		If LocalDirtinessPercentage >= (DirtinessThresholdList.GetAt(Index) As GlobalVariable).GetValue()
 			if DirtyActor.HasSpell(DirtinessSpellList.GetAt(Index) As Spell)
-				Return True
+				Return Index
 			else
 				RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwSoapBonusSpell, false)
 				RemoveAddedSpells(DirtyActor, "", mzinUtil.arrkwDirtinessSpell, false)
 				If DirtyActorIsPlayer
 					mzinUtil.GameMessage(EnterTierMessageList.GetAt(Index) As Message)
 				EndIf
-				Return DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
+				DirtyActor.AddSpell(DirtinessSpellList.GetAt(Index) As Spell, False)
+				Return Index
 			endIf
 		EndIf
 	EndWhile
-	Return False
+	Return -1
 EndFunction
 
 Function ApplyDirtLeadIn(Float targetAlpha)
@@ -539,8 +545,8 @@ Function ApplyDirtLeadIn(Float targetAlpha)
 EndFunction
 
 Function RenewDirtSpell(bool abRegress = false)
-	BatheQuest.UpdateActorDirtinessPercent(DirtyActor, LocalDirtinessPercentage)
-	ApplyDirtLeadIn(Menu.DirtAlphaStart)
+	BatheQuest.SetActorDirtinessPercent(DirtyActor, LocalDirtinessPercentage)
+	ApplyDirtLeadIn(Menu.OverlayAlphaMin)
 	if abRegress
 		RegressDirtSpell()
 	else
@@ -567,7 +573,7 @@ EndFunction
 
 Function ProgressAlpha()
 	if HasStringValue(DirtyActor, "mzin_DirtTexturePrefix")
-		Float Alpha = Menu.DirtAlphaStart + (LocalDirtinessPercentage * LocalDirtinessPercentage * LocalDirtinessPercentage)
+		Float Alpha = Menu.OverlayAlphaMin + pow(LocalDirtinessPercentage, 3)
 		If Alpha > 1.0
 			Alpha = 1.0
 		EndIf
@@ -739,7 +745,7 @@ EndFunction
 
 Function EndAnimationState()
 	mzinAnimationInProcList.RemoveAddedForm(DirtyActor)
-	BatheQuest.UpdateActorDirtinessPercent(DirtyActor, LocalDirtinessPercentage)
+	BatheQuest.SetActorDirtinessPercent(DirtyActor, LocalDirtinessPercentage)
 	GoToState(DefaultState)
 EndFunction
 
