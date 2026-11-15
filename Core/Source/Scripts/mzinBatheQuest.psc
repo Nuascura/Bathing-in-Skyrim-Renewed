@@ -102,7 +102,7 @@ Bool Function TryWashActor(Actor DirtyActor, MiscObject WashProp, Bool Shower = 
 EndFunction
 
 Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower = false, Bool DoPlayerTeammates = false, Bool DoAnimate = true, Bool DoFullClean = false)
-	mzinUtil.Send_TargetedEvent(DirtyActor, "PauseActorDirt")
+	mzinUtil.Send_TargetedEvent(DirtyActor, "PauseActorDirtiness")
 
 	Bool DirtyActorIsPlayer = (DirtyActor == PlayerRef)
 	If DirtyActorIsPlayer
@@ -134,7 +134,7 @@ Function WashActor(Actor DirtyActor, MiscObject WashProp = none, Bool DoShower =
 		EndIf
 		SetFormValue(DirtyActor, "mzin_LastWashProp", WashProp)
 		SetIntValue(DirtyActor, "mzin_LastWashState", DoShower as int)
-		mzinUtil.Send_ResetActorDirt(DirtyActor, DoFullClean)
+		mzinUtil.Send_ResetActorDirtiness(DirtyActor, DoFullClean)
 		DirtyActor.AddSpell(PlayBathingAnimation, False)
 	Else
 		ResetGDOTSpell(DirtyActor, (DirtinessThresholdList.GetAt((!DoFullClean) as int) As GlobalVariable).GetValue())

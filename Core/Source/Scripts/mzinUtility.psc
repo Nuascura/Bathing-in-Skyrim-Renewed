@@ -328,7 +328,7 @@ String Function GetRacePath(Actor TargetActor)
 	Return ""
 EndFunction
 
-Function Send_ResetActorDirt(Form akTarget, Bool UsedSoap)
+Function Send_ResetActorDirtiness(Form akTarget, Bool UsedSoap)
 	int BiS_EventID = ModEvent.Create("BiS_ResetActorDirtiness_" + akTarget.GetFormID())
     If (BiS_EventID)
 		ModEvent.PushFloat(BiS_EventID, Menu.TimeToClean)
@@ -352,7 +352,8 @@ EndFunction
 
 Function Send_TargetedEvent(Form akTarget, String EventName)
 	; Possible string(s):
-		; BiS_BatheEvent_
+		; PauseActorDirtiness
+		; ResumeActorDirtines
 	int BiS_EventID = ModEvent.Create("BiS_" + EventName + "_" + akTarget.GetFormID())
 	If !(BiS_EventID && ModEvent.Send(BiS_EventID))
 		ModEvent.Release(BiS_EventID)
