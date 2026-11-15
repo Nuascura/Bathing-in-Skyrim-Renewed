@@ -96,10 +96,6 @@ EndEvent
 
 ; ---------- Mod Events ----------
 
-Event OnBiS_UpdateAlpha_Dirt()
-	ProgressAlpha()
-EndEvent
-
 Event OnBiS_UpdateActorsAll()
 	Utility.Wait(0.5)
 	mzinUtil.LogTrace("OnBiS_UpdateActorsAll: " + DirtyActor.GetBaseObject().GetName())
@@ -177,7 +173,6 @@ EndEvent
 
 Function RegisterForEvents()
 	RegisterForModEvent("BiS_SetDefaultState_" + DirtyActorFID, "OnBiS_SetDefaultState")
-	RegisterForModEvent("BiS_UpdateAlpha_Dirt_" + DirtyActorFID, "OnBiS_UpdateAlpha_Dirt_Dirt")
 	RegisterForModEvent("BiS_ModActorDirtiness_" + DirtyActorFID, "OnBiS_ModActorDirtiness")
 	RegisterForModEvent("BiS_IncreaseActorDirtiness_" + DirtyActorFID, "OnBiS_IncreaseActorDirtiness")
 	RegisterForModEvent("BiS_DecreaseActorDirtiness_" + DirtyActorFID, "OnBiS_DecreaseActorDirtiness")
@@ -246,8 +241,6 @@ State PAUSED
 	Event OnUpdate()
 	EndEvent
 	Event OnUpdateGameTime()
-	EndEvent
-	Event OnBiS_UpdateAlpha_Dirt()
 	EndEvent
 	Event OnBiS_UpdateActorsAll()
 	EndEvent
