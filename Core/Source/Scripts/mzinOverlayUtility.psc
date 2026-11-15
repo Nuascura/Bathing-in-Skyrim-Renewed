@@ -284,9 +284,9 @@ Function ReapplyDirt(Actor akTarget)
 	false)
 EndFunction
 
-Function ApplyBlood(Actor akTarget, Int Tint, Bool UnsetPrefix = true)
+Function ApplyBlood(Actor akTarget, Float Alpha, Int Tint, Bool UnsetPrefix = true)
 	RemoveOverlay("Blood", akTarget, UnsetPrefix)
-	BeginOverlay("Blood", akTarget, 1.0, Tint)
+	BeginOverlay("Blood", akTarget, Alpha, Tint)
 EndFunction
 
 Function ReapplyBlood(Actor akTarget)
@@ -296,6 +296,7 @@ Function ReapplyBlood(Actor akTarget)
 
 	String Node = GetLastNode("Blood", akTarget, 0)
 	ApplyBlood(akTarget, \
+	GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 8, -1), \
 	GetNodeOverrideInt(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 7, -1), \
 	false)
 EndFunction
