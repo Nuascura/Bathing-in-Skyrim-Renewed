@@ -1,8 +1,21 @@
 2.8.0
 Primary
-- Add: Targeted overlay application per owning mod plugin.
-- Fix: HMS mult magnitude values.
-- Remove: Player Override State.
+- Add: Blood overlay cycle.
+- Add: Race Override.
+
+Secondary
+- feat: Clear blood by swimming.
+- feat: Blood texture decay.
+- feat: Targeted overlay application per owning mod plugin.
+- fix: Function header consistency.
+- fix: HMS mult magnitude values.
+- refactor: Append "- Core" to GDOT mgef name.
+- refactor: Overlay application handling.
+- refactor: Cache FormID retrieval for referencing.
+- refactor: API semantic consistency.
+- refactor!: Remove Player Override State.
+- refactor!: Remove BiS_UpdateAlpha / _Dirt
+- chore: Update localization file.
 
 
 
