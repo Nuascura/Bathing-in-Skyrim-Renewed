@@ -2,6 +2,7 @@ Scriptname mzinGetDirtyOverBlood extends activemagiceffect
 { this script modifies the player's bloodiness }
 
 import ModEvent
+import Math
 import PO3_Events_AME
 import StorageUtil
 
@@ -33,11 +34,12 @@ Event OnUpdate()
 EndEvent
 
 Event OnUpdateGameTime()
-    If OlUtil.GetAlphaOverride("Blood", DirtyActor) < 1.0
+    If HasStringValue(DirtyActor, "mzin_BloodTexturePrefix")
         DecayBlood()
     EndIf
     RegisterForEvents()
     RegisterForSingleUpdateGameTime(DirtinessUpdateInterval.GetValue())
+    LocalLastUpdateTime = GameDaysPassed.GetValue()
 EndEvent
 
 ; ---------- Core States ----------
@@ -108,7 +110,25 @@ Function StartBloodCycle(Actor Target)
 EndFunction
 
 Function DecayBlood()
-    ; todo
+    Int currentTint = OlUtil.GetTintOverride("Blood", DirtyActor)
+    If !currentTint
+        Return
+    EndIf
+
+    Float HoursPassed = (GameDaysPassed.GetValue() - LocalLastUpdateTime) * 24
+    Float DecayPercent = pow(Menu.BloodDecayPerHour, HoursPassed)
+
+    If DecayPercent < 0
+        DecayPercent = 0
+    ElseIf DecayPercent > 1
+        DecayPercent = 1
+    EndIf
+    
+    Int r = (LogicalAnd((currentTint / 0x10000) as int, 0xFF) * DecayPercent) as int
+    Int g = (LogicalAnd((currentTint / 0x100) as int, 0xFF) * DecayPercent) as int
+    Int b = (LogicalAnd(currentTint, 0xFF) * DecayPercent) as int
+    
+    OlUtil.UpdateTint("Blood", DirtyActor, (r * 0x10000) + (g * 0x100) + b)
 EndFunction
 
 Function RenewBloodCycle()

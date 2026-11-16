@@ -31,7 +31,7 @@ Float Property SexInterval = 1.0 Auto Hidden
 GlobalVariable Property DirtShaderEnabled Auto
 Float Property DirtOverlayApplyAt = 0.40 Auto Hidden
 Int Property DirtOverlayTint = 0xFFFFFF Auto Hidden
-Float Property BloodDecayMax = 0.85 Auto Hidden
+Float Property BloodDecayPerHour = 0.50 Auto Hidden
 Float Property BloodDirtyMin = 0.75 Auto Hidden
 Float Property OverlayAlphaMin = 0.15 Auto Hidden
 Float Property TimeToClean = 10.0 Auto Hidden
@@ -537,7 +537,7 @@ Function DisplayEffectsPage()
 	DirtOverlayTintOID_C = AddColorOption("$BIS_L_DIRTOVERLAYTINT", DirtOverlayTint)
 
 	AddHeaderOption("$BIS_HEADER_BLOOD")
-	BloodDecayMaxOID_S = AddSliderOption("$BIS_L_BLOODDECAYMAX", BloodDecayMax * 100.0, DF_Percentage)
+	BloodDecayPerHourOID_S = AddSliderOption("$BIS_L_BLOODDECAYPERHOUR", BloodDecayPerHour * 100.0, DF_Percentage)
 	BloodDirtyMinOID_S = AddSliderOption("$BIS_L_BLOODDIRTYMIN", BloodDirtyMin * 100.0, DF_Percentage)
 
 	SetCursorPosition(1)
@@ -906,9 +906,9 @@ Function HandleOnOptionDefaultEffectsPage(Int OptionID)
 	ElseIf OptionID == DirtOverlayTintOID_C
 		DirtOverlayTint = 0xFFFFFF
 		SetColorOptionValue(OptionID, 0xFFFFFF)
-	ElseIf OptionID == BloodDecayMaxOID_S
-		BloodDecayMax = 0.85
-		SetSliderOptionValue(OptionID, BloodDecayMax, DF_Percentage)
+	ElseIf OptionID == BloodDecayPerHourOID_S
+		BloodDecayPerHour = 0.50
+		SetSliderOptionValue(OptionID, BloodDecayPerHour, DF_Percentage)
 	ElseIf OptionID == BloodDirtyMinOID_S
 		BloodDirtyMin = 0.75
 		SetSliderOptionValue(OptionID, BloodDirtyMin, DF_Percentage)
@@ -1108,8 +1108,8 @@ Function HandleOnOptionHighlightEffectsPage(int OptionID)
 		SetInfoText("$BIS_DESC_OVERLAYALPHAMIN")
 	ElseIf OptionID == DirtOverlayTintOID_C
 		SetInfoText("$BIS_DESC_DIRTOVERLAYTINT")
-	ElseIf OptionID == BloodDecayMaxOID_S
-		SetInfoText("$BIS_DESC_BLOODDECAYMAX")
+	ElseIf OptionID == BloodDecayPerHourOID_S
+		SetInfoText("$BIS_DESC_BLOODDECAYPERHOUR")
 	ElseIf OptionID == BloodDirtyMinOID_S
 		SetInfoText("$BIS_DESC_BLOODDIRTYMIN")
 	ElseIf OptionID == TimeToCleanOID_S
@@ -1675,17 +1675,14 @@ Function HandleOnOptionSliderAcceptEffectsPage(Int OptionID, Float OptionValue)
 		DisplayFormat = DF_Percentage_Dirt
 		SliderValue = OptionValue
 		DirtOverlayApplyAt = SliderValue / 100.0
-		UpdateAllActors()
 	ElseIf OptionID == OverlayAlphaMinOID_S
 		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue
 		OverlayAlphaMin = SliderValue / 100.0
-		UpdateAllActors()
-	ElseIf OptionID == BloodDecayMaxOID_S
+	ElseIf OptionID == BloodDecayPerHourOID_S
 		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue
-		BloodDecayMax = SliderValue / 100.0
-		UpdateAllActors()
+		BloodDecayPerHour = SliderValue / 100.0
 	ElseIf OptionID == BloodDirtyMinOID_S
 		DisplayFormat = DF_Percentage
 		SliderValue = OptionValue
@@ -1976,12 +1973,12 @@ Function HandleOnOptionSliderOpenEffectsPage(int OptionID)
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
 		SliderValue = OverlayAlphaMin * 100.0
-	ElseIf OptionID == BloodDecayMaxOID_S
+	ElseIf OptionID == BloodDecayPerHourOID_S
 		DisplayFormat = DF_Percentage
-		SetSliderDialogDefaultValue(85.0)
+		SetSliderDialogDefaultValue(50.0)
 		SetSliderDialogRange(0.0, 100.0)
 		SetSliderDialogInterval(0.5)
-		SliderValue = BloodDecayMax * 100.0
+		SliderValue = BloodDecayPerHour * 100.0
 	ElseIf OptionID == BloodDirtyMinOID_S
 		DisplayFormat = DF_Percentage
 		SetSliderDialogDefaultValue(75.0)
@@ -2225,7 +2222,7 @@ Bool Function SavePapyrusSettings()
 	SetFloatValue(config, "DirtOverlayApplyAt", DirtOverlayApplyAt)
 	SetFloatValue(config, "OverlayAlphaMin", OverlayAlphaMin)
 	SetIntValue(config, "DirtOverlayTint", DirtOverlayTint)
-	SetFloatValue(config, "BloodDecayMax", BloodDecayMax)
+	SetFloatValue(config, "BloodDecayPerHour", BloodDecayPerHour)
 	SetFloatValue(config, "BloodDirtyMin", BloodDirtyMin)
 	SetFloatValue(config, "SexIntervalDirt", SexIntervalDirt)
 	SetFloatValue(config, "SexInterval", SexInterval)
@@ -2335,7 +2332,7 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 	DirtinessPerSexActor = GetFloatValue(config, "DirtinessPerSexActor", DirtinessPerSexActor)
 	OverlayAlphaMin = GetFloatValue(config, "OverlayAlphaMin", OverlayAlphaMin)
 	DirtOverlayTint = GetIntValue(config, "DirtOverlayTint", DirtOverlayTint)
-	BloodDecayMax = GetFloatValue(config, "BloodDecayMax", BloodDecayMax)
+	BloodDecayPerHour = GetFloatValue(config, "BloodDecayPerHour", BloodDecayPerHour)
 	BloodDirtyMin = GetFloatValue(config, "BloodDirtyMin", BloodDirtyMin)
 	VictimMult = GetFloatValue(config, "VictimMult", VictimMult)
 	DirtOverlayApplyAt = GetFloatValue(config, "DirtOverlayApplyAt", DirtOverlayApplyAt)
@@ -2372,13 +2369,6 @@ Bool Function LoadPapyrusSettings(Bool abSilent = false)
 		ShowMessage("$BIS_MSG_COMPLETED_LOAD", False)
 	endIf
 	return true
-EndFunction
-
-Function UpdateAllActors()
-	int BiS_UpdateAllActorsEvent = ModEvent.Create("BiS_UpdateActorsAll")
-    If (BiS_UpdateAllActorsEvent)
-        ModEvent.Send(BiS_UpdateAllActorsEvent)
-    EndIf
 EndFunction
 
 Function UnForbidAllActor()
@@ -2492,7 +2482,7 @@ Int DirtShaderEnabledOID_T
 Int DirtOverlayApplyAtOID_S
 Int OverlayAlphaMinOID_S
 Int DirtOverlayTintOID_C
-Int BloodDecayMaxOID_S
+Int BloodDecayPerHourOID_S
 Int BloodDirtyMinOID_S
 Int TimeToCleanOID_S
 Int TimeToCleanIntervalOID_S

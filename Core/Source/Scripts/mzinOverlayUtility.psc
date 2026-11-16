@@ -107,6 +107,50 @@ Float Function GetAlphaOverride(String OvlTag, Actor akTarget)
 	Return 0.0
 EndFunction
 
+Function UpdateTint(String OvlTag, Actor akTarget, Int Tint)
+	If Tint > 0xFFFFFF
+		Tint = 0xFFFFFF
+	EndIf
+	String Node
+	Bool Result = false
+	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
+	String TexPath = GetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix")
+	String MatchString
+	Int i = Areas.Length
+	While i > 0
+		i -= 1
+		Int j = GetNumSlots(Areas[i])
+		MatchString = (TexPath + OvlTag + "FX" + Areas[i] + ".dds")
+		While j > 0 && !Result
+			j -= 1
+			Node = Areas[i] + " [ovl" + j + "]"
+			If GetNodeOverrideString(akTarget, Gender, Node, 9, 0) == MatchString
+				AddNodeOverrideInt(akTarget, Gender, Node, 7, -1, Tint, TRUE)
+				Result = true
+			EndIf
+		EndWhile
+		Result = false
+	EndWhile
+EndFunction
+
+Int Function GetTintOverride(String OvlTag, Actor akTarget)
+	String TexPath = GetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix")
+	If TexPath
+		String Node
+		Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
+		Int j = GetNumSlots("Body")
+		String MatchString = (TexPath + OvlTag + "FXBody.dds")
+		While j > 0
+			j -= 1
+			Node = "Body [ovl" + j + "]"
+			If GetNodeOverrideString(akTarget, Gender, Node, 9, 0) == MatchString
+				Return GetNodeOverrideInt(akTarget, Gender, Node, 7, -1)
+			EndIf
+		EndWhile
+	EndIf
+	Return 0
+EndFunction
+
 String Function GetLastNode(String OvlTag, Actor akTarget, Int aiArea)
 	String Node
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
@@ -267,6 +311,11 @@ Function RemoveOverlayNode(Actor akTarget, Bool Gender, String Node)
 	RemoveNodeOverride(akTarget, Gender, Node, 3, -1)
 EndFunction
 
+Function ReapplyOverlays(Actor akTarget)
+	ReapplyDirt(akTarget)
+	ReapplyBlood(akTarget)
+EndFunction
+
 Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint, Bool UnsetPrefix = true)
 	RemoveOverlay("Dirt", akTarget, UnsetPrefix)
 	BeginOverlay("Dirt", akTarget, Alpha, Tint)
@@ -277,10 +326,12 @@ Function ReapplyDirt(Actor akTarget)
 		Return
 	EndIf
 
+	Bool Gender = akTarget.GetLeveledActorBase().GetSex()
+
 	String Node = GetLastNode("Dirt", akTarget, 0)
 	ApplyDirt(akTarget, \
-	GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 8, -1), \
-	GetNodeOverrideInt(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 7, -1), \
+	GetNodeOverrideFloat(akTarget, Gender, Node, 8, -1), \
+	GetNodeOverrideInt(akTarget, Gender, Node, 7, -1), \
 	false)
 EndFunction
 
@@ -294,9 +345,11 @@ Function ReapplyBlood(Actor akTarget)
 		Return
 	EndIf
 
+	Bool Gender = akTarget.GetLeveledActorBase().GetSex()
+
 	String Node = GetLastNode("Blood", akTarget, 0)
 	ApplyBlood(akTarget, \
-	GetNodeOverrideFloat(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 8, -1), \
-	GetNodeOverrideInt(akTarget, akTarget.GetLeveledActorBase().GetSex(), Node, 7, -1), \
+	GetNodeOverrideFloat(akTarget, Gender, Node, 8, -1), \
+	GetNodeOverrideInt(akTarget, Gender, Node, 7, -1), \
 	false)
 EndFunction
