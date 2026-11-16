@@ -102,8 +102,7 @@ Event OnBiS_UpdateActorsAll()
 	If DirtyActor.IsDead()
 		OnDeath(none)
 	ElseIf DirtyActor.Is3DLoaded()
-		OlUtil.ReapplyDirt(DirtyActor)
-		OlUtil.ReapplyBlood(DirtyActor)
+		OlUtil.ReapplyOverlays(DirtyActor)
 	EndIf
 EndEvent
 
@@ -324,9 +323,10 @@ Function ResetDirtinessState(Float TargetLevel, Float TimeToClean, Float TimeToC
 		TimeToClean = TimeToCleanInterval
 	EndIf
 
-	Float DirtAlpha = OlUtil.GetAlphaOverride("Dirt", DirtyActor)
-	Float BloodAlpha = OlUtil.GetAlphaOverride("Blood", DirtyActor)
 	Bool BreakCondition = DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
+
+	Float BloodToClean = ((OlUtil.GetAlphaOverride("Blood", DirtyActor) - TargetLevel) / (TimeToClean / TimeToCleanInterval))
+	Float DirtToClean = ((OlUtil.GetAlphaOverride("Dirt", DirtyActor) - TargetLevel) / (TimeToClean / TimeToCleanInterval))
 	Float AmtToClean = ((LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval))
 	if !(AmtToClean > 0)
 		return
@@ -340,13 +340,13 @@ Function ResetDirtinessState(Float TargetLevel, Float TimeToClean, Float TimeToC
 		Else
 			LocalDirtinessPercentage -= AmtToClean
 		endIf
-		if DirtAlpha > 0
-			DirtAlpha -= AmtToClean
-			OlUtil.UpdateAlpha("Dirt", DirtyActor, DirtAlpha)
+		if DirtToClean > 0
+			DirtToClean -= AmtToClean
+			OlUtil.UpdateAlpha("Dirt", DirtyActor, DirtToClean)
 		endIf
-		if BloodAlpha > 0
-			BloodAlpha -= AmtToClean
-			OlUtil.UpdateAlpha("Blood", DirtyActor, BloodAlpha)
+		if BloodToClean > 0
+			BloodToClean -= AmtToClean
+			OlUtil.UpdateAlpha("Blood", DirtyActor, BloodToClean)
 		endIf
 		Utility.Wait(TimeToCleanInterval)
 	EndWhile
