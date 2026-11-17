@@ -56,7 +56,8 @@ EndState
 
 State IsBloody
 	Event OnUpdate()
-        OlUtil.UpdateAlpha("Blood", DirtyActor, 1.0)
+        OlUtil.UpdateAlpha("Blood", DirtyActor, 1.0, False)
+        OlUtil.UpdateTint("Blood", DirtyActor, 0xFFFFFF)
         RenewBloodCycle()
     EndEvent
 EndState
