@@ -34,6 +34,7 @@ Function BeginOverlay(String OvlTag, Actor akTarget, Float Alpha = 1.0, Int Tint
 		ReadyOverlay(akTarget, Gender as Bool, Areas[i], (TextureToApply + Areas[i] + ".dds"), Alpha, Tint)
 		i += 1
 	EndWhile
+	ApplyNodeOverrides(akTarget)
 EndFunction
 
 Function ReadyOverlay(Actor akTarget, Bool Gender, String Area, String TextureToApply, Float Alpha, Int Tint)
@@ -59,11 +60,9 @@ Function ApplyOverlay(Actor akTarget, Bool Gender, String Area, String OverlaySl
     AddNodeOverrideFloat(akTarget, Gender, Node, 8, -1, Alpha, TRUE)
 	AddNodeOverrideFloat(akTarget, Gender, Node, 3, -1, 0.0, TRUE)
 	AddNodeOverrideFloat(akTarget, Gender, Node, 2, -1, 0.0, TRUE)
-	
-	ApplyNodeOverrides(akTarget)
 EndFunction
 
-Function UpdateAlpha(String OvlTag, Actor akTarget, Float Alpha)
+Function UpdateAlpha(String OvlTag, Actor akTarget, Float Alpha, Bool Push = True)
 	If Alpha < 0
 		Alpha = 0
 	EndIf
@@ -87,6 +86,9 @@ Function UpdateAlpha(String OvlTag, Actor akTarget, Float Alpha)
 		EndWhile
 		Result = false
 	EndWhile
+	If Push
+		ApplyNodeOverrides(akTarget)
+	EndIf
 EndFunction
 
 Float Function GetAlphaOverride(String OvlTag, Actor akTarget)
@@ -107,7 +109,7 @@ Float Function GetAlphaOverride(String OvlTag, Actor akTarget)
 	Return 0.0
 EndFunction
 
-Function UpdateTint(String OvlTag, Actor akTarget, Int Tint)
+Function UpdateTint(String OvlTag, Actor akTarget, Int Tint, Bool Push = True)
 	If Tint > 0xFFFFFF
 		Tint = 0xFFFFFF
 	EndIf
@@ -131,6 +133,9 @@ Function UpdateTint(String OvlTag, Actor akTarget, Int Tint)
 		EndWhile
 		Result = false
 	EndWhile
+	If Push
+		ApplyNodeOverrides(akTarget)
+	EndIf
 EndFunction
 
 Int Function GetTintOverride(String OvlTag, Actor akTarget)
@@ -268,7 +273,7 @@ Function RemoveOverlayGameLoad(Actor akTarget)
 	RemoveBloodGameLoad(akTarget)
 EndFunction
 
-Function RemoveOverlay(String OvlTag, Actor akTarget, Bool UnsetPrefix) ; Clears the first texture it finds from each overlay area - faster
+Function RemoveOverlay(String OvlTag, Actor akTarget, Bool UnsetPrefix, Bool Push = True) ; Clears the first texture it finds from each overlay area - faster
 	mzinUtil.LogTrace("Clearing overlay from " + akTarget.GetBaseObject().GetName())
 	Bool Gender = akTarget.GetLeveledActorBase().GetSex() as Bool
 	String TexPath
@@ -294,7 +299,9 @@ Function RemoveOverlay(String OvlTag, Actor akTarget, Bool UnsetPrefix) ; Clears
 		Result = false
 		i += 1
 	EndWhile
-	ApplyNodeOverrides(akTarget)
+	If Push
+		ApplyNodeOverrides(akTarget)
+	EndIf
 	if UnsetPrefix
 		UnSetStringValue(akTarget, "mzin_" + OvlTag + "TexturePrefix")
 	endIf
@@ -317,7 +324,7 @@ Function ReapplyOverlays(Actor akTarget)
 EndFunction
 
 Function ApplyDirt(Actor akTarget, Float Alpha, Int Tint, Bool UnsetPrefix = true)
-	RemoveOverlay("Dirt", akTarget, UnsetPrefix)
+	RemoveOverlay("Dirt", akTarget, UnsetPrefix, False)
 	BeginOverlay("Dirt", akTarget, Alpha, Tint)
 EndFunction
 
@@ -336,7 +343,7 @@ Function ReapplyDirt(Actor akTarget)
 EndFunction
 
 Function ApplyBlood(Actor akTarget, Float Alpha, Int Tint, Bool UnsetPrefix = true)
-	RemoveOverlay("Blood", akTarget, UnsetPrefix)
+	RemoveOverlay("Blood", akTarget, UnsetPrefix, False)
 	BeginOverlay("Blood", akTarget, Alpha, Tint)
 EndFunction
 
