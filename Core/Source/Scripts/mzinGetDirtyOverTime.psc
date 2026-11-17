@@ -4,6 +4,7 @@ ScriptName mzinGetDirtyOverTime Extends ActiveMagicEffect
 import PO3_SKSEFunctions
 import StorageUtil
 import Math
+import ModEvent
 
 mzinBatheQuest Property BatheQuest Auto
 mzinBatheMCMMenu Property Menu Auto
@@ -91,7 +92,7 @@ Event OnPlayerLoadGame()
 	if GetState() == DefaultState
 		RegisterForEvents()
 	endIf
-	ModEvent.Send(ModEvent.Create("BiS_UpdateActorsAll"))
+	;Send(Create("BiS_UpdateActorsAll"))
 EndEvent
 
 ; ---------- Mod Events ----------
@@ -103,6 +104,12 @@ Event OnBiS_UpdateActorsAll()
 		OnDeath(none)
 	ElseIf DirtyActor.Is3DLoaded()
 		OlUtil.ReapplyOverlays(DirtyActor)
+
+		;Nioverride.ApplyNodeOverrides(DirtyActor)
+
+		;if DirtyActor.IsOnMount()
+			;DirtyActor.QueueNiNodeUpdate()
+		;endIf
 	EndIf
 EndEvent
 
@@ -223,10 +230,10 @@ Function CloseInventory()
 EndFunction
 
 Function Send_GDOTStateChange(string StateName = "")
-	int targetEvent = ModEvent.Create("BiS_GDOTStateChange_" + DirtyActorFID)
-	ModEvent.PushString(targetEvent, StateName)
-	ModEvent.PushString(targetEvent, DefaultState)
-	ModEvent.Send(targetEvent)
+	int targetEvent = Create("BiS_GDOTStateChange_" + DirtyActorFID)
+	PushString(targetEvent, StateName)
+	PushString(targetEvent, DefaultState)
+	Send(targetEvent)
 EndFunction
 
 ; ---------- Core States ----------
