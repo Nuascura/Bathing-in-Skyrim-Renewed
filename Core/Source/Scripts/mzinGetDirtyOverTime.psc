@@ -332,31 +332,41 @@ Function ResetDirtinessState(Float TargetLevel, Float TimeToClean, Float TimeToC
 
 	Bool BreakCondition = DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword)
 
-	Float BloodToClean = ((OlUtil.GetAlphaOverride("Blood", DirtyActor) - TargetLevel) / (TimeToClean / TimeToCleanInterval))
-	Float DirtToClean = ((OlUtil.GetAlphaOverride("Dirt", DirtyActor) - TargetLevel) / (TimeToClean / TimeToCleanInterval))
-	Float AmtToClean = ((LocalDirtinessPercentage - TargetLevel) / (TimeToClean / TimeToCleanInterval))
+	Float DirtToClean = OlUtil.GetAlphaOverride("Dirt", DirtyActor)
+	Float BloodToClean = OlUtil.GetAlphaOverride("Blood", DirtyActor)
+	Float SumToClean = LocalDirtinessPercentage
+	If DirtToClean > SumToClean
+		SumToClean = DirtToClean
+	EndIf
+	If BloodToClean > SumToClean
+		SumToClean = BloodToClean
+	EndIf
+
+	Float AmtToClean = ((SumToClean - TargetLevel) / (TimeToClean / TimeToCleanInterval))
 	if !(AmtToClean > 0)
 		return
 	endIf
 	
 	Utility.Wait(3.0)
 
-	While (LocalDirtinessPercentage != TargetLevel) && (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
-		if TargetLevel > (LocalDirtinessPercentage - AmtToClean)
-			LocalDirtinessPercentage = TargetLevel
+	While (SumToClean != TargetLevel) && (DirtyActor.HasMagicEffectWithKeyword(AnimationKeyword) == BreakCondition)
+		if TargetLevel > (SumToClean - AmtToClean)
+			SumToClean = TargetLevel
 		Else
-			LocalDirtinessPercentage -= AmtToClean
+			SumToClean -= AmtToClean
 		endIf
-		if DirtToClean > 0
+		if DirtToClean > SumToClean
 			DirtToClean -= AmtToClean
 			OlUtil.UpdateAlpha("Dirt", DirtyActor, DirtToClean)
 		endIf
-		if BloodToClean > 0
+		if BloodToClean > SumToClean
 			BloodToClean -= AmtToClean
 			OlUtil.UpdateAlpha("Blood", DirtyActor, BloodToClean)
 		endIf
 		Utility.Wait(TimeToCleanInterval)
 	EndWhile
+
+	LocalDirtinessPercentage = SumToClean
 EndFunction
 
 Function ModDirtinessState(Float ModAmount, Float ModRate, Float ModThreshold, Bool DoOverlay)
